@@ -146,9 +146,17 @@ ExprPtr ParseFn(BufferedLexer& lexer)
     ERROR(Operator)
   lexer.Next();
 
-  ExprPtr body = ParseExpr(lexer);
-  if(!body)
-    ERROR(Expr)
+  ExprPtr body;
+  if(TOKEN(Indent)) {
+    body = ParseBlock(lexer);
+    if(!body)
+      ERROR(Block)
+  }
+  else {
+    body = ParseExpr(lexer);
+    if(!body)
+      ERROR(Expr)
+  }
 
   return ExprPtr(new EFunction(move(param), move(body)));
 }
