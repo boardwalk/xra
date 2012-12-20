@@ -6,7 +6,9 @@ CXXFLAGS = -I/Users/at0m13/homebrew/include \
   `llvm-config --cxxflags --ldflags --libs core` \
 
 OBJECTS = main.o \
-  lexer.o
+  lexer.o \
+  parser.o \
+  expr-tostring.o
 
 all: xra
 

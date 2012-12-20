@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include "lexer.hpp"
+#include "parser.hpp"
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -9,19 +10,22 @@ using namespace xra;
 
 int main(int argc, char** argv)
 {
-  enum Mode { Lex };
-  Mode mode = Lex;
+  enum Mode { LexMode, ParseMode };
+  Mode mode = ParseMode;
 
   ifstream ifs;
   ofstream ofs;
 
   // parse options
   int c;
-  while((c = getopt(argc, argv, "lo:")) != -1) {
+  while((c = getopt(argc, argv, "lpo:")) != -1) {
     if(c == 'l') {
-      mode = Lex;
+      mode = LexMode;
     }
-    if(c == 'o') {
+    else if(c == 'p') {
+      mode = ParseMode;
+    }
+    else if(c == 'o') {
       ofs.open(optarg);
       if(!ofs) {
         cerr << "could not open output file " << optarg << endl;
@@ -41,17 +45,29 @@ int main(int argc, char** argv)
   istream& inputStream = ifs.is_open() ? ifs : cin;
   ostream& outputStream = ofs.is_open() ? ofs : cout;
 
-  if(mode == Lex)
+  Lexer lexer(inputStream);    
+
+  if(mode == LexMode)
   {
-    Lexer lexer(inputStream);    
     while(true) {
       Token token = lexer.Get();
       outputStream << token << endl;
-      if(token.type == Token::Error)
+      if(token.type == Token::Error) {
+        cerr << "lexing failed" << endl;
         return EXIT_FAILURE;
+      }
       if(token.type == Token::EndOfFile)
         break;
     }
+  }
+  else if(mode == ParseMode)
+  {
+    ExprPtr expr = Parse(lexer);
+    if(!expr) {
+      cerr << "parsing failed" << endl;
+      return EXIT_FAILURE;
+    }
+    outputStream << *expr << endl;
   }
 
   return EXIT_SUCCESS;
