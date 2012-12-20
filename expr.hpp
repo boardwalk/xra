@@ -13,14 +13,18 @@ class Expr
 {
 public:
   enum Kind {
+    Kind_EVoid,
     Kind_EVariable,
     Kind_EBoolean,
     Kind_EInteger,
     Kind_EFloat,
     Kind_EString,
     Kind_EBlock,
+    Kind_ETuple,
     Kind_EIf,
     Kind_EFunction,
+    Kind_EUnaryOp,
+    Kind_EBinaryOp,
     Kind_EExtern
   };
 
@@ -51,6 +55,19 @@ T& operator<<(T& stream, const Expr& expr)
 /*
  * Subexpressions
  */
+
+class EVoid : public Expr
+{
+public:
+  EVoid() :
+    Expr(Kind_EVoid)
+  {}
+
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EVoid;
+  }
+};
 
 class EVariable : public Expr
 {
@@ -153,6 +170,26 @@ public:
   vector<ExprPtr> exprs;
 };
 
+class ETuple : public Expr
+{
+public:
+  ETuple() :
+    Expr(Kind_ETuple)
+  {}
+
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_ETuple;
+  }
+
+  void Push(ExprPtr expr)
+  {
+    exprs.push_back(move(expr));
+  }
+
+  vector<ExprPtr> exprs;
+};
+
 class EIf : public Expr
 {
 public:
@@ -189,6 +226,44 @@ public:
 
   ExprPtr param;
   ExprPtr body;
+};
+
+class EUnaryOp : public Expr
+{
+public:
+  EUnaryOp(string op_, ExprPtr expr_) :
+    Expr(Kind_EUnaryOp),
+    op(move(op_)),
+    expr(move(expr_))
+  {}
+
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EUnaryOp;
+  }
+
+  const string op;
+  ExprPtr expr;
+};
+
+class EBinaryOp : public Expr
+{
+public:
+  EBinaryOp(string op_, ExprPtr left_, ExprPtr right_) :
+    Expr(Kind_EBinaryOp),
+    op(move(op_)),
+    left(move(left_)),
+    right(move(right_))
+  {}
+
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EBinaryOp;
+  }
+
+  const string op;
+  ExprPtr left;
+  ExprPtr right;
 };
 
 class EExtern : public Expr

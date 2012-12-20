@@ -7,10 +7,28 @@
 #define ERROR(t) \
   { \
     cerr << "expected " #t << " near " << lexer.Get() << endl; \
+    failure = true; \
     return {}; \
   }
 
 namespace xra {
+
+static const map<string, pair<int, bool> > binaryOperators {
+  {"||", {0, false}},
+  {"&&", {1, false}},
+  {"=", {2, false}},
+  {"+", {3, false}},
+  {"-", {3, false}},
+  {"*", {5, false}},
+  {"/", {5, false}},
+  {"^", {6, true}}
+};
+
+static const map<string, int> unaryOperators {
+  {"-", 4}
+};
+
+static bool failure = false; // TODO not reentrant
 
 TypePtr ParseType(BufferedLexer& lexer)
 {
@@ -135,54 +153,136 @@ ExprPtr ParseFn(BufferedLexer& lexer)
   return ExprPtr(new EFunction(move(param), move(body)));
 }
 
-ExprPtr ParseExpr(BufferedLexer& lexer)
+ExprPtr ParseExpr_P(BufferedLexer& lexer);
+
+ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
 {
-  if(TOKEN(Identifier)) {
-    ExprPtr expr(new EVariable(lexer.Get().strValue));
+  ExprPtr expr = ParseExpr_P(lexer);
+
+  while(TOKEN(Operator))
+  {
+    auto binaryOp = binaryOperators.find(lexer.Get().strValue);
+    if(binaryOp == binaryOperators.end())
+      break;
+    int prec = binaryOp->second.first;
+    bool rightAssoc = binaryOp->second.second;
+    if(prec < p)
+      break;
     lexer.Next();
-    return expr;
+
+    int q = rightAssoc ? prec : (1 + prec);
+
+    auto exprRight = ParseExpr_Exp(lexer, q);
+    if(!exprRight)
+      ERROR(Expr)
+
+    expr.reset(new EBinaryOp(binaryOp->first, move(expr), move(exprRight)));
   }
-  if(TOKEN(True)) {
+
+  return expr;
+}
+
+ExprPtr ParseExpr_P(BufferedLexer& lexer)
+{
+  ExprPtr expr;
+
+  if(TOKEN(Operator))
+  {
+    auto unaryOp = unaryOperators.find(lexer.Get().strValue);
+    if(unaryOp == unaryOperators.end()) {
+      cerr << "unknown unary operator " << lexer.Get().strValue << endl;
+      return {};
+    }
     lexer.Next();
-    return ExprPtr(new EBoolean(true));
+
+    expr = ParseExpr_Exp(lexer, unaryOp->second);
+    if(!expr)
+      ERROR(Expr)
+
+    expr.reset(new EUnaryOp(unaryOp->first, move(expr)));
+  }
+  else if(TOKEN(OpenParen))
+  {
+    lexer.Next();
+
+    auto tuple = make_unique<ETuple>();
+
+    while(true) {
+      auto e = ParseExpr_Exp(lexer, 0);
+      if(!e)
+        break;
+      tuple->Push(move(e));
+
+      if(!TOKEN(Comma))
+        break;
+      lexer.Next();
+    }
+
+    if(!TOKEN(CloseParen))
+      ERROR(CloseParen)
+    lexer.Next();
+
+    if(tuple->exprs.empty()) {
+      expr.reset(new EVoid);
+    }
+    else if(tuple->exprs.size() == 1) {
+      expr = move(tuple->exprs.front());
+    }
+    else {
+      expr.reset(tuple.release());
+    }
+  }
+  else if(TOKEN(Identifier)) {
+    expr.reset(new EVariable(lexer.Get().strValue));
+    lexer.Next();
+  }
+  else if(TOKEN(True)) {
+    expr.reset(new EBoolean(true));
+    lexer.Next();
   }
   else if(TOKEN(False)) {
+    expr.reset(new EBoolean(false));
     lexer.Next();
-    return ExprPtr(new EBoolean(false));
   }
   else if(TOKEN(Integer)) {
-    ExprPtr expr(new EInteger(lexer.Get().intValue));
+    expr.reset(new EInteger(lexer.Get().intValue));
     lexer.Next();
-    return expr;
   }
   else if(TOKEN(Float)) {
-    ExprPtr expr(new EFloat(lexer.Get().floatValue));
+    expr.reset(new EFloat(lexer.Get().floatValue));
     lexer.Next();
-    return expr;
   }
   else if(TOKEN(String)) {
-    ExprPtr expr(new EString(lexer.Get().strValue));
+    expr.reset(new EString(lexer.Get().strValue));
     lexer.Next();
-    return expr;
   }
-  if(TOKEN(Extern)) {
-    return ParseExtern(lexer);
+  else if(TOKEN(Extern)) {
+    expr = ParseExtern(lexer);
   }
   else if(TOKEN(If)) {
-    return ParseIf(lexer);
+    expr = ParseIf(lexer);
   }
   else if(TOKEN(Fn)) {
-    return ParseFn(lexer);
+    expr = ParseFn(lexer);
   }
-  return {};
+
+  return expr;
+}
+
+ExprPtr ParseExpr(BufferedLexer& lexer)
+{
+  return ParseExpr_Exp(lexer, 0);
 }
 
 ExprPtr Parse(BufferedLexer& lexer)
 {
   lexer.Next();
+  failure = false;
   ExprPtr expr = ParseExpr(lexer);
   if(!TOKEN(EndOfFile))
     ERROR(EndOfFile)
+  if(failure)
+    expr.reset();
   return expr;
 }
 

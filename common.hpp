@@ -1,9 +1,10 @@
 #ifndef XRA_COMMON_HPP
 #define XRA_COMMON_HPP
 
+#include <map>
 #include <memory>
-#include <string>
 #include <stack>
+#include <string>
 #include <vector>
 
 namespace xra {

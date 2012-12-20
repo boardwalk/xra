@@ -9,6 +9,11 @@ struct ExprToStringVisitor
 {
   stringstream ss;
 
+  void Visit(const EVoid&)
+  {
+    ss << "()";
+  }
+
   void Visit(const EVariable& expr)
   {
     ss << expr.name;
@@ -44,6 +49,16 @@ struct ExprToStringVisitor
     ss << ")";
   }
 
+  void Visit(const ETuple& expr)
+  {
+    ss << "(t";
+    for(auto& e : expr.exprs) {
+      ss << " ";
+      VisitExpr(*e, *this);
+    }
+    ss << ")";
+  }
+
   void Visit(const EIf& expr)
   {
     ss << "(if ";
@@ -63,6 +78,22 @@ struct ExprToStringVisitor
     VisitExpr(*expr.param, *this);
     ss << " ";
     VisitExpr(*expr.body, *this);
+    ss << ")";
+  }
+
+  void Visit(const EUnaryOp& expr)
+  {
+    ss << "(" << expr.op << " ";
+    VisitExpr(*expr.expr, *this);
+    ss << ")";
+  }
+
+  void Visit(const EBinaryOp& expr)
+  {
+    ss << "(" << expr.op << " ";
+    VisitExpr(*expr.left, *this);
+    ss << " ";
+    VisitExpr(*expr.right, *this);
     ss << ")";
   }
 

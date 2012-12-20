@@ -19,6 +19,18 @@ static bool IdentifierSubsequent(char c)
   return IdentifierInitial(c) || isdigit(c);
 }
 
+static bool Operator(char c)
+{
+  switch(c) {
+    case '!': case '$': case '%': case '&': case '*':
+    case '+': case '-': case '.': case '/': case '<':
+    case '=': case '>': case '?': case '@': case '\\':
+    case '^': case '`': case '~':
+      return true;
+  }
+  return false;
+}
+
 string Token::ToString() const
 {
   stringstream ss;
@@ -242,7 +254,18 @@ Token Lexer::Get()
     return MakeToken(Token::Semicolon);
   }
 
-  if(isdigit(lastChar) || lastChar == '-')
+  if(Operator(lastChar))
+  {
+    string str(1, lastChar);
+    while(Operator(GetChar()))
+      str += lastChar;
+
+    Token token = MakeToken(Token::Operator);
+    token.strValue = str;
+    return token;
+  }
+
+  if(isdigit(lastChar))
   {
     Token token;
     if(Number(token))
@@ -253,20 +276,6 @@ Token Lexer::Get()
     Token token;
     if(String(token))
       return token;
-  }
-
-  if(isprint(lastChar))
-  {
-    string str(1, lastChar);
-    GetChar();
-    while(isprint(lastChar) && !IsSpace(lastChar) && lastChar != '#') {
-      str += lastChar;
-      GetChar();
-    }
-
-    Token token = MakeToken(Token::Operator);
-    token.strValue = str;
-    return token;
   }
 
   if(lastChar == EOF) {
@@ -309,19 +318,7 @@ bool Lexer::NestableComment()
 
 bool Lexer::Number(Token& token)
 {
-  string s;
-
-  if(lastChar == '-') {
-    s += lastChar;
-    GetChar();
-  }
-
-  if(!isdigit(lastChar)) {
-    UngetStr(s);
-    return false;
-  }
-  s += lastChar;
-
+  string s(1, lastChar);
   while(isdigit(GetChar()))
     s += lastChar;
 
