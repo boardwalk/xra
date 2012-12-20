@@ -13,6 +13,7 @@ class Expr
 {
 public:
   enum Kind {
+    Kind_EError,
     Kind_EVoid,
     Kind_EVariable,
     Kind_EBoolean,
@@ -32,6 +33,9 @@ public:
 
   // expr-tostring.cpp
   string ToString() const;
+
+  // expr-geterrors.cpp
+  string GetErrors() const;
 
 protected:
   Expr(Kind kind_) :
@@ -53,7 +57,21 @@ T& operator<<(T& stream, const Expr& expr)
 /*
  * Subexpressions
  */
+class EError : public Expr
+{
+public:
+  EError(string what_) :
+    Expr(Kind_EError),
+    what(move(what_))
+  {}
 
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EError;
+  }
+
+  const string what;
+};
 class EVoid : public Expr
 {
 public:

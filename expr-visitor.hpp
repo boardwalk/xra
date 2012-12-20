@@ -15,6 +15,7 @@ template<class Ty, class ClassTy>
 void VisitExpr(Ty& expr, ClassTy& visitor)
 {
   switch(expr.kind) {
+    VISIT(EError)
     VISIT(EVoid)
     VISIT(EVariable)
     VISIT(EBoolean)

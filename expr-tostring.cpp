@@ -9,6 +9,11 @@ struct ExprToStringVisitor
 {
   stringstream ss;
 
+  void Visit(const EError& expr)
+  {
+    ss << "<" << expr.what << ">";
+  }
+
   void Visit(const EVoid&)
   {
     ss << "()";

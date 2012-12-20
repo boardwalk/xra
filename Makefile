@@ -10,6 +10,7 @@ OBJECTS = common.o \
 	lexer.o \
 	parser.o \
 	expr-tostring.o \
+	expr-geterrors.o \
 	type-tostring.o
 
 all: xra

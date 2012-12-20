@@ -52,10 +52,12 @@ int main(int argc, char** argv)
     while(true) {
       Token token = lexer.Get();
       outputStream << token << endl;
+
       if(token.type == Token::Error) {
         cerr << "lexing failed" << endl;
         return EXIT_FAILURE;
       }
+
       if(token.type == Token::EndOfFile)
         break;
     }
@@ -64,10 +66,14 @@ int main(int argc, char** argv)
   {
     BufferedLexer bufferedLexer(lexer);
     ExprPtr expr = Parse(bufferedLexer);
-    if(!expr) {
+
+    string errors = expr->GetErrors();
+    if(!errors.empty()) {
+      cerr << errors << endl;
       cerr << "parsing failed" << endl;
       return EXIT_FAILURE;
     }
+
     outputStream << *expr << endl;
   }
 
