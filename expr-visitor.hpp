@@ -3,28 +3,29 @@
 
 namespace xra {
 
-template<typename Source, typename Target>
-struct CopyConst { typedef Target type; };
-
-template<typename Source, typename Target>
-struct CopyConst<const Source, Target> { typedef const Target type; };
-
 #define VISIT(c) \
-  case Expr::K##c: \
+  case Expr::Kind_##c: \
   { \
-    typedef typename CopyConst<ExprTy, c>::type SubExprTy; \
-    return static_cast<ClassTy*>(this)->Visit(static_cast<SubExprTy&>(expr)); \
+    typedef typename CopyConst<Ty, c>::type SubTy; \
+    return static_cast<ClassTy*>(this)->Visit(static_cast<SubTy&>(expr)); \
   }
 
 template<typename ClassTy, typename ResultTy=void>
 class ExprVisitor
 {
 public:
-  template<class ExprTy>
-  ResultTy DoVisit(ExprTy& expr)
+  template<class Ty>
+  ResultTy DoVisit(Ty& expr)
   {
     switch(expr.kind) {
-      VISIT(Extern)
+      VISIT(EVariable)
+      VISIT(EBoolean)
+      VISIT(EInteger)
+      VISIT(EFloat)
+      VISIT(EString)
+      VISIT(EBlock)
+      VISIT(EIf)
+      VISIT(EExtern)
     }
   }
 };

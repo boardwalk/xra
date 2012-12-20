@@ -25,6 +25,7 @@ struct Token
     OpenParen,
     CloseParen,
     Comma,
+    Colon,
     Semicolon,
     Integer, // intValue
     Float, // floatValue

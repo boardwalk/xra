@@ -62,7 +62,8 @@ int main(int argc, char** argv)
   }
   else if(mode == ParseMode)
   {
-    ExprPtr expr = Parse(lexer);
+    BufferedLexer bufferedLexer(lexer);
+    ExprPtr expr = Parse(bufferedLexer);
     if(!expr) {
       cerr << "parsing failed" << endl;
       return EXIT_FAILURE;

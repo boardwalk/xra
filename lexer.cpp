@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "lexer.hpp"
 #include <sstream>
-#include <iomanip>
 
 namespace xra {
 
@@ -18,20 +17,6 @@ static bool IdentifierInitial(char c)
 static bool IdentifierSubsequent(char c)
 {
   return IdentifierInitial(c) || isdigit(c);
-}
-
-static std::string EscapeString(const string& str)
-{
-  stringstream ss;
-  for(size_t i = 0; i < str.size(); i++) {
-    if(str[i] == '\"')
-      ss << "\\\"";
-    else if(!isprint(str[i]))
-      ss << "\\x" << hex << setw(2) << setfill('0') << (int)str[i];
-    else
-      ss << str[i];
-  }
-  return ss.str();
 }
 
 string Token::ToString() const
@@ -82,6 +67,9 @@ string Token::ToString() const
       break;
     case Comma:
       ss << ',';
+      break;
+    case Colon:
+      ss << ':';
       break;
     case Semicolon:
       ss << ';';
@@ -244,6 +232,11 @@ Token Lexer::Get()
     return MakeToken(Token::Comma);
   }
 
+  if(lastChar == ':') {
+    GetChar();
+    return MakeToken(Token::Colon);
+  }
+
   if(lastChar == ';') {
     GetChar();
     return MakeToken(Token::Semicolon);
@@ -276,8 +269,13 @@ Token Lexer::Get()
     return token;
   }
 
-  if(lastChar == EOF)
+  if(lastChar == EOF) {
+    if(indents.size() > 1) {
+      indents.pop();
+      return MakeToken(Token::Dedent);
+    }
     return MakeToken(Token::EndOfFile);
+  }
 
   return MakeError("invalid character");
 }

@@ -1,12 +1,12 @@
 #ifndef XRA_PARSER_HPP
 #define XRA_PARSER_HPP
 
-#include "lexer.hpp"
+#include "buffered-lexer.hpp"
 #include "expr.hpp"
 
 namespace xra {
 
-ExprPtr Parse(Lexer&);
+ExprPtr Parse(BufferedLexer&);
 
 } // namespace xra
 

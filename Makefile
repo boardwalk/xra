@@ -5,10 +5,12 @@ CXXFLAGS = -I/Users/at0m13/homebrew/include \
   -std=c++11 -g -O0 \
   `llvm-config --cxxflags --ldflags --libs core` \
 
-OBJECTS = main.o \
-  lexer.o \
-  parser.o \
-  expr-tostring.o
+OBJECTS = common.o \
+ 	main.o \
+	lexer.o \
+	parser.o \
+	expr-tostring.o \
+	type-tostring.o
 
 all: xra
 
