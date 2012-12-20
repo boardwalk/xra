@@ -7,28 +7,24 @@ namespace xra {
   case Expr::Kind_##c: \
   { \
     typedef typename CopyConst<Ty, c>::type SubTy; \
-    return static_cast<ClassTy*>(this)->Visit(static_cast<SubTy&>(expr)); \
+    visitor.Visit(static_cast<SubTy&>(expr)); \
+    break; \
   }
 
-template<typename ClassTy, typename ResultTy=void>
-class ExprVisitor
+template<class Ty, class ClassTy>
+void VisitExpr(Ty& expr, ClassTy& visitor)
 {
-public:
-  template<class Ty>
-  ResultTy DoVisit(Ty& expr)
-  {
-    switch(expr.kind) {
-      VISIT(EVariable)
-      VISIT(EBoolean)
-      VISIT(EInteger)
-      VISIT(EFloat)
-      VISIT(EString)
-      VISIT(EBlock)
-      VISIT(EIf)
-      VISIT(EExtern)
-    }
+  switch(expr.kind) {
+    VISIT(EVariable)
+    VISIT(EBoolean)
+    VISIT(EInteger)
+    VISIT(EFloat)
+    VISIT(EString)
+    VISIT(EBlock)
+    VISIT(EIf)
+    VISIT(EExtern)
   }
-};
+}
 
 #undef VISIT
 

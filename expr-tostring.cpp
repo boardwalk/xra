@@ -5,7 +5,7 @@
 
 namespace xra {
 
-struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor>
+struct ExprToStringVisitor
 {
   stringstream ss;
 
@@ -39,7 +39,7 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor>
     ss << "(block";
     for(auto& e : expr.exprs) {
       ss << " ";
-      DoVisit(*e);
+      VisitExpr(*e, *this);
     }
     ss << ")";
   }
@@ -47,12 +47,12 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor>
   void Visit(const EIf& expr)
   {
     ss << "(if ";
-    DoVisit(*expr.cond);
+    VisitExpr(*expr.cond, *this);
     ss << " ";
-    DoVisit(*expr.then);
+    VisitExpr(*expr.then, *this);
     if(expr._else) {
       ss << " ";
-      DoVisit(*expr._else);
+      VisitExpr(*expr._else, *this);
     }
     ss << ")";
   }
@@ -70,7 +70,7 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor>
 string Expr::ToString() const
 {
   ExprToStringVisitor visitor;
-  visitor.DoVisit(*this);
+  VisitExpr(*this, visitor);
   return visitor.ss.str();
 }
   

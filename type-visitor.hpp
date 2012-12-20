@@ -7,21 +7,17 @@ namespace xra {
   case Type::Kind_##c: \
   { \
     typedef typename CopyConst<Ty, c>::type SubTy; \
-    return static_cast<ClassTy*>(this)->Visit(static_cast<SubTy&>(type)); \
+    visitor.Visit(static_cast<SubTy&>(type)); \
+    break; \
   }
 
-template<typename ClassTy, typename ResultTy=void>
-class TypeVisitor
+template<class Ty, class ClassTy>
+void VisitType(Ty& type, ClassTy& visitor)
 {
-public:
-  template<class Ty>
-  ResultTy DoVisit(Ty& type)
-  {
-    switch(type.kind) {
-      VISIT(TVariable)
-    }
+  switch(type.kind) {
+    VISIT(TVariable)
   }
-};
+}
 
 #undef VISIT
 

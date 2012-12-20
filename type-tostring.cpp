@@ -4,7 +4,7 @@
 
 namespace xra {
 
-struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor>
+struct TypeToStringVisitor
 {
   string str;
 
@@ -17,7 +17,7 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor>
 string Type::ToString() const
 {
   TypeToStringVisitor visitor;
-  visitor.DoVisit(*this);
+  VisitType(*this, visitor);
   return visitor.str;
 }
 
