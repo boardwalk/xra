@@ -39,26 +39,6 @@ struct ExprToStringVisitor
     ss << "\"" << EscapeString(expr.value) << "\"";
   }
 
-  void Visit(const EBlock& expr)
-  {
-    ss << "(block";
-    for(auto& e : expr.exprs) {
-      ss << " ";
-      VisitExpr(*e, *this);
-    }
-    ss << ")";
-  }
-
-  void Visit(const ETuple& expr)
-  {
-    ss << "(t";
-    for(auto& e : expr.exprs) {
-      ss << " ";
-      VisitExpr(*e, *this);
-    }
-    ss << ")";
-  }
-
   void Visit(const EIf& expr)
   {
     ss << "(if ";

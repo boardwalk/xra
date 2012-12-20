@@ -19,8 +19,6 @@ public:
     Kind_EInteger,
     Kind_EFloat,
     Kind_EString,
-    Kind_EBlock,
-    Kind_ETuple,
     Kind_EIf,
     Kind_EFunction,
     Kind_EUnaryOp,
@@ -148,46 +146,6 @@ public:
   }
 
   const string value;
-};
-
-class EBlock : public Expr
-{
-public:
-  EBlock() :
-    Expr(Kind_EBlock)
-  {}
-
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EBlock;
-  }
-
-  void Push(ExprPtr expr)
-  {
-    exprs.push_back(move(expr));
-  }
-
-  vector<ExprPtr> exprs;
-};
-
-class ETuple : public Expr
-{
-public:
-  ETuple() :
-    Expr(Kind_ETuple)
-  {}
-
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_ETuple;
-  }
-
-  void Push(ExprPtr expr)
-  {
-    exprs.push_back(move(expr));
-  }
-
-  vector<ExprPtr> exprs;
 };
 
 class EIf : public Expr

@@ -14,18 +14,36 @@
 namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
-  {"||", {0, false}},
-  {"&&", {1, false}},
-  {"=", {2, false}},
-  {"+", {3, false}},
-  {"-", {3, false}},
-  {"*", {5, false}},
-  {"/", {5, false}},
-  {"^", {6, true}}
+  {".", {18, false}},
+  {"*", {15, false}},
+  {"/", {15, false}},
+  {"+", {14, false}},
+  {"-", {14, false}},
+  {"<<", {13, false}},
+  {">>", {13, false}},
+  {"<", {12, false}},
+  {"<=", {12, false}},
+  {">", {12, false}},
+  {">=", {12, false}},
+  {"==", {11, false}},
+  {"!=", {11, false}},
+  {"&", {10, false}},
+  {"^", {9, false}},
+  {"|", {8, false}},
+  {"&&", {7, false}},
+  {"||", {6, false}},
+  {",", {5, false}},
+  {"=", {3, true}},
+  {";", {2, true}}
 };
 
 static const map<string, int> unaryOperators {
-  {"-", 4}
+  {"+", 17},
+  {"-", 17},
+  {"!", 17},
+  {"~", 17},
+  {"*", 17},
+  {"&", 17}
 };
 
 static bool failure = false; // TODO not reentrant
@@ -46,31 +64,36 @@ TypePtr ParseType(BufferedLexer& lexer)
 
 ExprPtr ParseExpr(BufferedLexer&);
 
+ExprPtr ParseFlatBlock(BufferedLexer& lexer)
+{
+  ExprPtr left = ParseExpr(lexer);
+  if(!left)
+    ERROR(Expr)
+
+  if(!TOKEN(Nodent))
+    return left;
+  lexer.Next();
+
+  ExprPtr right = ParseFlatBlock(lexer);
+  if(!right)
+    ERROR(FlatBlock)
+
+  return ExprPtr(new EBinaryOp(";", move(left), move(right)));
+}
+
 ExprPtr ParseBlock(BufferedLexer& lexer)
 {
-  auto block = make_unique<EBlock>();
-
   if(!TOKEN(Indent))
     return {};
   lexer.Next();
 
-  while(true) {
-    ExprPtr expr = ParseExpr(lexer);
-    if(!expr)
-      ERROR(Expr)
-
-    block->Push(move(expr));
-
-    if(!TOKEN(Nodent))
-      break;
-    lexer.Next();
-  }
+  ExprPtr expr = ParseFlatBlock(lexer);
 
   if(!TOKEN(Dedent))
     ERROR(Dedent)
   lexer.Next();
 
-  return ExprPtr(block.release());
+  return expr;
 }
 
 ExprPtr ParseExtern(BufferedLexer& lexer)
@@ -141,6 +164,9 @@ ExprPtr ParseFn(BufferedLexer& lexer)
   ExprPtr param = ParseExpr(lexer);
   if(!param)
     ERROR(Expr)
+
+  cout << *param << endl;
+  cout << lexer.Get() << endl;
 
   if(!TOKEN(Operator) || lexer.Get().strValue != "->")
     ERROR(Operator)
@@ -213,32 +239,14 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
   {
     lexer.Next();
 
-    auto tuple = make_unique<ETuple>();
-
-    while(true) {
-      auto e = ParseExpr_Exp(lexer, 0);
-      if(!e)
-        break;
-      tuple->Push(move(e));
-
-      if(!TOKEN(Comma))
-        break;
-      lexer.Next();
-    }
+    expr = ParseExpr_Exp(lexer, 0);
 
     if(!TOKEN(CloseParen))
       ERROR(CloseParen)
     lexer.Next();
 
-    if(tuple->exprs.empty()) {
+    if(!expr)
       expr.reset(new EVoid);
-    }
-    else if(tuple->exprs.size() == 1) {
-      expr = move(tuple->exprs.front());
-    }
-    else {
-      expr.reset(tuple.release());
-    }
   }
   else if(TOKEN(Identifier)) {
     expr.reset(new EVariable(lexer.Get().strValue));

@@ -22,10 +22,12 @@ static bool IdentifierSubsequent(char c)
 static bool Operator(char c)
 {
   switch(c) {
-    case '!': case '$': case '%': case '&': case '*':
-    case '+': case '-': case '.': case '/': case '<':
-    case '=': case '>': case '?': case '@': case '\\':
-    case '^': case '`': case '|': case '~':
+    case '!': case '$': case '%': case '&':
+    case '*': case '+': case ',': case '-':
+    case '.': case '/': case ';': case '<':
+    case '=': case '>': case '?': case '@':
+    case '\\': case '^': case '`': case '|':
+    case '~':
       return true;
   }
   return false;
@@ -77,14 +79,8 @@ string Token::ToString() const
     case CloseParen:
       ss << ')';
       break;
-    case Comma:
-      ss << ',';
-      break;
     case Colon:
       ss << ':';
-      break;
-    case Semicolon:
-      ss << ';';
       break;
     case Integer:
       ss << intValue;
@@ -239,19 +235,9 @@ Token Lexer::Get()
     return MakeToken(Token::CloseParen);
   }
 
-  if(lastChar == ',') {
-    GetChar();
-    return MakeToken(Token::Comma);
-  }
-
   if(lastChar == ':') {
     GetChar();
     return MakeToken(Token::Colon);
-  }
-
-  if(lastChar == ';') {
-    GetChar();
-    return MakeToken(Token::Semicolon);
   }
 
   if(Operator(lastChar))
