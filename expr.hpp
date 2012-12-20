@@ -20,6 +20,7 @@ public:
     Kind_EString,
     Kind_EBlock,
     Kind_EIf,
+    Kind_EFunction,
     Kind_EExtern
   };
 
@@ -162,9 +163,32 @@ public:
     _else(move(else_))
   {}
 
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EIf;
+  }
+
   ExprPtr cond;
   ExprPtr then;
   ExprPtr _else;
+};
+
+class EFunction : public Expr
+{
+public:
+  EFunction(ExprPtr param_, ExprPtr body_) :
+    Expr(Kind_EFunction),
+    param(move(param_)),
+    body(move(body_))
+  {}
+
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EFunction;
+  }
+
+  ExprPtr param;
+  ExprPtr body;
 };
 
 class EExtern : public Expr

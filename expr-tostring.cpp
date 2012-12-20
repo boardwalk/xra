@@ -57,6 +57,15 @@ struct ExprToStringVisitor
     ss << ")";
   }
 
+  void Visit(const EFunction& expr)
+  {
+    ss << "(fn ";
+    VisitExpr(*expr.param, *this);
+    ss << " ";
+    VisitExpr(*expr.body, *this);
+    ss << ")";
+  }
+
   void Visit(const EExtern& expr)
   {
     ss << "(extern ";

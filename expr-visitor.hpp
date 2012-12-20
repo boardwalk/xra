@@ -22,6 +22,7 @@ void VisitExpr(Ty& expr, ClassTy& visitor)
     VISIT(EString)
     VISIT(EBlock)
     VISIT(EIf)
+    VISIT(EFunction)
     VISIT(EExtern)
   }
 }

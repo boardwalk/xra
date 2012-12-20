@@ -114,6 +114,27 @@ ExprPtr ParseIf(BufferedLexer& lexer)
   return ExprPtr(new EIf(move(cond), move(then), move(_else)));
 }
 
+ExprPtr ParseFn(BufferedLexer& lexer)
+{
+  if(!TOKEN(Fn))
+    return {};
+  lexer.Next();
+
+  ExprPtr param = ParseExpr(lexer);
+  if(!param)
+    ERROR(Expr)
+
+  if(!TOKEN(Operator) || lexer.Get().strValue != "->")
+    ERROR(Operator)
+  lexer.Next();
+
+  ExprPtr body = ParseExpr(lexer);
+  if(!body)
+    ERROR(Expr)
+
+  return ExprPtr(new EFunction(move(param), move(body)));
+}
+
 ExprPtr ParseExpr(BufferedLexer& lexer)
 {
   if(TOKEN(Identifier)) {
@@ -149,6 +170,9 @@ ExprPtr ParseExpr(BufferedLexer& lexer)
   }
   else if(TOKEN(If)) {
     return ParseIf(lexer);
+  }
+  else if(TOKEN(Fn)) {
+    return ParseFn(lexer);
   }
   return {};
 }
