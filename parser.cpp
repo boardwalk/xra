@@ -18,6 +18,7 @@ namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
   {".", {18, false}},
+  {"", {16, false}},
   {"*", {15, false}},
   {"/", {15, false}},
   {"+", {14, false}},
@@ -35,7 +36,8 @@ static const map<string, pair<int, bool> > binaryOperators {
   {"|", {8, false}},
   {"&&", {7, false}},
   {"||", {6, false}},
-  {",", {5, false}},
+  {"$", {5, false}},
+  {",", {4, false}},
   {"=", {3, true}},
   {";", {2, true}}
 };
@@ -193,24 +195,34 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
 {
   ExprPtr expr = ParseExpr_P(lexer);
 
-  while(TOKEN(Operator))
+  while(true)
   {
-    auto binaryOp = binaryOperators.find(lexer.Get().strValue);
+    string op;
+    if(TOKEN(Operator))
+      op = lexer.Get().strValue;
+
+    auto binaryOp = binaryOperators.find(op);
     if(binaryOp == binaryOperators.end())
       break;
     int prec = binaryOp->second.first;
     bool rightAssoc = binaryOp->second.second;
     if(prec < p)
       break;
-    lexer.Next();
+    if(!op.empty())
+      lexer.Next();
 
     int q = rightAssoc ? prec : (1 + prec);
 
     auto exprRight = ParseExpr_Exp(lexer, q);
-    if(!exprRight)
-      EXPECTED(Expr)
+    if(!exprRight) {
+      if(!op.empty())
+        EXPECTED(Expr)
+      break;
+    }
 
-    expr.reset(new EBinaryOp(binaryOp->first, move(expr), move(exprRight)));
+    if(op.empty())
+      op = "$";
+    expr.reset(new EBinaryOp(op, move(expr), move(exprRight)));
   }
 
   return expr;
@@ -223,9 +235,10 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
   if(TOKEN(Operator))
   {
     auto unaryOp = unaryOperators.find(lexer.Get().strValue);
+    lexer.Next();
+
     if(unaryOp == unaryOperators.end())
       ERROR("unknown unary operator")
-    lexer.Next();
 
     expr = ParseExpr_Exp(lexer, unaryOp->second);
     if(!expr)
