@@ -17,7 +17,8 @@
 namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
-  {".", {18, false}},
+  {"\\", {19, true}},
+  {".", {18, true}},
   {"", {16, false}},
   {"*", {15, false}},
   {"/", {15, false}},
@@ -36,10 +37,9 @@ static const map<string, pair<int, bool> > binaryOperators {
   {"|", {8, false}},
   {"&&", {7, false}},
   {"||", {6, false}},
-  {"$", {5, false}},
-  {",", {4, false}},
-  {"=", {3, true}},
-  {";", {2, true}}
+  {",", {4, true}},
+  {"=", {2, true}},
+  {";", {1, true}}
 };
 
 static const map<string, int> unaryOperators {
