@@ -156,7 +156,10 @@ ExprPtr ParseExpr(BufferedLexer& lexer)
 ExprPtr Parse(BufferedLexer& lexer)
 {
   lexer.Next();
-  return ParseExpr(lexer);
+  ExprPtr expr = ParseExpr(lexer);
+  if(!TOKEN(EndOfFile))
+    ERROR(EndOfFile)
+  return expr;
 }
 
 } // namespace xra
