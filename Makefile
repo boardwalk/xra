@@ -3,10 +3,10 @@ CXX = g++-4.7
 CXXFLAGS = -I/Users/at0m13/homebrew/include \
   -Wall -Werror -pedantic-errors \
   -std=c++11 -g -O0 \
-  `llvm-config --cxxflags --ldflags --libs core` \
+  `llvm-config --cxxflags --ldflags --libs core`
 
 OBJECTS = common.o \
- 	main.o \
+	main.o \
 	lexer.o \
 	parser.o \
 	expr-tostring.o \
