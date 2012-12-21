@@ -23,6 +23,7 @@ public:
     Kind_EIf,
     Kind_EFunction,
     Kind_ECall,
+    Kind_EReturn,
     Kind_EList,
     Kind_EExtern
   };
@@ -220,6 +221,22 @@ public:
 
   ExprPtr function;
   ExprPtr argument;
+};
+
+class EReturn : public Expr
+{
+public:
+  EReturn(ExprPtr expr_) :
+    Expr(Kind_EReturn),
+    expr(move(expr_))
+  {}
+
+  static bool classof(const Expr* expr)
+  {
+    return expr->kind == Kind_EReturn;
+  }
+
+  ExprPtr expr;
 };
 
 class EList : public Expr

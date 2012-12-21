@@ -25,6 +25,7 @@ void VisitExpr(Ty& expr, ClassTy& visitor)
     VISIT(EIf)
     VISIT(EFunction)
     VISIT(ECall)
+    VISIT(EReturn)
     VISIT(EList)
     VISIT(EExtern)
   }

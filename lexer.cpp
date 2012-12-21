@@ -51,14 +51,17 @@ string Token::ToString() const
     case Fn:
       ss << "fn";
       break;
+    case Else:
+      ss << "else";
+      break;
     case If:
       ss << "if";
       break;
     case Then:
       ss << "then";
       break;
-    case Else:
-      ss << "else";
+    case Return:
+      ss << "return";
       break;
     case True:
       ss << "true";
@@ -219,6 +222,7 @@ Token Lexer::Get()
     if(str == "if") return MakeToken(Token::If);
     if(str == "then") return MakeToken(Token::Then);
     if(str == "else") return MakeToken(Token::Else);
+    if(str == "return") return MakeToken(Token::Return);
     if(str == "true") return MakeToken(Token::True);
     if(str == "false") return MakeToken(Token::False);
     if(str == "extern") return MakeToken(Token::Extern);

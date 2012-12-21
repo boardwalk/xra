@@ -15,6 +15,7 @@ struct Token
     Nodent,
     Dedent,
     Fn,
+    Return,
     If,
     Then,
     Else,

@@ -156,6 +156,19 @@ ExprPtr ParseIf(BufferedLexer& lexer)
   return ExprPtr(new EIf(move(cond), move(then), move(_else)));
 }
 
+ExprPtr ParseReturn(BufferedLexer& lexer)
+{
+  if(!TOKEN(Return))
+    return {};
+  lexer.Next();
+
+  ExprPtr expr = ParseExpr(lexer);
+  if(!expr)
+    EXPECTED(Expr)
+
+  return ExprPtr(new EReturn(move(expr)));
+}
+
 ExprPtr ParseFn(BufferedLexer& lexer)
 {
   if(!TOKEN(Fn))
@@ -323,6 +336,9 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
   }
   else if(TOKEN(If)) {
     expr = ParseIf(lexer);
+  }
+  else if(TOKEN(Return)) {
+    expr = ParseReturn(lexer);
   }
   else if(TOKEN(Fn)) {
     expr = ParseFn(lexer);

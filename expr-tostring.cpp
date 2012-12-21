@@ -75,6 +75,13 @@ struct ExprToStringVisitor
     ss << ")";
   }
 
+  void Visit(const EReturn& expr)
+  {
+    ss << "(return ";
+    VisitExpr(*expr.expr, *this);
+    ss << ")";
+  }
+
   void Visit(const EList& expr)
   {
     ss << "{";
@@ -102,5 +109,5 @@ string Expr::ToString() const
   VisitExpr(*this, visitor);
   return visitor.ss.str();
 }
-  
+
 } // namespace xra
