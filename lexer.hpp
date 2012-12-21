@@ -84,7 +84,7 @@ public:
     lastChar(' '),
     line(1),
     column(0),
-    dedentCount(0)
+    dedentCount(-1)
   {
     indents.push(0);
   }

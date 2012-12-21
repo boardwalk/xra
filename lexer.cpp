@@ -155,9 +155,14 @@ Token Lexer::MakeError(const char* err)
 
 Token Lexer::Get()
 {
-  if(dedentCount) {
+  if(dedentCount > 0) {
     dedentCount--;
     return MakeToken(Token::Dedent);
+  }
+
+  if(dedentCount == 0) {
+    dedentCount--;
+    return MakeToken(Token::Nodent);
   }
 
   while(IsSpace(lastChar))
@@ -187,6 +192,7 @@ Token Lexer::Get()
     if(indentSize == indents.top())
       return MakeToken(Token::Nodent);
 
+    dedentCount = 0;
     do {
       indents.pop();
       dedentCount++;
