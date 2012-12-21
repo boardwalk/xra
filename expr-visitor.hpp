@@ -24,8 +24,8 @@ void VisitExpr(Ty& expr, ClassTy& visitor)
     VISIT(EString)
     VISIT(EIf)
     VISIT(EFunction)
-    VISIT(EUnaryOp)
-    VISIT(EBinaryOp)
+    VISIT(ECall)
+    VISIT(EList)
     VISIT(EExtern)
   }
 }

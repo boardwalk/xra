@@ -22,8 +22,8 @@ public:
     Kind_EString,
     Kind_EIf,
     Kind_EFunction,
-    Kind_EUnaryOp,
-    Kind_EBinaryOp,
+    Kind_ECall,
+    Kind_EList,
     Kind_EExtern
   };
 
@@ -204,42 +204,37 @@ public:
   ExprPtr body;
 };
 
-class EUnaryOp : public Expr
+class ECall : public Expr
 {
 public:
-  EUnaryOp(string op_, ExprPtr expr_) :
-    Expr(Kind_EUnaryOp),
-    op(move(op_)),
-    expr(move(expr_))
+  ECall(ExprPtr function_, ExprPtr argument_) :
+    Expr(Kind_ECall),
+    function(move(function_)),
+    argument(move(argument_))
   {}
 
   static bool classof(const Expr* expr)
   {
-    return expr->kind == Kind_EUnaryOp;
+    return expr->kind == Kind_ECall;
   }
 
-  const string op;
-  ExprPtr expr;
+  ExprPtr function;
+  ExprPtr argument;
 };
 
-class EBinaryOp : public Expr
+class EList : public Expr
 {
 public:
-  EBinaryOp(string op_, ExprPtr left_, ExprPtr right_) :
-    Expr(Kind_EBinaryOp),
-    op(move(op_)),
-    left(move(left_)),
-    right(move(right_))
+  EList() :
+    Expr(Kind_EList)
   {}
 
   static bool classof(const Expr* expr)
   {
-    return expr->kind == Kind_EBinaryOp;
+    return expr->kind == Kind_EList;
   }
 
-  const string op;
-  ExprPtr left;
-  ExprPtr right;
+  vector<ExprPtr> exprs;
 };
 
 class EExtern : public Expr

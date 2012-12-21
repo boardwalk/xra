@@ -34,15 +34,16 @@ struct ExprGetErrorsVisitor
     VisitExpr(*expr.body, *this);
   }
 
-  void Visit(const EUnaryOp& expr)
+  void Visit(const ECall& expr)
   {
-    VisitExpr(*expr.expr, *this);
+    VisitExpr(*expr.function, *this);
+    VisitExpr(*expr.argument, *this);
   }
 
-  void Visit(const EBinaryOp& expr)
+  void Visit(const EList& expr)
   {
-    VisitExpr(*expr.left, *this);
-    VisitExpr(*expr.right, *this);
+    for(auto& e : expr.exprs)
+      VisitExpr(*e, *this);
   }
 };
 

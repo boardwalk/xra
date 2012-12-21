@@ -66,20 +66,24 @@ struct ExprToStringVisitor
     ss << ")";
   }
 
-  void Visit(const EUnaryOp& expr)
+  void Visit(const ECall& expr)
   {
-    ss << "(" << expr.op << " ";
-    VisitExpr(*expr.expr, *this);
+    ss << "(go ";
+    VisitExpr(*expr.function, *this);
+    ss << " ";
+    VisitExpr(*expr.argument, *this);
     ss << ")";
   }
 
-  void Visit(const EBinaryOp& expr)
+  void Visit(const EList& expr)
   {
-    ss << "(" << expr.op << " ";
-    VisitExpr(*expr.left, *this);
-    ss << " ";
-    VisitExpr(*expr.right, *this);
-    ss << ")";
+    ss << "{";
+    int i = 0;
+    for(auto& e : expr.exprs) {
+      if(i++ != 0) ss << " ";
+      VisitExpr(*e, *this);
+    }
+    ss << "}";
   }
 
   void Visit(const EExtern& expr)

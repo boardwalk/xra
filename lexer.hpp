@@ -24,9 +24,9 @@ struct Token
     Identifier, // strValue
     OpenParen,
     CloseParen,
-    Comma,
     Colon,
     Semicolon,
+    Backtick,
     Integer, // intValue
     Float, // floatValue
     String, // strValue

@@ -17,9 +17,9 @@
 namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
-  {"\\", {19, true}},
-  {".", {18, true}},
-  {"", {16, false}},
+  {"\\", {19, false}},
+  {".", {18, false}},
+  {"$", {16, false}},
   {"*", {15, false}},
   {"/", {15, false}},
   {"+", {14, false}},
@@ -37,9 +37,9 @@ static const map<string, pair<int, bool> > binaryOperators {
   {"|", {8, false}},
   {"&&", {7, false}},
   {"||", {6, false}},
-  {",", {4, true}},
+  {",", {4, false}},
   {"=", {2, true}},
-  {";", {1, true}}
+  {";", {1, false}}
 };
 
 static const map<string, int> unaryOperators {
@@ -69,36 +69,32 @@ TypePtr ParseType(BufferedLexer& lexer)
 
 ExprPtr ParseExpr(BufferedLexer&);
 
-ExprPtr ParseFlatBlock(BufferedLexer& lexer)
-{
-  ExprPtr left = ParseExpr(lexer);
-  if(!left)
-    EXPECTED(Expr)
-
-  if(!TOKEN(Nodent))
-    return left;
-  lexer.Next();
-
-  ExprPtr right = ParseFlatBlock(lexer);
-  if(!right)
-    EXPECTED(FlatBlock)
-
-  return ExprPtr(new EBinaryOp(";", move(left), move(right)));
-}
-
 ExprPtr ParseBlock(BufferedLexer& lexer)
 {
   if(!TOKEN(Indent))
     return {};
   lexer.Next();
 
-  ExprPtr expr = ParseFlatBlock(lexer);
+  auto list = make_unique<EList>();
+
+  while(true) {
+    ExprPtr expr = ParseExpr(lexer);
+    if(!expr)
+      EXPECTED(Expr);
+    list->exprs.push_back(move(expr));
+
+    if(!TOKEN(Nodent))
+      break;
+    lexer.Next();
+  }
 
   if(!TOKEN(Dedent))
     EXPECTED(Dedent)
   lexer.Next();
 
-  return expr;
+  return ExprPtr(new ECall(
+    ExprPtr(new EVariable(";")),
+    ExprPtr(list.release())));
 }
 
 ExprPtr ParseExtern(BufferedLexer& lexer)
@@ -194,12 +190,14 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer);
 ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
 {
   ExprPtr expr = ParseExpr_P(lexer);
+  if(!expr)
+    return {};
+
+  string lastOp;
 
   while(true)
   {
-    string op;
-    if(TOKEN(Operator))
-      op = lexer.Get().strValue;
+    string op = TOKEN(Operator) ? lexer.Get().strValue : "$";
 
     auto binaryOp = binaryOperators.find(op);
     if(binaryOp == binaryOperators.end())
@@ -208,21 +206,43 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
     bool rightAssoc = binaryOp->second.second;
     if(prec < p)
       break;
-    if(!op.empty())
+    if(op != "$")
       lexer.Next();
 
     int q = rightAssoc ? prec : (1 + prec);
 
     auto exprRight = ParseExpr_Exp(lexer, q);
     if(!exprRight) {
-      if(!op.empty())
+      if(op != "$")
         EXPECTED(Expr)
       break;
     }
 
-    if(op.empty())
-      op = "$";
-    expr.reset(new EBinaryOp(op, move(expr), move(exprRight)));
+    if(op == "$") {
+      expr.reset(new ECall(
+        move(expr),
+        move(exprRight)));
+    }
+    else if(op == "," && lastOp == ",") {
+      auto list = static_cast<EList*>(expr.get());
+      list->exprs.push_back(move(exprRight));
+    }
+    else {
+      auto list = make_unique<EList>();
+      list->exprs.push_back(move(expr));
+      list->exprs.push_back(move(exprRight));
+
+      if(op == ",") {
+        expr.reset(list.release());
+      }
+      else {
+        expr.reset(new ECall(
+          ExprPtr(new EVariable(op)),
+          ExprPtr(list.release())));
+      }
+    }
+
+    lastOp = move(op);
   }
 
   return expr;
@@ -244,7 +264,9 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
     if(!expr)
       EXPECTED(Expr)
 
-    expr.reset(new EUnaryOp(unaryOp->first, move(expr)));
+    expr.reset(new ECall(
+      ExprPtr(new EVariable(unaryOp->first)),
+      move(expr)));
   }
   else if(TOKEN(OpenParen))
   {
@@ -258,6 +280,19 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
 
     if(!expr)
       expr.reset(new EVoid);
+  }
+  else if(TOKEN(Backtick))
+  {
+    lexer.Next();
+
+    if(!TOKEN(Operator))
+      EXPECTED(Operator);
+    expr.reset(new EVariable(lexer.Get().strValue));
+    lexer.Next();
+
+    if(!TOKEN(Backtick))
+      EXPECTED(Backtick)
+    lexer.Next();
   }
   else if(TOKEN(Identifier)) {
     expr.reset(new EVariable(lexer.Get().strValue));

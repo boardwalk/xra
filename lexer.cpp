@@ -26,8 +26,7 @@ static bool Operator(char c)
     case '*': case '+': case ',': case '-':
     case '.': case '/': case ';': case '<':
     case '=': case '>': case '?': case '@':
-    case '\\': case '^': case '`': case '|':
-    case '~':
+    case '\\': case '^': case '|': case '~':
       return true;
   }
   return false;
@@ -81,6 +80,9 @@ string Token::ToString() const
       break;
     case Colon:
       ss << ':';
+      break;
+    case Backtick:
+      ss << '`';
       break;
     case Integer:
       ss << intValue;
@@ -238,6 +240,11 @@ Token Lexer::Get()
   if(lastChar == ':') {
     GetChar();
     return MakeToken(Token::Colon);
+  }
+
+  if(lastChar == '`') {
+    GetChar();
+    return MakeToken(Token::Backtick);
   }
 
   if(Operator(lastChar))

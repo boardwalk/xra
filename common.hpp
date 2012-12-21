@@ -6,10 +6,14 @@
 #include <stack>
 #include <string>
 #include <vector>
+#include <llvm/Support/Casting.h>
 
 namespace xra {
 
 using namespace std;
+
+using llvm::isa;
+using llvm::dyn_cast;
 
 template<typename T, typename... Args>
 unique_ptr<T> make_unique(Args&&... args)
