@@ -184,7 +184,7 @@ Token Lexer::Get()
       GetChar();
     }
 
-    if(lastChar == '\r' || lastChar == '\n' || lastChar == EOF)
+    if(lastChar == '\r' || lastChar == '\n' || lastChar == '#' || lastChar == EOF)
       return Get();
 
     if(indentSize > indents.top()) {
