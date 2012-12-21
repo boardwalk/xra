@@ -6,22 +6,44 @@ namespace xra {
 #define VISIT(c) \
   case Type::Kind_##c: \
   { \
-    typedef typename CopyConst<Ty, c>::type SubTy; \
-    visitor.Visit(static_cast<SubTy&>(type)); \
+    typedef typename CopyConst<NodeTy, c>::type SubNodeTy; \
+    Visit(static_cast<SubNodeTy&>(type)); \
     break; \
   }
 
-template<class Ty, class ClassTy>
-void VisitType(Ty& type, ClassTy& visitor)
+template<class VisitorTy, class NodeTy>
+struct TypeVisitor
 {
-  switch(type.kind) {
-    VISIT(TError)
-    VISIT(TVoid)
-    VISIT(TVariable)
-    VISIT(TList)
-    VISIT(TFunction)
+  typedef TypeVisitor<VisitorTy, NodeTy> base;
+
+  void Visit(NodeTy& type)
+  {
+    // nothing
   }
-}
+
+  void Visit(typename CopyConst<NodeTy, TFunction>::type& type)
+  {
+    VisitAny(*type.argument);
+    VisitAny(*type.result);
+  }
+
+  void Visit(typename CopyConst<NodeTy, TList>::type& type)
+  {
+    for(auto& t : type.types)
+      VisitAny(*t);
+  }
+
+  void VisitAny(NodeTy& type)
+  {
+    switch(type.kind) {
+      VISIT(TError)
+      VISIT(TVoid)
+      VISIT(TVariable)
+      VISIT(TList)
+      VISIT(TFunction)
+    }
+  }
+};
 
 #undef VISIT
 

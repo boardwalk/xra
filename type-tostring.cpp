@@ -5,7 +5,7 @@
 
 namespace xra {
 
-struct TypeToStringVisitor
+struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 {
   stringstream ss;
 
@@ -26,25 +26,23 @@ struct TypeToStringVisitor
 
   void Visit(const TList& type)
   {
-    int i = 0;
-    for(auto& t : type.types) {
-      if(i++ != 0) ss << ", ";
-      VisitType(*t, *this);
-    }
+    ss << "(list";
+    base::Visit(type);
+    ss << ")";
   }
 
   void Visit(const TFunction& type)
   {
-    VisitType(*type.argument, *this);
-    ss << " -> ";
-    VisitType(*type.result, *this);
+    ss << "(fn";
+    base::Visit(type);
+    ss << ")";
   }
 };
 
 string Type::ToString() const
 {
   TypeToStringVisitor visitor;
-  VisitType(*this, visitor);
+  visitor.VisitAny(*this);
   return visitor.ss.str();
 }
 
