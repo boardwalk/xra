@@ -227,6 +227,7 @@ Token Lexer::Get()
     if(str == "fn") return MakeToken(Token::Fn);
     if(str == "if") return MakeToken(Token::If);
     if(str == "then") return MakeToken(Token::Then);
+    if(str == "elsif") return MakeToken(Token::Elsif);
     if(str == "else") return MakeToken(Token::Else);
     if(str == "return") return MakeToken(Token::Return);
     if(str == "true") return MakeToken(Token::True);

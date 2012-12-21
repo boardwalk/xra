@@ -18,6 +18,7 @@ struct Token
     Return,
     If,
     Then,
+    Elsif,
     Else,
     True,
     False,
