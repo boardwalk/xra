@@ -8,21 +8,25 @@ namespace xra {
 class BufferedLexer
 {
   Lexer& lexer;
-  Token token;
+  deque<Token> buffer;
 
 public:
   BufferedLexer(Lexer& lexer_) :
     lexer(lexer_)
   {}
 
-  void Next()
+  void Consume(size_t n = 1)
   {
-    token = lexer.Get();
+    while(n-- > 0)
+      buffer.pop_front();
   }
 
-  const Token& Get() const
+  Token& Get(size_t i = 0)
   {
-    return token;
+    while(i >= buffer.size())
+      buffer.push_back(lexer.Get());
+
+    return buffer[i];
   }
 };
 

@@ -54,6 +54,9 @@ string Token::ToString() const
     case Else:
       ss << "else";
       break;
+    case Elsif:
+      ss << "elsif";
+      break;
     case If:
       ss << "if";
       break;

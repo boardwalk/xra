@@ -22,10 +22,12 @@ struct ExprGetErrorsVisitor
 
   void Visit(const EIf& expr)
   {
-    VisitExpr(*expr.cond, *this);
-    VisitExpr(*expr.then, *this);
-    if(expr._else)
-      VisitExpr(*expr._else, *this);
+    for(auto& c : expr.condClauses) {
+      VisitExpr(*c.first, *this);
+      VisitExpr(*c.second, *this);
+    }
+    if(expr.elseClause)
+      VisitExpr(*expr.elseClause, *this);
   }
 
   void Visit(const EFunction& expr)

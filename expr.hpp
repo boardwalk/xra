@@ -170,11 +170,8 @@ public:
 class EIf : public Expr
 {
 public:
-  EIf(ExprPtr cond_, ExprPtr then_, ExprPtr else_) :
-    Expr(Kind_EIf),
-    cond(move(cond_)),
-    then(move(then_)),
-    _else(move(else_))
+  EIf() :
+    Expr(Kind_EIf)
   {}
 
   static bool classof(const Expr* expr)
@@ -182,9 +179,8 @@ public:
     return expr->kind == Kind_EIf;
   }
 
-  ExprPtr cond;
-  ExprPtr then;
-  ExprPtr _else;
+  vector<pair<ExprPtr, ExprPtr> > condClauses;
+  ExprPtr elseClause;
 };
 
 class EFunction : public Expr

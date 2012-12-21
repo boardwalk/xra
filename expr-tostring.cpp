@@ -46,13 +46,18 @@ struct ExprToStringVisitor
 
   void Visit(const EIf& expr)
   {
-    ss << "(if ";
-    VisitExpr(*expr.cond, *this);
-    ss << " ";
-    VisitExpr(*expr.then, *this);
-    if(expr._else) {
+    ss << "(if";
+    for(auto& c : expr.condClauses) {
+      ss << " (";
+      VisitExpr(*c.first, *this);
       ss << " ";
-      VisitExpr(*expr._else, *this);
+      VisitExpr(*c.second, *this);
+      ss << ")";
+    }
+    if(expr.elseClause) {
+      ss << " (else ";
+      VisitExpr(*expr.elseClause, *this);
+      ss << ")";
     }
     ss << ")";
   }

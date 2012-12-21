@@ -8,7 +8,7 @@
 #define ERROR(what) \
   { \
     stringstream ss; \
-    ss << what << " near " << lexer.Get(); \
+    ss << what << " near " << lexer.Get() << " at parser.cpp:" << __LINE__;  \
     return ExprPtr(new EError(ss.str())); \
   }
 #define EXPECTED(t) \
@@ -55,58 +55,54 @@ TypePtr ParseType(BufferedLexer& lexer)
 {
   if(!TOKEN(Colon))
     return {};
-  lexer.Next();
+  lexer.Consume();
 
   if(!TOKEN(Identifier)) {
     cerr << "expected identifier after colon" << endl;
     return {};
   }
   auto type = make_unique<TVariable>(lexer.Get().strValue);
-  lexer.Next();
+  lexer.Consume();
 
   return TypePtr(type.release());
 }
 
 ExprPtr ParseExpr(BufferedLexer&);
 
-ExprPtr ParseBlock(BufferedLexer& lexer)
+ExprPtr ParseFlatBlock(BufferedLexer& lexer)
 {
-  if(!TOKEN(Indent))
-    return {};
-  lexer.Next();
-
   auto list = make_unique<EList>();
 
   while(true) {
-    ExprPtr expr = ParseExpr(lexer);
-    if(!expr)
-      EXPECTED(Expr);
-    list->exprs.push_back(move(expr));
+    list->exprs.push_back(ParseExpr(lexer));
 
     if(!TOKEN(Nodent))
       break;
-    lexer.Next();
+    lexer.Consume();
   }
-
-  if(!TOKEN(Dedent))
-    EXPECTED(Dedent)
-  lexer.Next();
 
   return ExprPtr(new ECall(
     ExprPtr(new EVariable(";")),
     ExprPtr(list.release())));
 }
 
-ExprPtr ParseExtern(BufferedLexer& lexer)
+ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
 {
-  if(!TOKEN(Extern))
-    return {};
-  lexer.Next();
+  ExprPtr expr = ParseFlatBlock(lexer);
 
+  if(!TOKEN(Dedent))
+    EXPECTED(Dedent)
+  lexer.Consume();
+
+  return expr;
+}
+
+ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
+{
   if(!TOKEN(Identifier))
     EXPECTED(Identifier)
   string name = lexer.Get().strValue;
-  lexer.Next();
+  lexer.Consume();
 
   TypePtr type = ParseType(lexer);
   if(!type)
@@ -115,100 +111,89 @@ ExprPtr ParseExtern(BufferedLexer& lexer)
   return ExprPtr(new EExtern(name, type));
 }
 
-ExprPtr ParseIf(BufferedLexer& lexer)
+ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
 {
-  if(!TOKEN(If))
-    return {};
-  lexer.Next();
-
-  ExprPtr cond = ParseExpr(lexer);
-  if(!cond)
-    EXPECTED(Expr)
-
-  ExprPtr then;
-  if(TOKEN(Then)) {
-    lexer.Next();
-    then = ParseExpr(lexer);
-    if(!then)
-      EXPECTED(Expr)
-  }
-  else {
-    then = ParseBlock(lexer);
-    if(!then)
-      EXPECTED(Block)
+  if(TOKEN(Indent)) {
+    lexer.Consume();
+    return ParseBlock(lexer);
   }
 
-  ExprPtr _else;
-  if(TOKEN(Else)) {
-    lexer.Next();
-    if(!TOKEN(Indent)) {
-      _else = ParseExpr(lexer);
-      if(!_else)
-        EXPECTED(Expr)
-    }
-    else {
-      _else = ParseBlock(lexer);
-      if(!_else)
-        EXPECTED(Block)
-    }
+  if(needThen) {
+    if(!TOKEN(Then))
+      EXPECTED(Then)
+    lexer.Consume();
   }
 
-  return ExprPtr(new EIf(move(cond), move(then), move(_else)));
+  ExprPtr e = ParseExpr(lexer);
+  cout << "clause: " << *e << endl;
+  return e;
 }
 
-ExprPtr ParseReturn(BufferedLexer& lexer)
+ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 {
-  if(!TOKEN(Return))
-    return {};
-  lexer.Next();
+  auto expr = make_unique<EIf>();
 
-  ExprPtr expr = ParseExpr(lexer);
-  if(!expr)
-    EXPECTED(Expr)
+  while(true)
+  {
+    ExprPtr cond = ParseExpr(lexer);
+    ExprPtr clause = ParseIfClause(lexer, true);
+    expr->condClauses.push_back({ move(cond), move(clause) });
 
-  return ExprPtr(new EReturn(move(expr)));
+    if(TOKEN(Elsif))
+      lexer.Consume();
+    else if(TOKEN(Nodent) && lexer.Get(1).type == Token::Elsif)
+      lexer.Consume(2);
+    else
+      break;
+  }
+
+  if(TOKEN(Else))
+    lexer.Consume();
+  else if(TOKEN(Nodent) && lexer.Get(1).type == Token::Else)
+    lexer.Consume(2);
+  else
+    return ExprPtr(expr.release());
+
+  expr->elseClause = ParseIfClause(lexer, false);
+  return ExprPtr(expr.release());
 }
 
-ExprPtr ParseFn(BufferedLexer& lexer)
+ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
-  if(!TOKEN(Fn))
-    return {};
-  lexer.Next();
+  return ExprPtr(new EReturn(ParseExpr(lexer)));
+}
 
+ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
+{
   ExprPtr param = ParseExpr(lexer);
-  if(!param)
-    EXPECTED(Expr)
 
   if(!TOKEN(Operator) || lexer.Get().strValue != "->")
     EXPECTED(Operator)
-  lexer.Next();
+  lexer.Consume();
 
   ExprPtr body;
   if(TOKEN(Indent)) {
+    lexer.Consume();
     body = ParseBlock(lexer);
-    if(!body)
-      EXPECTED(Block)
   }
   else {
     body = ParseExpr(lexer);
-    if(!body)
-      EXPECTED(Expr)
   }
 
   return ExprPtr(new EFunction(move(param), move(body)));
 }
 
-ExprPtr ParseExpr_P(BufferedLexer& lexer);
+ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
 
-ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
+ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 {
-  ExprPtr expr = ParseExpr_P(lexer);
+  ExprPtr expr = ParseExpr_P(lexer, required);
   if(!expr)
     return {};
 
   string lastOp;
 
-  while(true)
+  while(!TOKEN(EndOfFile))
   {
     string op = TOKEN(Operator) ? lexer.Get().strValue : "$";
 
@@ -220,16 +205,13 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
     if(prec < p)
       break;
     if(op != "$")
-      lexer.Next();
+      lexer.Consume();
 
     int q = rightAssoc ? prec : (1 + prec);
 
-    auto exprRight = ParseExpr_Exp(lexer, q);
-    if(!exprRight) {
-      if(op != "$")
-        EXPECTED(Expr)
-      break;
-    }
+    auto exprRight = ParseExpr_Exp(lexer, q, op != "$");
+    if(!exprRight)
+      EXPECTED(Expr)
 
     if(op == "$") {
       expr.reset(new ECall(
@@ -261,21 +243,19 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p)
   return expr;
 }
 
-ExprPtr ParseExpr_P(BufferedLexer& lexer)
+ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 {
   ExprPtr expr;
 
   if(TOKEN(Operator))
   {
     auto unaryOp = unaryOperators.find(lexer.Get().strValue);
-    lexer.Next();
+    lexer.Consume();
 
     if(unaryOp == unaryOperators.end())
       ERROR("unknown unary operator")
 
-    expr = ParseExpr_Exp(lexer, unaryOp->second);
-    if(!expr)
-      EXPECTED(Expr)
+    expr = ParseExpr_Exp(lexer, unaryOp->second, true);
 
     expr.reset(new ECall(
       ExprPtr(new EVariable(unaryOp->first)),
@@ -283,65 +263,74 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
   }
   else if(TOKEN(OpenParen))
   {
-    lexer.Next();
+    lexer.Consume();
 
-    expr = ParseExpr_Exp(lexer, 0);
+    expr = ParseExpr_Exp(lexer, 0, false);
+    if(!expr)
+      expr.reset(new EVoid);
 
     if(!TOKEN(CloseParen))
       EXPECTED(CloseParen)
-    lexer.Next();
-
-    if(!expr)
-      expr.reset(new EVoid);
+    lexer.Consume();
   }
   else if(TOKEN(Backtick))
   {
-    lexer.Next();
+    lexer.Consume();
 
     if(!TOKEN(Operator))
       EXPECTED(Operator);
     expr.reset(new EVariable(lexer.Get().strValue));
-    lexer.Next();
+    lexer.Consume();
 
     if(!TOKEN(Backtick))
       EXPECTED(Backtick)
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(Identifier)) {
     expr.reset(new EVariable(lexer.Get().strValue));
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(True)) {
     expr.reset(new EBoolean(true));
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(False)) {
     expr.reset(new EBoolean(false));
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(Integer)) {
     expr.reset(new EInteger(lexer.Get().intValue));
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(Float)) {
     expr.reset(new EFloat(lexer.Get().floatValue));
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(String)) {
     expr.reset(new EString(lexer.Get().strValue));
-    lexer.Next();
+    lexer.Consume();
   }
   else if(TOKEN(Extern)) {
+    lexer.Consume();
     expr = ParseExtern(lexer);
   }
   else if(TOKEN(If)) {
+    lexer.Consume();
     expr = ParseIf(lexer);
   }
   else if(TOKEN(Return)) {
+    lexer.Consume();
     expr = ParseReturn(lexer);
   }
   else if(TOKEN(Fn)) {
+    lexer.Consume();
     expr = ParseFn(lexer);
+  }
+  else if(required) {
+    stringstream ss;
+    ss << "unexpected token " << lexer.Get();
+    lexer.Consume();
+    expr.reset(new EError(ss.str()));
   }
 
   return expr;
@@ -349,15 +338,12 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer)
 
 ExprPtr ParseExpr(BufferedLexer& lexer)
 {
-  return ParseExpr_Exp(lexer, 0);
+  return ParseExpr_Exp(lexer, 0, true);
 }
 
 ExprPtr Parse(BufferedLexer& lexer)
 {
-  lexer.Next();
-  ExprPtr expr = ParseExpr(lexer);
-  if(!expr)
-    EXPECTED(Expr)
+  ExprPtr expr = ParseFlatBlock(lexer);
   if(!TOKEN(EndOfFile)) // TODO this is masking better errors!
     EXPECTED(EndOfFile)
   return expr;

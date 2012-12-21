@@ -1,6 +1,7 @@
 #ifndef XRA_COMMON_HPP
 #define XRA_COMMON_HPP
 
+#include <deque>
 #include <map>
 #include <memory>
 #include <stack>
