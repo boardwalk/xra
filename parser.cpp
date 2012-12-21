@@ -278,7 +278,7 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     lexer.Consume();
 
     if(!TOKEN(Operator))
-      EXPECTED(Operator);
+      EXPECTED(Operator)
     expr.reset(new EVariable(lexer.Get().strValue));
     lexer.Consume();
 
