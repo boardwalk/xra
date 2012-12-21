@@ -11,7 +11,9 @@ OBJECTS = common.o \
 	parser.o \
 	expr-tostring.o \
 	expr-geterrors.o \
-	type-tostring.o
+	type-parser.o \
+	type-tostring.o \
+	type-geterrors.o
 
 all: xra
 

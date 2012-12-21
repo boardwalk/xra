@@ -51,21 +51,8 @@ static const map<string, int> unaryOperators {
   {"&", 17}
 };
 
-TypePtr ParseType(BufferedLexer& lexer)
-{
-  if(!TOKEN(Colon))
-    return {};
-  lexer.Consume();
-
-  if(!TOKEN(Identifier)) {
-    cerr << "expected identifier after colon" << endl;
-    return {};
-  }
-  auto type = make_unique<TVariable>(lexer.Get().strValue);
-  lexer.Consume();
-
-  return TypePtr(type.release());
-}
+// type-parser.cpp
+TypePtr ParseType(BufferedLexer&);
 
 ExprPtr ParseExpr(BufferedLexer&);
 
@@ -124,9 +111,7 @@ ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
     lexer.Consume();
   }
 
-  ExprPtr e = ParseExpr(lexer);
-  cout << "clause: " << *e << endl;
-  return e;
+  return ParseExpr(lexer);
 }
 
 ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
@@ -209,9 +194,12 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
     int q = rightAssoc ? prec : (1 + prec);
 
-    auto exprRight = ParseExpr_Exp(lexer, q, op != "$");
-    if(!exprRight)
+    auto exprRight = ParseExpr_Exp(lexer, q, false);
+    if(!exprRight) {
+      if(op == "$")
+        break;
       EXPECTED(Expr)
+    }
 
     if(op == "$") {
       expr.reset(new ECall(
@@ -326,11 +314,20 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     lexer.Consume();
     expr = ParseFn(lexer);
   }
-  else if(required) {
-    stringstream ss;
-    ss << "unexpected token " << lexer.Get();
+
+  if(!expr) {
+    if(required) {
+      stringstream ss;
+      ss << "unexpected token " << lexer.Get();
+      expr.reset(new EError(ss.str()));
+      lexer.Consume();
+    }
+    return expr;
+  }
+
+  if(TOKEN(Colon)) {
     lexer.Consume();
-    expr.reset(new EError(ss.str()));
+    expr->type = ParseType(lexer);
   }
 
   return expr;

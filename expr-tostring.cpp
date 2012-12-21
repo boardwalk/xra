@@ -9,39 +9,52 @@ struct ExprToStringVisitor
 {
   stringstream ss;
 
+  void Tail(const Expr& expr)
+  {
+    if(expr.type)
+      ss << " : " << *expr.type;
+  }
+
   void Visit(const EError& expr)
   {
     ss << "<" << expr.what << ">";
+    Tail(expr);
   }
 
-  void Visit(const EVoid&)
+  void Visit(const EVoid& expr)
   {
     ss << "()";
+    Tail(expr);
   }
 
   void Visit(const EVariable& expr)
   {
     ss << expr.name;
+    Tail(expr);
   }
 
   void Visit(const EBoolean& expr)
   {
     ss << (expr.value ? "true" : "false");
+    Tail(expr);
   }
 
   void Visit(const EInteger& expr)
   {
     ss << expr.value;
+    Tail(expr);
   }
 
   void Visit(const EFloat& expr)
   {
     ss << expr.value;
+    Tail(expr);
   }
 
   void Visit(const EString& expr)
   {
     ss << "\"" << EscapeString(expr.value) << "\"";
+    Tail(expr);
   }
 
   void Visit(const EIf& expr)
@@ -60,6 +73,7 @@ struct ExprToStringVisitor
       ss << ")";
     }
     ss << ")";
+    Tail(expr);
   }
 
   void Visit(const EFunction& expr)
@@ -69,6 +83,7 @@ struct ExprToStringVisitor
     ss << " ";
     VisitExpr(*expr.body, *this);
     ss << ")";
+    Tail(expr);
   }
 
   void Visit(const ECall& expr)
@@ -78,6 +93,7 @@ struct ExprToStringVisitor
     ss << " ";
     VisitExpr(*expr.argument, *this);
     ss << ")";
+    Tail(expr);
   }
 
   void Visit(const EReturn& expr)
@@ -85,6 +101,7 @@ struct ExprToStringVisitor
     ss << "(return ";
     VisitExpr(*expr.expr, *this);
     ss << ")";
+    Tail(expr);
   }
 
   void Visit(const EList& expr)
@@ -96,6 +113,7 @@ struct ExprToStringVisitor
       VisitExpr(*e, *this);
     }
     ss << "}";
+    Tail(expr);
   }
 
   void Visit(const EExtern& expr)
@@ -105,6 +123,7 @@ struct ExprToStringVisitor
     ss << " ";
     ss << expr.externType->ToString();
     ss << ")";
+    Tail(expr);
   }
 };
 

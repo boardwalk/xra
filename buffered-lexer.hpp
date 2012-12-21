@@ -9,24 +9,29 @@ class BufferedLexer
 {
   Lexer& lexer;
   deque<Token> buffer;
+  ssize_t pos;
 
 public:
   BufferedLexer(Lexer& lexer_) :
-    lexer(lexer_)
+    lexer(lexer_),
+    pos(0)
   {}
 
-  void Consume(size_t n = 1)
+  void Consume(ssize_t n = 1)
   {
-    while(n-- > 0)
+    pos += n;
+    while(pos > 1) { // keep one old token
       buffer.pop_front();
+      pos--;
+    }
   }
 
-  Token& Get(size_t i = 0)
+  Token& Get(ssize_t i = 0)
   {
-    while(i >= buffer.size())
+    assert(pos + i >= 0);
+    while(pos + i >= (ssize_t)buffer.size())
       buffer.push_back(lexer.Get());
-
-    return buffer[i];
+    return buffer[pos + i];
   }
 };
 

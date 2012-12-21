@@ -15,7 +15,11 @@ template<class Ty, class ClassTy>
 void VisitType(Ty& type, ClassTy& visitor)
 {
   switch(type.kind) {
+    VISIT(TError)
+    VISIT(TVoid)
     VISIT(TVariable)
+    VISIT(TList)
+    VISIT(TFunction)
   }
 }
 
