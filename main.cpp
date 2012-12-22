@@ -48,24 +48,25 @@ int main(int argc, char** argv)
   istream& inputStream = ifs.is_open() ? ifs : cin;
   ostream& outputStream = ofs.is_open() ? ofs : cout;
 
-  Lexer lexer(inputStream);    
-
+  Lexer lexer(inputStream);  
+  BufferedLexer bufferedLexer(lexer);
+  
   if(mode == LexMode)
   {
     while(true) {
-      Token token = lexer.Get();
-      outputStream << token << endl;
+      outputStream << bufferedLexer.Get() << endl;
 
-      if(token.type == Token::Error)
+      if(bufferedLexer.Get().type == Token::Error)
         return EXIT_FAILURE;
 
-      if(token.type == Token::EndOfFile)
+      if(bufferedLexer.Get().type == Token::EndOfFile)
         break;
+
+      bufferedLexer.Consume();
     }
   }
   else if(mode == ParseMode || mode == AnalyzeMode)
   {
-    BufferedLexer bufferedLexer(lexer);
     ExprPtr expr = Parse(bufferedLexer);
 
     if(mode == AnalyzeMode)
