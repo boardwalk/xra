@@ -144,7 +144,7 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 
 static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
-  return ExprPtr(new EReturn(ParseExpr(lexer)));
+  return ExprPtr(new ECall(ExprPtr(new EVariable("#return")), ParseExpr(lexer)));
 }
 
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn

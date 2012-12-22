@@ -42,10 +42,6 @@ struct ExprVisitor
     SUBCLASS.VisitAny(*expr.argument);
   }
 
-  VISIT(Return) {
-    SUBCLASS.VisitAny(*expr.expr);
-  }
-
   VISIT(List) {
     for(auto& e : expr.exprs)
       SUBCLASS.VisitAny(*e);
@@ -65,7 +61,6 @@ struct ExprVisitor
       CASE(String)
       CASE(Function)
       CASE(Call)
-      CASE(Return)
       CASE(List)
       CASE(Extern)
     }

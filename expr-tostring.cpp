@@ -61,9 +61,6 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
   BEGIN(Call)
   END(Call)
 
-  BEGIN(Return)
-  END(Return)
-
   BEGIN(List)
   END(List)
 

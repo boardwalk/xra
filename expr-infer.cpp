@@ -64,12 +64,6 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     base::VisitCall(expr);
   }
 
-  void VisitReturn(EReturn& expr)
-  {
-    VisitAny(*expr.expr);
-    expr.finalType = VoidType;
-  }
-
   void VisitList(EList& expr)
   {
     auto r = make_unique<TList>();
