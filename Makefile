@@ -26,6 +26,7 @@ clean:
 
 xra: $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -o $@ $^
+	dsymutil $@
 
 $(OBJECTS): common.hpp.gch
 

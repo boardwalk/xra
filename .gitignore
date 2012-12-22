@@ -1,4 +1,5 @@
 *.o
 *.gch
 *.d
+*.dSYM
 xra

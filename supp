@@ -1,0 +1,12 @@
+{
+  default-leak-1
+  Memcheck:Leak
+  ...
+  fun:map_images
+}
+{
+  default-leak-2
+  Memcheck:Leak
+  ...
+  fun:libSystem_initializer
+}
