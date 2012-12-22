@@ -52,21 +52,6 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     expr.finalType = StringType;
   }
 
-  void VisitIf(EIf& expr)
-  {
-    for(auto& clause : expr.condClauses)
-    {
-      InferVisitor condVisitor(env);
-      condVisitor.VisitAny(*clause.first);
-      Compose(Unify(*clause.first->finalType, *BooleanType), subst);
-
-      //ExprAnalyzeVisitor consVisitor(env);
-      //consVisitor.VisitAny(*clause.second);
-      //subst = 
-      // TODO
-    }
-  }
-
   void VisitFunction(EFunction& expr)
   {
     // TODO

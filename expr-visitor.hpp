@@ -31,16 +31,7 @@ struct ExprVisitor
   VISIT(Float) {}
   
   VISIT(String) {}
-  
-  VISIT(If) {
-    for(auto& p : expr.condClauses) {
-      SUBCLASS.VisitAny(*p.first);
-      SUBCLASS.VisitAny(*p.second);
-    }
-    if(expr.elseClause)
-      SUBCLASS.VisitAny(*expr.elseClause);
-  }
-  
+
   VISIT(Function) {
     SUBCLASS.VisitAny(*expr.param);
     SUBCLASS.VisitAny(*expr.body);
@@ -72,7 +63,6 @@ struct ExprVisitor
       CASE(Integer)
       CASE(Float)
       CASE(String)
-      CASE(If)
       CASE(Function)
       CASE(Call)
       CASE(Return)

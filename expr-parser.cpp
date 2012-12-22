@@ -112,31 +112,34 @@ static ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
 
 static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 {
-  auto expr = make_unique<EIf>();
+  auto list = make_unique<EList>();
 
-  while(true)
+  bool more = true;
+  while(more)
   {
-    ExprPtr cond = ParseExpr(lexer);
-    ExprPtr clause = ParseIfClause(lexer, true);
-    expr->condClauses.push_back({ move(cond), move(clause) });
+    list->exprs.push_back(ParseExpr(lexer));
+    list->exprs.push_back(ParseIfClause(lexer, true));
 
     if(TOKEN(Elsif))
       lexer.Consume();
     else if(TOKEN(Nodent) && lexer.Get(1).type == Token::Elsif)
       lexer.Consume(2);
     else
-      break;
+      more = false;
   }
 
+  more = true;
   if(TOKEN(Else))
     lexer.Consume();
   else if(TOKEN(Nodent) && lexer.Get(1).type == Token::Else)
     lexer.Consume(2);
   else
-    return ExprPtr(expr.release());
+    more = false;
 
-  expr->elseClause = ParseIfClause(lexer, false);
-  return ExprPtr(expr.release());
+  if(more)
+    list->exprs.push_back(ParseIfClause(lexer, false));
+
+  return ExprPtr(new ECall(ExprPtr(new EVariable("#if")), ExprPtr(list.release())));
 }
 
 static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
@@ -215,9 +218,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
         expr.reset(list.release());
       }
       else {
-        expr.reset(new ECall(
-          ExprPtr(new EVariable(op)),
-          ExprPtr(list.release())));
+        expr.reset(new ECall(ExprPtr(new EVariable(op)), ExprPtr(list.release())));
       }
     }
 

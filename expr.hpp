@@ -25,7 +25,6 @@ public:
     Kind_EInteger,
     Kind_EFloat,
     Kind_EString,
-    Kind_EIf,
     Kind_EFunction,
     Kind_ECall,
     Kind_EReturn,
@@ -176,22 +175,6 @@ public:
   }
 
   const string value;
-};
-
-class EIf : public Expr
-{
-public:
-  EIf() :
-    Expr(Kind_EIf)
-  {}
-
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EIf;
-  }
-
-  vector<pair<ExprPtr, ExprPtr> > condClauses;
-  ExprPtr elseClause;
 };
 
 class EFunction : public Expr

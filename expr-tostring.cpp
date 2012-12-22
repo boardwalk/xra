@@ -55,9 +55,6 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
     ss << " \"" << EscapeString(expr.value) << "\"";
   END(String)
 
-  BEGIN(If)
-  END(If)
-
   BEGIN(Function)
   END(Function)
 
