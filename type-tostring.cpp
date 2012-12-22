@@ -37,6 +37,11 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     base::VisitFunction(type);
     ss << ")";
   }
+
+  void VisitBuiltin(const TBuiltin& type)
+  {
+    ss << " (builtin)";
+  }
 };
 
 string Type::ToString() const

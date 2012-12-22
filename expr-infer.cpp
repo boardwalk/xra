@@ -60,8 +60,21 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitCall(ECall& expr)
   {
-    // TODO
-    base::VisitCall(expr);
+    VisitAny(*expr.function);
+    VisitAny(*expr.argument);
+
+    if(!expr.function->finalType)
+      return; // TODO shouldn't be needed
+    if(!expr.argument->finalType)
+      return; // TODO shouldn't be needed
+
+    auto computable = dyn_cast<TBuiltin>(expr.function->finalType.get());
+    if(computable) {
+      expr.finalType = computable->TypeWith(expr.argument->finalType);
+    }
+    else {
+      // something else
+    }
   }
 
   void VisitList(EList& expr)
@@ -112,6 +125,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 void Expr::Infer()
 {
   TypeEnv env;
+  SetBuiltins(env);
   InferVisitor visitor(env);
   visitor.VisitAny(*this);
 }

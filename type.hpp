@@ -22,7 +22,8 @@ public:
     Kind_TVoid,
     Kind_TVariable,
     Kind_TList,
-    Kind_TFunction
+    Kind_TFunction,
+    Kind_TBuiltin
   };
 
   virtual ~Type() {}
@@ -81,6 +82,9 @@ TypePtr MakeTypeVar();
 void Apply(const TypeSubst&, TypeScheme&);
 void Apply(const TypeSubst&, TypeEnv&);
 void Compose(const TypeSubst&, TypeSubst&);
+
+// builtins.cpp
+void SetBuiltins(TypeEnv&);
 
 /*
  * Subtypes
@@ -163,6 +167,21 @@ public:
 
   TypePtr argument;
   TypePtr result;
+};
+
+class TBuiltin : public Type
+{
+public:
+  TBuiltin() :
+    Type(Kind_TBuiltin)
+  {}
+
+  static bool classof(const Type* type)
+  {
+    return type->kind == Kind_TBuiltin;
+  }
+
+  TypePtr TypeWith(TypePtr argument) { return VoidType; }
 };
 
 } // namespace xra

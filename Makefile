@@ -17,7 +17,8 @@ OBJECTS = common.o \
 	type-tostring.o \
 	type-geterrors.o \
 	type-apply.o \
-	type-unify.o
+	type-unify.o \
+	builtins.o
 
 all: xra
 
