@@ -100,7 +100,11 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       Compose(subst, lastSubst);
       subst.swap(lastSubst);
 
-      r->types.push_back(e->finalType);
+      // TODO children must infer something!
+      if(e->finalType)
+        r->types.push_back(e->finalType);
+      else
+        r->types.push_back(VoidType);
     }
 
     expr.finalType.reset(r.release());
