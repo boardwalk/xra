@@ -33,9 +33,7 @@ public:
     Kind_EExtern
   };
 
-  const Kind kind;
-  TypePtr type;
-  TypePtr finalType;
+  virtual ~Expr() {}
 
   // expr-parser.cpp
   static ExprPtr Parse(BufferedLexer&);
@@ -49,13 +47,17 @@ public:
   // expr-infer.cpp
   void Infer();
 
+  Expr(const Expr&) = delete;
+  Expr& operator=(const Expr&) = delete;
+
+  const Kind kind;
+  TypePtr type;
+  TypePtr finalType;
+
 protected:
   Expr(Kind kind_) :
     kind(kind_)
   {}
-
-  Expr(const Expr&);
-  Expr& operator=(const Expr&);
 };
 
 template<class T>

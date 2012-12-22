@@ -25,7 +25,7 @@ public:
     Kind_TFunction
   };
 
-  const Kind kind;
+  virtual ~Type() {}
 
   // type-parser.cpp
   static TypePtr Parse(BufferedLexer&);
@@ -36,13 +36,15 @@ public:
   // type-geterrors.cpp
   string GetErrors() const;
 
+  Type(const Type&) = delete;
+  Type& operator=(const Type&) = delete;
+
+  const Kind kind;
+
 protected:
   Type(Kind kind_) :
     kind(kind_)
   {}
-
-  Type(const Type&);
-  Type& operator=(const Type&);
 };
 
 template<class T>
