@@ -11,10 +11,13 @@ OBJECTS = common.o \
 	parser.o \
 	expr-tostring.o \
 	expr-geterrors.o \
-	expr-analyze.o \
+	expr-infer.o \
+	type.o \
 	type-parser.o \
 	type-tostring.o \
-	type-geterrors.o
+	type-geterrors.o \
+	type-apply.o \
+	type-unify.o
 
 all: xra
 

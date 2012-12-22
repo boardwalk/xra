@@ -26,7 +26,7 @@ TypePtr ParseType(BufferedLexer& lexer) // prefix: :
   else if(TOKEN(OpenParen)) {
     lexer.Consume();
     if(TOKEN(CloseParen)) {
-      type.reset(new TVoid);
+      type = VoidType;
     }
     else {
       type = ParseType(lexer);

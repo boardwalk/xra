@@ -55,6 +55,24 @@ struct TypeScheme
 
 typedef scoped_map<string, TypeScheme> TypeEnv;
 
+extern const TypePtr VoidType;
+extern const TypePtr BooleanType;
+extern const TypePtr IntegerType;
+extern const TypePtr FloatType;
+extern const TypePtr StringType;
+
+// type-apply.cpp
+TypePtr Apply(const TypeSubst&, const Type&);
+
+// type-unify.cpp
+TypeSubst Unify(const Type& left, const Type& right);
+
+// type.cpp
+TypePtr MakeTypeVar();
+void Apply(const TypeSubst&, TypeScheme&);
+void Apply(const TypeSubst&, TypeEnv&);
+void Compose(const TypeSubst&, TypeSubst&);
+
 /*
  * Subtypes
  */

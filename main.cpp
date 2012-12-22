@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     ExprPtr expr = Parse(bufferedLexer);
 
     if(mode == AnalyzeMode)
-      expr->Analyze();
+      expr->Infer();
 
     string errors = expr->GetErrors();
     if(!errors.empty()) {
