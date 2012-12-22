@@ -11,6 +11,7 @@ OBJECTS = common.o \
 	parser.o \
 	expr-tostring.o \
 	expr-geterrors.o \
+	expr-analyze.o \
 	type-parser.o \
 	type-tostring.o \
 	type-geterrors.o

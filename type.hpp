@@ -1,6 +1,8 @@
 #ifndef XRA_TYPE_HPP
 #define XRA_TYPE_HPP
 
+#include "scoped_map.hpp"
+
 namespace xra {
 
 /*
@@ -35,14 +37,23 @@ protected:
   Type& operator=(const Type&);
 };
 
-typedef shared_ptr<Type> TypePtr;
-
 template<class T>
 T& operator<<(T& stream, const Type& type)
 {
   stream << type.ToString();
   return stream;
 }
+
+typedef shared_ptr<Type> TypePtr;
+typedef map<string, TypePtr> TypeSubst;
+
+struct TypeScheme
+{
+  vector<string> variables;
+  TypePtr type;
+};
+
+typedef scoped_map<string, TypeScheme> TypeEnv;
 
 /*
  * Subtypes

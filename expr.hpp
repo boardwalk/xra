@@ -38,6 +38,9 @@ public:
   // expr-geterrors.cpp
   string GetErrors() const;
 
+  // expr-analyze.cpp
+  void Analyze();
+
 protected:
   Expr(Kind kind_) :
     kind(kind_)

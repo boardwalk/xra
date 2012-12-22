@@ -10,7 +10,7 @@ using namespace xra;
 
 int main(int argc, char** argv)
 {
-  enum Mode { LexMode, ParseMode };
+  enum Mode { LexMode, ParseMode, AnalyzeMode };
   Mode mode = ParseMode;
 
   ifstream ifs;
@@ -18,12 +18,15 @@ int main(int argc, char** argv)
 
   // parse options
   int c;
-  while((c = getopt(argc, argv, "lpo:")) != -1) {
+  while((c = getopt(argc, argv, "lpao:")) != -1) {
     if(c == 'l') {
       mode = LexMode;
     }
     else if(c == 'p') {
       mode = ParseMode;
+    }
+    else if(c == 'a') {
+      mode = AnalyzeMode;
     }
     else if(c == 'o') {
       ofs.open(optarg);
@@ -53,24 +56,24 @@ int main(int argc, char** argv)
       Token token = lexer.Get();
       outputStream << token << endl;
 
-      if(token.type == Token::Error) {
-        cerr << "lexing failed" << endl;
+      if(token.type == Token::Error)
         return EXIT_FAILURE;
-      }
 
       if(token.type == Token::EndOfFile)
         break;
     }
   }
-  else if(mode == ParseMode)
+  else if(mode == ParseMode || mode == AnalyzeMode)
   {
     BufferedLexer bufferedLexer(lexer);
     ExprPtr expr = Parse(bufferedLexer);
 
+    if(mode == AnalyzeMode)
+      expr->Analyze();
+
     string errors = expr->GetErrors();
     if(!errors.empty()) {
       cerr << errors << endl;
-      cerr << "parsing failed" << endl;
       return EXIT_FAILURE;
     }
 

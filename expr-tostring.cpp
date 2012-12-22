@@ -19,8 +19,8 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
     for(int i = 0; i < level; i++)        \
       ss << "  ";                         \
     ss << #e;                             \
-    if(expr.type)                         \
-      ss << " :" << *expr.type;
+    if(expr.finalType)                    \
+      ss << " :" << *expr.finalType;
 #define END(e)                            \
     ss << endl;                           \
     level++;                              \
