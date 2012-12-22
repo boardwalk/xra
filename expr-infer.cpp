@@ -60,21 +60,34 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitCall(ECall& expr)
   {
-    VisitAny(*expr.function);
-    VisitAny(*expr.argument);
+    TypeEnv::lock lock(env);
 
-    if(!expr.function->finalType)
-      return; // TODO shouldn't be needed
-    if(!expr.argument->finalType)
-      return; // TODO shouldn't be needed
+    // (s1, t1) <- t1 env e1
+    InferVisitor functionVisitor(env);
+    functionVisitor.VisitAny(*expr.function);
 
-    auto computable = dyn_cast<TBuiltin>(expr.function->finalType.get());
-    if(computable) {
-      expr.finalType = computable->TypeWith(expr.argument->finalType);
+    // (s2, t2) <- t1 (apply s1 env) e2
+    Apply(functionVisitor.subst, env);
+
+    InferVisitor argumentVisitor(env);
+    argumentVisitor.VisitAny(*expr.argument);
+
+    auto builtin = dyn_cast<TBuiltin>(expr.function->finalType.get());
+    if(builtin) {
+      expr.finalType = builtin->Infer(expr.argument->finalType, subst);
     }
     else {
-      // something else
+      // tv <- newTyVar "a"
+      expr.finalType = MakeTypeVar();
+      // s3 <- mgu (apply s2 t1) (TFun t2 tv) 
+      TypePtr leftType(Apply(argumentVisitor.subst, *expr.function->finalType));
+      TypePtr rightType(new TFunction(expr.argument->finalType, expr.finalType));
+      subst = Unify(*leftType, *rightType);
     }
+
+    // s3 `composeSubst` s2 `composeSubst` s1
+    Compose(subst, argumentVisitor.subst);
+    Compose(subst, functionVisitor.subst);
   }
 
   void VisitList(EList& expr)

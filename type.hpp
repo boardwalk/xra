@@ -181,7 +181,7 @@ public:
     return type->kind == Kind_TBuiltin;
   }
 
-  TypePtr TypeWith(TypePtr argument) { return VoidType; }
+  TypePtr Infer(TypePtr argument, TypeSubst& subst) { return VoidType; }
 };
 
 } // namespace xra
