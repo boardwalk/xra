@@ -15,7 +15,7 @@
 
 namespace xra {
 
-TypePtr ParseType(BufferedLexer& lexer) // prefix: :
+TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
 {
   TypePtr type;
 
@@ -29,7 +29,7 @@ TypePtr ParseType(BufferedLexer& lexer) // prefix: :
       type = VoidType;
     }
     else {
-      type = ParseType(lexer);
+      type = Type::Parse(lexer);
       if(!TOKEN(CloseParen))
         EXPECTED(CloseParen);
     }
@@ -49,7 +49,7 @@ TypePtr ParseType(BufferedLexer& lexer) // prefix: :
     if(lexer.Get().strValue == ",")
     {
       lexer.Consume();
-      TypePtr typeRight = ParseType(lexer);
+      TypePtr typeRight = Parse(lexer);
 
       TList* list = dyn_cast<TList>(typeRight.get());
       if(list) {
@@ -66,7 +66,7 @@ TypePtr ParseType(BufferedLexer& lexer) // prefix: :
     else if(lexer.Get().strValue == "->")
     {
       lexer.Consume();
-      TypePtr typeRight = ParseType(lexer);
+      TypePtr typeRight = Parse(lexer);
       type.reset(new TFunction(type, typeRight));
     }
   }

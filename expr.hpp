@@ -5,9 +5,14 @@
 
 namespace xra {
 
+class BufferedLexer;
+
 /*
  * Base expression
  */
+
+class Expr;
+typedef unique_ptr<Expr> ExprPtr;
 
 class Expr
 {
@@ -32,6 +37,9 @@ public:
   TypePtr type;
   TypePtr finalType;
 
+  // expr-parser.cpp
+  static ExprPtr Parse(BufferedLexer&);
+
   // expr-tostring.cpp
   string ToString() const;
 
@@ -49,8 +57,6 @@ protected:
   Expr(const Expr&);
   Expr& operator=(const Expr&);
 };
-
-typedef unique_ptr<Expr> ExprPtr;
 
 template<class T>
 T& operator<<(T& stream, const Expr& expr)

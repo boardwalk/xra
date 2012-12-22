@@ -5,9 +5,14 @@
 
 namespace xra {
 
+class BufferedLexer;
+
 /*
  * Base type
  */
+
+class Type;
+typedef shared_ptr<Type> TypePtr;
 
 class Type
 {
@@ -21,6 +26,9 @@ public:
   };
 
   const Kind kind;
+
+  // type-parser.cpp
+  static TypePtr Parse(BufferedLexer&);
 
   // type-tostring.cpp
   string ToString() const;
@@ -44,7 +52,6 @@ T& operator<<(T& stream, const Type& type)
   return stream;
 }
 
-typedef shared_ptr<Type> TypePtr;
 typedef map<string, TypePtr> TypeSubst;
 
 struct TypeScheme

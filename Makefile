@@ -8,7 +8,7 @@ CXXFLAGS = -I/Users/at0m13/homebrew/include \
 OBJECTS = common.o \
 	main.o \
 	lexer.o \
-	parser.o \
+	expr-parser.o \
 	expr-tostring.o \
 	expr-geterrors.o \
 	expr-infer.o \

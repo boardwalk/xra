@@ -1,6 +1,6 @@
 #include "common.hpp"
-#include "lexer.hpp"
-#include "parser.hpp"
+#include "expr.hpp"
+#include "buffered-lexer.hpp"
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -67,7 +67,7 @@ int main(int argc, char** argv)
   }
   else if(mode == ParseMode || mode == AnalyzeMode)
   {
-    ExprPtr expr = Parse(bufferedLexer);
+    ExprPtr expr = Expr::Parse(bufferedLexer);
 
     if(mode == AnalyzeMode)
       expr->Infer();

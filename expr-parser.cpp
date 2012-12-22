@@ -1,7 +1,6 @@
 #include "common.hpp"
-#include "parser.hpp"
-#include "lexer.hpp"
-#include <iostream>
+#include "expr.hpp"
+#include "buffered-lexer.hpp"
 #include <sstream>
 
 #define TOKEN(t) (lexer.Get().type == Token::t)
@@ -51,12 +50,9 @@ static const map<string, int> unaryOperators {
   {"&", 17}
 };
 
-// type-parser.cpp
-TypePtr ParseType(BufferedLexer&);
+static ExprPtr ParseExpr(BufferedLexer&);
 
-ExprPtr ParseExpr(BufferedLexer&);
-
-ExprPtr ParseFlatBlock(BufferedLexer& lexer)
+static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
 {
   auto list = make_unique<EList>();
 
@@ -73,7 +69,7 @@ ExprPtr ParseFlatBlock(BufferedLexer& lexer)
     ExprPtr(list.release())));
 }
 
-ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
+static ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
 {
   ExprPtr expr = ParseFlatBlock(lexer);
 
@@ -84,21 +80,21 @@ ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
   return expr;
 }
 
-ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
+static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
 {
   if(!TOKEN(Identifier))
     EXPECTED(Identifier)
   string name = lexer.Get().strValue;
   lexer.Consume();
 
-  TypePtr type = ParseType(lexer);
+  TypePtr type = Type::Parse(lexer);
   if(!type)
     EXPECTED(Type)
 
   return ExprPtr(new EExtern(name, type));
 }
 
-ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
+static ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
 {
   if(TOKEN(Indent)) {
     lexer.Consume();
@@ -114,7 +110,7 @@ ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
   return ParseExpr(lexer);
 }
 
-ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
+static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 {
   auto expr = make_unique<EIf>();
 
@@ -143,12 +139,12 @@ ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
   return ExprPtr(expr.release());
 }
 
-ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
+static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
   return ExprPtr(new EReturn(ParseExpr(lexer)));
 }
 
-ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
+static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 {
   ExprPtr param = ParseExpr(lexer);
 
@@ -168,7 +164,7 @@ ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
   return ExprPtr(new EFunction(move(param), move(body)));
 }
 
-ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
+static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
 
 ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 {
@@ -231,7 +227,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
   return expr;
 }
 
-ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
+static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 {
   ExprPtr expr;
 
@@ -327,18 +323,18 @@ ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
   if(TOKEN(Colon)) {
     lexer.Consume();
-    expr->type = ParseType(lexer);
+    expr->type = Type::Parse(lexer);
   }
 
   return expr;
 }
 
-ExprPtr ParseExpr(BufferedLexer& lexer)
+static ExprPtr ParseExpr(BufferedLexer& lexer)
 {
   return ParseExpr_Exp(lexer, 0, true);
 }
 
-ExprPtr Parse(BufferedLexer& lexer)
+ExprPtr Expr::Parse(BufferedLexer& lexer)
 {
   ExprPtr expr = ParseFlatBlock(lexer);
   if(!TOKEN(EndOfFile)) // TODO this is masking better errors!
