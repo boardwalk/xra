@@ -9,32 +9,32 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 {
   stringstream ss;
 
-  void Visit(const TError& type)
+  void VisitError(const TError& type)
   {
-    ss << "<" << type.what << ">";
+    ss << " <" << type.what << ">";
   }
 
-  void Visit(const TVoid& type)
+  void VisitVoid(const TVoid& type)
   {
-    ss << "()";
+    ss << " ()";
   }
 
-  void Visit(const TVariable& type)
+  void VisitVariable(const TVariable& type)
   {
-    ss << type.name;
+    ss << " " << type.name;
   }
 
-  void Visit(const TList& type)
+  void VisitList(const TList& type)
   {
-    ss << "(list";
-    base::Visit(type);
+    ss << " (list";
+    base::VisitList(type);
     ss << ")";
   }
 
-  void Visit(const TFunction& type)
+  void VisitFunction(const TFunction& type)
   {
-    ss << "(fn";
-    base::Visit(type);
+    ss << " (fn";
+    base::VisitFunction(type);
     ss << ")";
   }
 };

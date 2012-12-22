@@ -5,132 +5,83 @@
 
 namespace xra {
 
-struct ExprToStringVisitor
+struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
 {
   stringstream ss;
+  int level;
 
-  void Tail(const Expr& expr)
-  {
-    if(expr.type)
-      ss << " : " << *expr.type;
+  ExprToStringVisitor() :
+    level(0)
+  {}
+
+#define BEGIN(e)                          \
+  void Visit##e(const E##e& expr) {       \
+    for(int i = 0; i < level; i++)        \
+      ss << "  ";                         \
+    ss << #e;                             \
+    if(expr.type)                         \
+      ss << " :" << *expr.type;
+#define END(e)                            \
+    ss << endl;                           \
+    level++;                              \
+    base::Visit##e(expr);                 \
+    level--;                              \
   }
 
-  void Visit(const EError& expr)
-  {
-    ss << "<" << expr.what << ">";
-    Tail(expr);
-  }
+  BEGIN(Error)
+    ss << " " << expr.what;
+  END(Error)
 
-  void Visit(const EVoid& expr)
-  {
-    ss << "()";
-    Tail(expr);
-  }
+  BEGIN(Void)
+  END(Void)
 
-  void Visit(const EVariable& expr)
-  {
-    ss << expr.name;
-    Tail(expr);
-  }
+  BEGIN(Variable)
+    ss << " " << expr.name;
+  END(Variable)
 
-  void Visit(const EBoolean& expr)
-  {
-    ss << (expr.value ? "true" : "false");
-    Tail(expr);
-  }
+  BEGIN(Boolean)
+    ss << " " << (expr.value ? "true" : "false");
+  END(Boolean)
 
-  void Visit(const EInteger& expr)
-  {
-    ss << expr.value;
-    Tail(expr);
-  }
+  BEGIN(Integer)
+    ss << " " << expr.value;
+  END(Integer)
 
-  void Visit(const EFloat& expr)
-  {
-    ss << expr.value;
-    Tail(expr);
-  }
+  BEGIN(Float)
+    ss << " " << expr.value;
+  END(Float)
 
-  void Visit(const EString& expr)
-  {
-    ss << "\"" << EscapeString(expr.value) << "\"";
-    Tail(expr);
-  }
+  BEGIN(String)
+    ss << " \"" << EscapeString(expr.value) << "\"";
+  END(String)
 
-  void Visit(const EIf& expr)
-  {
-    ss << "(if";
-    for(auto& c : expr.condClauses) {
-      ss << " (";
-      VisitExpr(*c.first, *this);
-      ss << " ";
-      VisitExpr(*c.second, *this);
-      ss << ")";
-    }
-    if(expr.elseClause) {
-      ss << " (else ";
-      VisitExpr(*expr.elseClause, *this);
-      ss << ")";
-    }
-    ss << ")";
-    Tail(expr);
-  }
+  BEGIN(If)
+  END(If)
 
-  void Visit(const EFunction& expr)
-  {
-    ss << "(fn ";
-    VisitExpr(*expr.param, *this);
-    ss << " ";
-    VisitExpr(*expr.body, *this);
-    ss << ")";
-    Tail(expr);
-  }
+  BEGIN(Function)
+  END(Function)
 
-  void Visit(const ECall& expr)
-  {
-    ss << "(go ";
-    VisitExpr(*expr.function, *this);
-    ss << " ";
-    VisitExpr(*expr.argument, *this);
-    ss << ")";
-    Tail(expr);
-  }
+  BEGIN(Call)
+  END(Call)
 
-  void Visit(const EReturn& expr)
-  {
-    ss << "(return ";
-    VisitExpr(*expr.expr, *this);
-    ss << ")";
-    Tail(expr);
-  }
+  BEGIN(Return)
+  END(Return)
 
-  void Visit(const EList& expr)
-  {
-    ss << "{";
-    int i = 0;
-    for(auto& e : expr.exprs) {
-      if(i++ != 0) ss << " ";
-      VisitExpr(*e, *this);
-    }
-    ss << "}";
-    Tail(expr);
-  }
+  BEGIN(List)
+  END(List)
 
-  void Visit(const EExtern& expr)
-  {
-    ss << "(extern ";
-    ss << expr.name;
-    ss << " ";
-    ss << expr.externType->ToString();
-    ss << ")";
-    Tail(expr);
-  }
+  BEGIN(Extern)
+    ss << " " << expr.name << " " << *expr.externType;
+  END(Extern)
+
+#undef BEGIN
+#undef END
 };
 
 string Expr::ToString() const
 {
   ExprToStringVisitor visitor;
-  VisitExpr(*this, visitor);
+  visitor.VisitAny(*this);
   return visitor.ss.str();
 }
 

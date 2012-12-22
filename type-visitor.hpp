@@ -3,49 +3,52 @@
 
 namespace xra {
 
-#define VISIT(c) \
-  case Type::Kind_##c: \
-  { \
-    typedef typename CopyConst<NodeTy, c>::type SubNodeTy; \
-    Visit(static_cast<SubNodeTy&>(type)); \
-    break; \
-  }
-
 template<class VisitorTy, class NodeTy>
 struct TypeVisitor
 {
   typedef TypeVisitor<VisitorTy, NodeTy> base;
 
-  void Visit(NodeTy& type)
-  {
-    // nothing
-  }
+#define SUBCLASS \
+  static_cast<VisitorTy&>(*this)
 
-  void Visit(typename CopyConst<NodeTy, TFunction>::type& type)
-  {
-    VisitAny(*type.argument);
-    VisitAny(*type.result);
-  }
+#define VISIT(c) \
+  void Visit##c(typename CopyConst<NodeTy, T##c>::type& type)
 
-  void Visit(typename CopyConst<NodeTy, TList>::type& type)
-  {
+#define CASE(c) \
+  case Type::Kind_T##c: \
+    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, T##c>::type&>(type));
+
+  VISIT(Error) {}
+
+  VISIT(Void) {}
+
+  VISIT(Variable) {}
+
+  VISIT(List) {
     for(auto& t : type.types)
-      VisitAny(*t);
+      SUBCLASS.VisitAny(*t);
+  }
+
+  VISIT(Function) {
+    SUBCLASS.VisitAny(*type.argument);
+    SUBCLASS.VisitAny(*type.result);
   }
 
   void VisitAny(NodeTy& type)
   {
     switch(type.kind) {
-      VISIT(TError)
-      VISIT(TVoid)
-      VISIT(TVariable)
-      VISIT(TList)
-      VISIT(TFunction)
+      CASE(Error)
+      CASE(Void)
+      CASE(Variable)
+      CASE(List)
+      CASE(Function)
     }
   }
-};
 
+#undef SUBCLASS
 #undef VISIT
+#undef CASE
+};
 
 } // namespace xra
 

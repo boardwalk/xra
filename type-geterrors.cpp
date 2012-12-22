@@ -8,11 +8,12 @@ struct TypeGetErrorsVisitor : TypeVisitor<TypeGetErrorsVisitor, const Type>
 {
   string str;
 
-  void Visit(const TError& type)
+  void VisitError(const TError& type)
   {
     if(!str.empty())
       str += '\n';
     str += type.what;
+    base::VisitError(type);
   }
 };
 

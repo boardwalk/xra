@@ -40,7 +40,8 @@ typedef shared_ptr<Type> TypePtr;
 template<class T>
 T& operator<<(T& stream, const Type& type)
 {
-  return stream << type.ToString();
+  stream << type.ToString();
+  return stream;
 }
 
 /*
