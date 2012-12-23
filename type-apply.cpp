@@ -36,7 +36,7 @@ struct TypeApplyVisitor : TypeVisitor<TypeApplyVisitor, Type>
   {
     auto list = make_unique<TList>();
     for(auto& t : type.types) {
-      VisitAny(*t);
+      Visit(*t);
       list->types.push_back(result);
     }
     result = list.release();
@@ -45,9 +45,9 @@ struct TypeApplyVisitor : TypeVisitor<TypeApplyVisitor, Type>
   void VisitFunction(TFunction& type)
   {
     auto function = make_unique<TFunction>();
-    VisitAny(*type.parameter);
+    Visit(*type.parameter);
     function->parameter = result;
-    VisitAny(*type.result);
+    Visit(*type.result);
     function->result = result;
     result = function.release();
   }
@@ -61,7 +61,7 @@ struct TypeApplyVisitor : TypeVisitor<TypeApplyVisitor, Type>
 TypePtr Apply(const TypeSubst& subst, Type& type)
 {
   TypeApplyVisitor visitor(subst);
-  visitor.VisitAny(type);
+  visitor.Visit(type);
   return visitor.result;
 }
   

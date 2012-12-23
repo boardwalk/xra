@@ -26,17 +26,17 @@ struct TypeVisitor
 
   VISIT(List) {
     for(auto& t : type.types)
-      SUBCLASS.VisitAny(*t);
+      SUBCLASS.Visit(*t);
   }
 
   VISIT(Function) {
-    SUBCLASS.VisitAny(*type.parameter);
-    SUBCLASS.VisitAny(*type.result);
+    SUBCLASS.Visit(*type.parameter);
+    SUBCLASS.Visit(*type.result);
   }
 
   VISIT(Builtin) {}
 
-  void VisitAny(NodeTy& type)
+  void Visit(NodeTy& type)
   {
     switch(type.kind) {
       CASE(Error)

@@ -47,7 +47,7 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 string Type::ToString() const
 {
   TypeToStringVisitor visitor;
-  visitor.VisitAny(*this);
+  visitor.Visit(*this);
   return visitor.ss.str();
 }
 

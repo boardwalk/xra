@@ -20,7 +20,7 @@ struct TypeGetErrorsVisitor : TypeVisitor<TypeGetErrorsVisitor, const Type>
 string Type::GetErrors() const
 {
   TypeGetErrorsVisitor visitor;
-  visitor.VisitAny(*this);
+  visitor.Visit(*this);
   return move(visitor.str);
 }
 
