@@ -49,17 +49,17 @@ protected:
   {}
 
 private:
-  friend void intrusive_ptr_add_ref(const Type* type);
-  friend void intrusive_ptr_release(const Type* type);
-  mutable int refcount;
+  friend void intrusive_ptr_add_ref(Type* type);
+  friend void intrusive_ptr_release(Type* type);
+  int refcount;
 };
 
-inline void intrusive_ptr_add_ref(const Type* type)
+inline void intrusive_ptr_add_ref(Type* type)
 {
   type->refcount++;
 }
 
-inline void intrusive_ptr_release(const Type* type)
+inline void intrusive_ptr_release(Type* type)
 {
   if(--type->refcount == 0)
     delete type;
