@@ -92,7 +92,10 @@ extern const TypePtr StringType;
 TypePtr Apply(const TypeSubst&, Type&);
 
 // type-unify.cpp
-TypeSubst Unify(const Type& left, const Type& right);
+TypeSubst Unify(Type& left, Type& right);
+
+// type-getvariables.cpp
+void GetVariables(const Type& type, set<string>& variables);
 
 // type.cpp
 TypePtr MakeTypeVar();
