@@ -30,7 +30,7 @@ struct TypeVisitor
   }
 
   VISIT(Function) {
-    SUBCLASS.VisitAny(*type.argument);
+    SUBCLASS.VisitAny(*type.parameter);
     SUBCLASS.VisitAny(*type.result);
   }
 

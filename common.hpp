@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <llvm/Support/Casting.h>
+#include <boost/intrusive_ptr.hpp>
 
 namespace xra {
 

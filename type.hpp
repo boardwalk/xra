@@ -12,7 +12,7 @@ class BufferedLexer;
  */
 
 class Type;
-typedef shared_ptr<Type> TypePtr;
+typedef boost::intrusive_ptr<Type> TypePtr;
 
 class Type
 {
@@ -44,9 +44,26 @@ public:
 
 protected:
   Type(Kind kind_) :
-    kind(kind_)
+    kind(kind_),
+    refcount(0)
   {}
+
+private:
+  friend void intrusive_ptr_add_ref(const Type* type);
+  friend void intrusive_ptr_release(const Type* type);
+  mutable int refcount;
 };
+
+inline void intrusive_ptr_add_ref(const Type* type)
+{
+  type->refcount++;
+}
+
+inline void intrusive_ptr_release(const Type* type)
+{
+  if(--type->refcount == 0)
+    delete type;
+}
 
 template<class T>
 T& operator<<(T& stream, const Type& type)
@@ -72,7 +89,7 @@ extern const TypePtr FloatType;
 extern const TypePtr StringType;
 
 // type-apply.cpp
-TypePtr Apply(const TypeSubst&, const Type&);
+TypePtr Apply(const TypeSubst&, Type&);
 
 // type-unify.cpp
 TypeSubst Unify(const Type& left, const Type& right);
@@ -154,9 +171,13 @@ public:
 class TFunction : public Type
 {
 public:
-  TFunction(TypePtr argument_, TypePtr result_) :
+  TFunction() :
+    Type(Kind_TFunction)
+  {}
+
+  TFunction(TypePtr parameter_, TypePtr result_) :
     Type(Kind_TFunction),
-    argument(move(argument_)),
+    parameter(move(parameter_)),
     result(move(result_))
   {}
 
@@ -165,7 +186,7 @@ public:
     return type->kind == Kind_TFunction;
   }
 
-  TypePtr argument;
+  TypePtr parameter;
   TypePtr result;
 };
 
