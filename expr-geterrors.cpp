@@ -16,18 +16,18 @@ struct ExprGetErrorsVisitor : ExprVisitor<ExprGetErrorsVisitor, const Expr>
     base::VisitError(expr);
   }
 
-  void VisitAny(const Expr& expr)
+  void Visit(const Expr& expr)
   {
     if(expr.type)
       str += expr.type->GetErrors();
-    base::VisitAny(expr);
+    base::Visit(expr);
   }
 };
 
 string Expr::GetErrors() const
 {
   ExprGetErrorsVisitor visitor;
-  visitor.VisitAny(*this);
+  visitor.Visit(*this);
   return move(visitor.str);
 }
   

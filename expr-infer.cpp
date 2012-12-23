@@ -15,9 +15,9 @@ struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
       error.reset(new TError("duplicate parameter"));
   }
 
-  void VisitAny(Expr& expr)
+  void Visit(Expr& expr)
   {
-    base::VisitAny(expr);
+    base::Visit(expr);
     if(!isa<EVariable>(&expr) && !isa<EList>(&expr))
       error.reset(new TError("expression not allowed in function parameter"));
   }
@@ -77,7 +77,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
     // tv <- newTyVar "a"
     ParamCollector paramCollector;
-    paramCollector.VisitAny(*expr.param);
+    paramCollector.Visit(*expr.param);
 
     if(paramCollector.error) {
       expr.finalType = paramCollector.error;
@@ -99,15 +99,15 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
     // ADDED
     InferVisitor paramVisitor(env);
-    paramVisitor.VisitAny(*expr.param);
+    paramVisitor.Visit(*expr.param);
 
     // (s1, t1) <- t1 env'' e
     InferVisitor bodyVisitor(env);
-    bodyVisitor.VisitAny(*expr.body);
+    bodyVisitor.Visit(*expr.body);
 
     // return (s1, TFun(apply s1 tv) t1)
     // MODIFIED (apply s1 tv) removed, unneeded
-    VisitAny(*expr.body);
+    Visit(*expr.body);
     assert(expr.param->finalType);
     assert(expr.body->finalType);
     expr.finalType.reset(new TFunction(expr.param->finalType, expr.body->finalType));
@@ -119,13 +119,13 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
     // (s1, t1) <- t1 env e1
     InferVisitor functionVisitor(env);
-    functionVisitor.VisitAny(*expr.function);
+    functionVisitor.Visit(*expr.function);
 
     // (s2, t2) <- t1 (apply s1 env) e2
     Apply(functionVisitor.subst, env);
 
     InferVisitor argumentVisitor(env);
-    argumentVisitor.VisitAny(*expr.argument);
+    argumentVisitor.Visit(*expr.argument);
 
     auto builtin = dyn_cast<TBuiltin>(expr.function->finalType.get());
     if(builtin) {
@@ -154,7 +154,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       TypeSubst lastSubst;
       subst.swap(lastSubst);
 
-      VisitAny(*e);
+      Visit(*e);
       Apply(subst, env);
 
       Compose(subst, lastSubst);
@@ -178,9 +178,9 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     }
   }
 
-  void VisitAny(Expr& expr)
+  void Visit(Expr& expr)
   {
-    base::VisitAny(expr);
+    base::Visit(expr);
     if(expr.type)
       Compose(Unify(*expr.finalType, *expr.type), subst);
   }
@@ -191,7 +191,7 @@ void Expr::Infer()
   TypeEnv env;
   SetBuiltins(env);
   InferVisitor visitor(env);
-  visitor.VisitAny(*this);
+  visitor.Visit(*this);
 }
 
 } // namespace xra

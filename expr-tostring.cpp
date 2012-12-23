@@ -75,7 +75,7 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
 string Expr::ToString() const
 {
   ExprToStringVisitor visitor;
-  visitor.VisitAny(*this);
+  visitor.Visit(*this);
   return visitor.ss.str();
 }
 

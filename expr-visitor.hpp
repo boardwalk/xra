@@ -33,23 +33,23 @@ struct ExprVisitor
   VISIT(String) {}
 
   VISIT(Function) {
-    SUBCLASS.VisitAny(*expr.param);
-    SUBCLASS.VisitAny(*expr.body);
+    SUBCLASS.Visit(*expr.param);
+    SUBCLASS.Visit(*expr.body);
   }
   
   VISIT(Call) {
-    SUBCLASS.VisitAny(*expr.function);
-    SUBCLASS.VisitAny(*expr.argument);
+    SUBCLASS.Visit(*expr.function);
+    SUBCLASS.Visit(*expr.argument);
   }
 
   VISIT(List) {
     for(auto& e : expr.exprs)
-      SUBCLASS.VisitAny(*e);
+      SUBCLASS.Visit(*e);
   }
 
   VISIT(Extern) {}
 
-  void VisitAny(NodeTy& expr)
+  void Visit(NodeTy& expr)
   {
     switch(expr.kind) {
       CASE(Error)
