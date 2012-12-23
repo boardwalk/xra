@@ -6,6 +6,7 @@
 namespace xra {
 
 class BufferedLexer;
+class Expr;
 
 /*
  * Base type
@@ -22,8 +23,7 @@ public:
     Kind_TVoid,
     Kind_TVariable,
     Kind_TList,
-    Kind_TFunction,
-    Kind_TBuiltin
+    Kind_TFunction
   };
 
   virtual ~Type() {}
@@ -191,21 +191,6 @@ public:
 
   TypePtr parameter;
   TypePtr result;
-};
-
-class TBuiltin : public Type
-{
-public:
-  TBuiltin() :
-    Type(Kind_TBuiltin)
-  {}
-
-  static bool classof(const Type* type)
-  {
-    return type->kind == Kind_TBuiltin;
-  }
-
-  TypePtr Infer(TypePtr argument, TypeSubst& subst) { return VoidType; }
 };
 
 } // namespace xra

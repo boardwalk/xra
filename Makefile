@@ -18,8 +18,7 @@ OBJECTS = common.o \
 	type-geterrors.o \
 	type-apply.o \
 	type-unify.o \
-	type-getvariables.o \
-	builtins.o
+	type-getvariables.o
 
 all: xra
 

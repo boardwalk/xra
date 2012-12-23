@@ -34,8 +34,6 @@ struct TypeVisitor
     SUBCLASS.Visit(*type.result);
   }
 
-  VISIT(Builtin) {}
-
   void Visit(NodeTy& type)
   {
     switch(type.kind) {
@@ -44,7 +42,6 @@ struct TypeVisitor
       CASE(Variable)
       CASE(List)
       CASE(Function)
-      CASE(Builtin)
     }
   }
 

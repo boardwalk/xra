@@ -51,11 +51,6 @@ struct TypeApplyVisitor : TypeVisitor<TypeApplyVisitor, Type>
     function->result = result;
     result = function.release();
   }
-
-  void VisitBuiltin(TBuiltin& type)
-  {
-    result = &type;
-  }
 };
 
 TypePtr Apply(const TypeSubst& subst, Type& type)

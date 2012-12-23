@@ -127,18 +127,12 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     InferVisitor argumentVisitor(env);
     argumentVisitor.Visit(*expr.argument);
 
-    auto builtin = dyn_cast<TBuiltin>(expr.function->finalType.get());
-    if(builtin) {
-      expr.finalType = builtin->Infer(expr.argument->finalType, subst);
-    }
-    else {
-      // tv <- newTyVar "a"
-      expr.finalType = MakeTypeVar();
-      // s3 <- mgu (apply s2 t1) (TFun t2 tv) 
-      TypePtr leftType(Apply(argumentVisitor.subst, *expr.function->finalType));
-      TypePtr rightType(new TFunction(expr.argument->finalType, expr.finalType));
-      subst = Unify(*leftType, *rightType);
-    }
+    // tv <- newTyVar "a"
+    expr.finalType = MakeTypeVar();
+    // s3 <- mgu (apply s2 t1) (TFun t2 tv) 
+    TypePtr leftType(Apply(argumentVisitor.subst, *expr.function->finalType));
+    TypePtr rightType(new TFunction(expr.argument->finalType, expr.finalType));
+    subst = Unify(*leftType, *rightType);
 
     // s3 `composeSubst` s2 `composeSubst` s1
     Compose(subst, argumentVisitor.subst);
@@ -189,7 +183,6 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 void Expr::Infer()
 {
   TypeEnv env;
-  SetBuiltins(env);
   InferVisitor visitor(env);
   visitor.Visit(*this);
 }
