@@ -4,6 +4,25 @@
 
 namespace xra {
 
+struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
+{
+  TypeSubst subst;
+  TypePtr error;
+
+  void VisitVariable(const EVariable& expr)
+  {
+    if(!subst.insert({expr.name, expr.type}).second)
+      error.reset(new TError("duplicate parameter"));
+  }
+
+  void VisitAny(Expr& expr)
+  {
+    base::VisitAny(expr);
+    if(!isa<EVariable>(&expr) && !isa<EList>(&expr))
+      error.reset(new TError("expression not allowed in function parameter"));
+  }
+};
+
 struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 {
   TypeEnv& env;
@@ -54,8 +73,44 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitFunction(EFunction& expr)
   {
-    // TODO
-    base::VisitFunction(expr);
+    TypeEnv::lock lock(env);
+
+    // tv <- newTyVar "a"
+    ParamCollector paramCollector;
+    paramCollector.VisitAny(*expr.param);
+
+    if(paramCollector.error) {
+      expr.finalType = paramCollector.error;
+      return;
+    }
+
+    for(auto& param : paramCollector.subst) {
+      if(!param.second)
+        param.second = MakeTypeVar();
+    }
+
+    // TypeEnv env' = remove env n
+    // env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
+    for(auto& param : paramCollector.subst) {
+      auto& scheme = env[param.first];
+      scheme.variables.clear();
+      scheme.type = param.second;
+    }
+
+    // ADDED
+    InferVisitor paramVisitor(env);
+    paramVisitor.VisitAny(*expr.param);
+
+    // (s1, t1) <- t1 env'' e
+    InferVisitor bodyVisitor(env);
+    bodyVisitor.VisitAny(*expr.body);
+
+    // return (s1, TFun(apply s1 tv) t1)
+    // MODIFIED (apply s1 tv) removed, unneeded
+    VisitAny(*expr.body);
+    assert(expr.param->finalType);
+    assert(expr.body->finalType);
+    expr.finalType.reset(new TFunction(expr.param->finalType, expr.body->finalType));
   }
 
   void VisitCall(ECall& expr)
@@ -105,11 +160,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       Compose(subst, lastSubst);
       subst.swap(lastSubst);
 
-      // TODO children must infer something!
-      if(e->finalType)
-        r->types.push_back(e->finalType);
-      else
-        r->types.push_back(VoidType);
+      r->types.push_back(e->finalType);
     }
 
     expr.finalType.reset(r.release());

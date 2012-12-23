@@ -5,7 +5,7 @@ namespace xra {
 
 TypePtr Apply(const TypeSubst& subst, const Type& type)
 {
-  return TypePtr();
+  return VoidType;
 }
   
 } // namespace xra
