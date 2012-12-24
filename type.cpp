@@ -30,4 +30,17 @@ void Compose(const TypeSubst& a, TypeSubst& b)
     b.insert(pair);
 }
 
+void ToString(const TypeSubst& subst, stringstream& ss)
+{
+  ss << "{subst";
+  for(auto& pair : subst) {
+    ss << " " << pair.first << "=";
+    if(pair.second)
+      ToString(*pair.second, ss);
+    else
+      ss << "(null)";
+  }
+  ss << "}";
+}
+
 } // namespace xra

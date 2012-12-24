@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include "buffered-lexer.hpp"
+#include "expr.hpp"
 #include "env.hpp"
 #include <fstream>
 #include <iostream>
@@ -76,8 +77,13 @@ int main(int argc, char** argv)
     Env env;
     AddBuiltins(env);
 
-    if(mode == AnalyzeMode)
-      expr->Infer(env);
+    if(mode == AnalyzeMode) {
+      TypeSubst subst;
+      expr->Infer(env, subst);
+      env.Apply(subst);
+    }
+
+    cout << env << endl;
 
     string errors = expr->GetErrors();
     if(!errors.empty()) {

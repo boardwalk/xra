@@ -8,19 +8,19 @@ namespace xra {
 struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
 {
   TypeSubst subst;
-  TypePtr error;
+  string error;
 
   void VisitVariable(const EVariable& expr)
   {
     if(!subst.insert({expr.name, expr.type}).second)
-      error.reset(new TError("duplicate parameter"));
+      error = "duplicate parameter";
   }
 
   void Visit(Expr& expr)
   {
     base::Visit(expr);
     if(!isa<EVariable>(&expr) && !isa<EList>(&expr))
-      error.reset(new TError("expression not allowed in function parameter"));
+      error = "expression not allowed in function parameter";
   }
 };
 
@@ -35,41 +35,39 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitError(EError& expr)
   {
-    expr.finalType.reset(new TError("expression error"));
+    expr.value = new VError("expression error");
   }
 
   void VisitVoid(EVoid& expr)
   {
-    expr.finalType = VoidType;
+    expr.value = new VConstant();
   }
 
   void VisitVariable(EVariable& expr)
   {
-    auto value = env[expr.name];
-    if(value)
-      expr.finalType = value->typeScheme.type;
-    else
-      expr.finalType.reset(new TError("unbound variable"));
+    expr.value = env[expr.name];
+    if(!expr.value)
+      expr.value = new VError("unbound variable");
   }
 
   void VisitBoolean(EBoolean& expr)
   {
-    expr.finalType = BooleanType;
+    expr.value = new VConstant(expr.literal);
   }
 
   void VisitInteger(EInteger& expr)
   {
-    expr.finalType = IntegerType;
+    expr.value = new VConstant(expr.literal);
   }
 
   void VisitFloat(EFloat& expr)
   {
-    expr.finalType = FloatType;
+    expr.value = new VConstant(expr.literal);
   }
 
   void VisitString(EString& expr)
   {
-    expr.finalType = StringType;
+    expr.value = new VConstant(expr.literal);
   }
 
   void VisitFunction(EFunction& expr)
@@ -80,8 +78,8 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     ParamCollector paramCollector;
     paramCollector.Visit(*expr.param);
 
-    if(paramCollector.error) {
-      expr.finalType = paramCollector.error;
+    if(!paramCollector.error.empty()) {
+      expr.value = new VError(paramCollector.error);
       return;
     }
 
@@ -94,7 +92,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     // env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
     for(auto& param : paramCollector.subst) {
       ValuePtr value(new VLocal);
-      value->typeScheme.type = param.second;
+      value->type = param.second;
       env.AddValue(param.first, value);
     }
 
@@ -109,34 +107,42 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     // return (s1, TFun(apply s1 tv) t1)
     // MODIFIED (apply s1 tv) removed, unneeded
     Visit(*expr.body);
-    assert(expr.param->finalType);
-    assert(expr.body->finalType);
-    expr.finalType.reset(new TFunction(expr.param->finalType, expr.body->finalType));
+    expr.value = new VTemporary;
+    expr.value->type = new TFunction(expr.param->value->type, expr.body->value->type);
   }
 
   void VisitCall(ECall& expr)
   {
-    Scope scope(env);
-
     // (s1, t1) <- ti env e1
     InferVisitor functionVisitor(env);
     functionVisitor.Visit(*expr.function);
 
-    // (s2, t2) <- ti (apply s1 env) e2
+    // apply s1 env
     env.Apply(functionVisitor.subst);
 
-    InferVisitor argumentVisitor(env);
-    argumentVisitor.Visit(*expr.argument);
+    auto builtin = dyn_cast<VBuiltin>(expr.function->value.get());
+    if(builtin) {
+      expr.value = builtin->Infer(env, subst, *expr.argument);
+    }
+    else {
+      // tv <- newTyVar "a"
+      expr.value = new VTemporary;
+      expr.value->type = MakeTypeVar();
 
-    // tv <- newTyVar "a"
-    expr.finalType = MakeTypeVar();
-    // s3 <- mgu (apply s2 t1) (TFun t2 tv) 
-    TypePtr leftType(Apply(argumentVisitor.subst, *expr.function->finalType));
-    TypePtr rightType(new TFunction(expr.argument->finalType, expr.finalType));
-    subst = Unify(*leftType, *rightType);
+      // (s2, t2) <- ti (apply s1 env) e2
+      InferVisitor argumentVisitor(env);
+      argumentVisitor.Visit(*expr.argument);
 
-    // s3 `composeSubst` s2 `composeSubst` s1
-    Compose(subst, argumentVisitor.subst);
+      // s3 <- mgu (apply s2 t1) (TFun t2 tv)
+      TypePtr leftType = Apply(argumentVisitor.subst, *expr.function->value->type);
+      TypePtr rightType = new TFunction(expr.argument->value->type, expr.value->type);
+      subst = Unify(*leftType, *rightType);
+
+      // s3 `composeSubst` s2
+      Compose(subst, argumentVisitor.subst);
+    }
+
+    // s2 `composeSubst` s1
     Compose(subst, functionVisitor.subst);
   }
 
@@ -151,35 +157,36 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
       Visit(*e);
 
-      Compose(subst, lastSubst);
-      subst.swap(lastSubst);
+      Compose(lastSubst, subst);
 
-      r->types.push_back(e->finalType);
+      r->types.push_back(e->value->type);
     }
 
-    expr.finalType.reset(r.release());
+    expr.value = new VTemporary;
+    expr.value->type = r.release();
   }
 
   void VisitExtern(EExtern& expr)
   {
     ValuePtr value(new VExtern);
-    value->typeScheme.type = expr.externType;
+    value->type = expr.externType;
     env.AddValue(expr.name, value);
-    expr.finalType = VoidType;
+    expr.value = new VConstant;
   }
 
   void Visit(Expr& expr)
   {
     base::Visit(expr);
     if(expr.type)
-      Compose(Unify(*expr.finalType, *expr.type), subst);
+      Compose(Unify(*expr.value->type, *expr.type), subst);
   }
 };
 
-void Expr::Infer(Env& env)
+void Expr::Infer(Env& env, TypeSubst& subst)
 {
   InferVisitor visitor(env);
   visitor.Visit(*this);
+  subst.swap(visitor.subst);
 }
 
 } // namespace xra

@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "type.hpp"
 #include "buffered-lexer.hpp"
-#include <sstream>
 
 #define TOKEN(t) (lexer.Get().type == Token::t)
 #define ERROR(what) \

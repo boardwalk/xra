@@ -1,6 +1,5 @@
 #include "common.hpp"
 #include "lexer.hpp"
-#include <sstream>
 
 namespace xra {
 
@@ -97,7 +96,9 @@ string Token::ToString() const
       ss << floatValue;
       break;
     case String:
-      ss << "\"" << EscapeString(strValue) << "\"";
+      ss << "\"";
+      EscapeString(strValue, ss);
+      ss << "\"";
       break;
     case Operator:
       ss << "<operator " << strValue << ">";

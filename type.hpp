@@ -4,14 +4,10 @@
 namespace xra {
 
 class BufferedLexer;
-class Expr;
 
 /*
  * Base type
  */
-
-class Type;
-typedef boost::intrusive_ptr<Type> TypePtr;
 
 class Type
 {
@@ -28,9 +24,6 @@ public:
 
   // type-parser.cpp
   static TypePtr Parse(BufferedLexer&);
-
-  // type-tostring.cpp
-  string ToString() const;
 
   // type-geterrors.cpp
   string GetErrors() const;
@@ -63,40 +56,28 @@ inline void intrusive_ptr_release(Type* type)
     delete type;
 }
 
-template<class T>
-T& operator<<(T& stream, const Type& type)
-{
-  stream << type.ToString();
-  return stream;
-}
-
-typedef map<string, TypePtr> TypeSubst;
-
-struct TypeScheme
-{
-  vector<string> variables;
-  TypePtr type;
-};
-
 extern const TypePtr VoidType;
 extern const TypePtr BooleanType;
 extern const TypePtr IntegerType;
 extern const TypePtr FloatType;
 extern const TypePtr StringType;
 
+// type-tostring.cpp
+void ToString(const Type&, stringstream&);
+
 // type-apply.cpp
 TypePtr Apply(const TypeSubst&, Type&);
-void Apply(const TypeSubst&, TypeScheme&);
 
 // type-unify.cpp
-TypeSubst Unify(Type& left, Type& right);
+TypeSubst Unify(Type&, Type&);
 
 // type-getvariables.cpp
-void GetVariables(const Type& type, set<string>& variables);
+void GetVariables(const Type&, set<string>&);
 
 // type.cpp
 TypePtr MakeTypeVar();
 void Compose(const TypeSubst&, TypeSubst&);
+void ToString(const TypeSubst&, stringstream&);
 
 /*
  * Subtypes

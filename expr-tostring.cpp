@@ -1,16 +1,16 @@
 #include "common.hpp"
 #include "expr.hpp"
 #include "expr-visitor.hpp"
-#include <sstream>
 
 namespace xra {
 
 struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
 {
-  stringstream ss;
+  stringstream& ss;
   int level;
 
-  ExprToStringVisitor() :
+  ExprToStringVisitor(stringstream& ss_) :
+    ss(ss_),
     level(0)
   {}
 
@@ -18,10 +18,12 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
   void Visit##e(const E##e& expr) {       \
     for(int i = 0; i < level; i++)        \
       ss << "  ";                         \
-    ss << #e;                             \
-    if(expr.finalType)                    \
-      ss << " :" << *expr.finalType;
+    ss << #e;
 #define END(e)                            \
+    if(expr.value) {                      \
+      ss << " ";                          \
+      ToString(*expr.value, ss);          \
+    }                                     \
     ss << endl;                           \
     level++;                              \
     base::Visit##e(expr);                 \
@@ -36,23 +38,25 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
   END(Void)
 
   BEGIN(Variable)
-    ss << " " << expr.name;
+    ss << " `" << expr.name << "`";
   END(Variable)
 
   BEGIN(Boolean)
-    ss << " " << (expr.value ? "true" : "false");
+    ss << " " << (expr.literal ? "true" : "false");
   END(Boolean)
 
   BEGIN(Integer)
-    ss << " " << expr.value;
+    ss << " " << expr.literal;
   END(Integer)
 
   BEGIN(Float)
-    ss << " " << expr.value;
+    ss << " " << expr.literal;
   END(Float)
 
   BEGIN(String)
-    ss << " \"" << EscapeString(expr.value) << "\"";
+    ss << " \"";
+    EscapeString(expr.literal, ss);
+    ss << "\"";
   END(String)
 
   BEGIN(Function)
@@ -72,11 +76,10 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
 #undef END
 };
 
-string Expr::ToString() const
+void ToString(const Expr& expr, stringstream& ss)
 {
-  ExprToStringVisitor visitor;
-  visitor.Visit(*this);
-  return visitor.ss.str();
+  ExprToStringVisitor visitor(ss);
+  visitor.Visit(expr);
 }
 
 } // namespace xra

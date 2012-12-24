@@ -60,13 +60,4 @@ TypePtr Apply(const TypeSubst& subst, Type& type)
   return visitor.result;
 }
 
-void Apply(const TypeSubst& subst, TypeScheme& scheme)
-{
-  auto localSubst = subst;
-  for(auto& var : scheme.variables)
-    localSubst.erase(var);
-
-  scheme.type = Apply(localSubst, *scheme.type);
-}
-
 } // namespace xra

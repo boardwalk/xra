@@ -1,7 +1,7 @@
 #ifndef XRA_EXPR_HPP
 #define XRA_EXPR_HPP
 
-#include "type.hpp"
+#include "value.hpp"
 
 namespace xra {
 
@@ -10,9 +10,6 @@ class BufferedLexer;
 /*
  * Base expression
  */
-
-class Expr;
-typedef unique_ptr<Expr> ExprPtr;
 
 class Env;
 
@@ -38,21 +35,18 @@ public:
   // expr-parser.cpp
   static ExprPtr Parse(BufferedLexer&);
 
-  // expr-tostring.cpp
-  string ToString() const;
-
   // expr-geterrors.cpp
   string GetErrors() const;
 
   // expr-infer.cpp
-  void Infer(Env& env);
+  void Infer(Env&, TypeSubst&);
 
   Expr(const Expr&) = delete;
   Expr& operator=(const Expr&) = delete;
 
   const Kind kind;
-  TypePtr type;
-  TypePtr finalType;
+  TypePtr type; // from annotation
+  ValuePtr value; // filled by Infer
 
 protected:
   Expr(Kind kind_) :
@@ -60,11 +54,8 @@ protected:
   {}
 };
 
-template<class T>
-T& operator<<(T& stream, const Expr& expr)
-{
-  return stream << expr.ToString();
-}
+// expr-tostring.cpp
+void ToString(const Expr&, stringstream&);
 
 /*
  * Subexpressions
@@ -117,9 +108,9 @@ public:
 class EBoolean : public Expr
 {
 public:
-  EBoolean(bool value_) :
+  EBoolean(bool literal_) :
     Expr(Kind_EBoolean),
-    value(value_)
+    literal(literal_)
   {}
 
   static bool classof(const Expr* expr)
@@ -127,15 +118,15 @@ public:
     return expr->kind == Kind_EBoolean;
   }
 
-  const bool value;
+  const bool literal;
 };
 
 class EInteger : public Expr
 {
 public:
-  EInteger(long value_) :
+  EInteger(long literal_) :
     Expr(Kind_EInteger),
-    value(value_)
+    literal(literal_)
   {}
 
   static bool classof(const Expr* expr)
@@ -143,15 +134,15 @@ public:
     return expr->kind == Kind_EInteger;
   }
 
-  const long value;
+  const long literal;
 };
 
 class EFloat : public Expr
 {
 public:
-  EFloat(double value_) :
+  EFloat(double literal_) :
     Expr(Kind_EFloat),
-    value(value_)
+    literal(literal_)
   {}
 
   static bool classof(const Expr* expr)
@@ -159,15 +150,15 @@ public:
     return expr->kind == Kind_EFloat;
   }
 
-  const double value;
+  const double literal;
 };
 
 class EString : public Expr
 {
 public:
-  EString(string value_) :
+  EString(string literal_) :
     Expr(Kind_EString),
-    value(value_)
+    literal(literal_)
   {}
 
   static bool classof(const Expr* expr)
@@ -175,7 +166,7 @@ public:
     return expr->kind == Kind_EString;
   }
 
-  const string value;
+  const string literal;
 };
 
 class EFunction : public Expr

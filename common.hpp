@@ -5,8 +5,8 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <sstream>
 #include <stack>
-#include <string>
 #include <vector>
 #include <llvm/Support/Casting.h>
 #include <boost/intrusive_ptr.hpp>
@@ -30,7 +30,48 @@ struct CopyConst { typedef Target type; };
 template<typename Source, typename Target>
 struct CopyConst<const Source, Target> { typedef const Target type; };
 
-string EscapeString(const string& str);
+void EscapeString(const string&, stringstream&);
+
+class Expr;
+typedef unique_ptr<Expr> ExprPtr;
+
+class Value;
+typedef boost::intrusive_ptr<Value> ValuePtr;
+
+class Type;
+typedef boost::intrusive_ptr<Type> TypePtr;
+
+typedef map<string, TypePtr> TypeSubst;
+
+class Env;
+
+template<class T>
+struct has_tostring : false_type {};
+
+template<>
+struct has_tostring<Expr> : true_type {};
+
+template<>
+struct has_tostring<Value> : true_type {};
+
+template<>
+struct has_tostring<Type> : true_type {};
+
+template<>
+struct has_tostring<TypeSubst> : true_type {};
+
+template<>
+struct has_tostring<Env> : true_type {};
+
+template<class StmTy, class ValTy>
+typename enable_if<has_tostring<ValTy>::value, StmTy>::type&
+operator<<(StmTy& stm, const ValTy& val)
+{
+  stringstream ss;
+  ToString(val, ss);
+  stm << ss.str();
+  return stm;
+}
 
 } // namespace xra
 

@@ -1,27 +1,31 @@
 #include "common.hpp"
 #include "type.hpp"
 #include "type-visitor.hpp"
-#include <sstream>
 
 namespace xra {
 
 struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 {
-  stringstream ss;
+  stringstream& ss;
+  bool firstVisit;
+
+  TypeToStringVisitor(stringstream& ss_) :
+    ss(ss_), firstVisit(true)
+  {}
 
   void VisitError(const TError& type)
   {
-    ss << " <" << type.what << ">";
+    ss << "<" << type.what << ">";
   }
 
   void VisitVoid(const TVoid& type)
   {
-    ss << " ()";
+    ss << "()";
   }
 
   void VisitVariable(const TVariable& type)
   {
-    ss << " " << type.name;
+    ss << type.name;
   }
 
   void VisitList(const TList& type)
@@ -37,13 +41,21 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     base::VisitFunction(type);
     ss << ")";
   }
+
+  void Visit(const Type& type)
+  {
+    if(firstVisit)
+      firstVisit = false;
+    else
+      ss << " ";
+    base::Visit(type);
+  }
 };
 
-string Type::ToString() const
+void ToString(const Type& type, stringstream& ss)
 {
-  TypeToStringVisitor visitor;
-  visitor.Visit(*this);
-  return visitor.ss.str();
+  TypeToStringVisitor visitor(ss);
+  visitor.Visit(type);
 }
 
 } // namespace xra
