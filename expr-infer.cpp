@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "expr.hpp"
 #include "expr-visitor.hpp"
+#include "env.hpp"
 
 namespace xra {
 
@@ -25,10 +26,10 @@ struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
 
 struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 {
-  TypeEnv& env;
+  Env& env;
   TypeSubst subst;
 
-  InferVisitor(TypeEnv& env_) :
+  InferVisitor(Env& env_) :
     env(env_)
   {}
 
@@ -44,9 +45,9 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitVariable(EVariable& expr)
   {
-    auto it = env.find(expr.name);
-    if(it != env.end())
-      expr.finalType = it->second.type;
+    auto value = env[expr.name];
+    if(value)
+      expr.finalType = value->typeScheme.type;
     else
       expr.finalType.reset(new TError("unbound variable"));
   }
@@ -73,7 +74,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitFunction(EFunction& expr)
   {
-    TypeEnv::lock lock(env);
+    Scope scope(env);
 
     // tv <- newTyVar "a"
     ParamCollector paramCollector;
@@ -92,16 +93,16 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     // TypeEnv env' = remove env n
     // env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
     for(auto& param : paramCollector.subst) {
-      auto& scheme = env[param.first];
-      scheme.variables.clear();
-      scheme.type = param.second;
+      ValuePtr value(new VLocal);
+      value->typeScheme.type = param.second;
+      env.AddValue(param.first, value);
     }
 
     // ADDED
     InferVisitor paramVisitor(env);
     paramVisitor.Visit(*expr.param);
 
-    // (s1, t1) <- t1 env'' e
+    // (s1, t1) <- ti env'' e
     InferVisitor bodyVisitor(env);
     bodyVisitor.Visit(*expr.body);
 
@@ -115,14 +116,14 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitCall(ECall& expr)
   {
-    TypeEnv::lock lock(env);
+    Scope scope(env);
 
-    // (s1, t1) <- t1 env e1
+    // (s1, t1) <- ti env e1
     InferVisitor functionVisitor(env);
     functionVisitor.Visit(*expr.function);
 
-    // (s2, t2) <- t1 (apply s1 env) e2
-    Apply(functionVisitor.subst, env);
+    // (s2, t2) <- ti (apply s1 env) e2
+    env.Apply(functionVisitor.subst);
 
     InferVisitor argumentVisitor(env);
     argumentVisitor.Visit(*expr.argument);
@@ -149,7 +150,6 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       subst.swap(lastSubst);
 
       Visit(*e);
-      Apply(subst, env);
 
       Compose(subst, lastSubst);
       subst.swap(lastSubst);
@@ -162,14 +162,10 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitExtern(EExtern& expr)
   {
-    auto it = env.find(expr.name);
-    if(it != env.end()) {
-      env[expr.name].type = expr.externType;
-      expr.finalType = VoidType;
-    }
-    else {
-      expr.finalType.reset(new TError("redefinition of symbol"));
-    }
+    ValuePtr value(new VExtern);
+    value->typeScheme.type = expr.externType;
+    env.AddValue(expr.name, value);
+    expr.finalType = VoidType;
   }
 
   void Visit(Expr& expr)
@@ -180,9 +176,8 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
   }
 };
 
-void Expr::Infer()
+void Expr::Infer(Env& env)
 {
-  TypeEnv env;
   InferVisitor visitor(env);
   visitor.Visit(*this);
 }

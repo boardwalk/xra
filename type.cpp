@@ -21,21 +21,6 @@ TypePtr MakeTypeVar()
   return TypePtr(new TVariable(move(name)));
 }
 
-void Apply(const TypeSubst& subst, TypeScheme& scheme)
-{
-  auto localSubst = subst;
-  for(auto& var : scheme.variables)
-    localSubst.erase(var);
-
-  scheme.type = Apply(localSubst, *scheme.type);
-}
-
-void Apply(const TypeSubst& subst, TypeEnv& env)
-{
-  for(auto pair : env)
-    Apply(subst, pair.second);
-}
-
 void Compose(const TypeSubst& a, TypeSubst& b)
 {
   for(auto& pair : b)

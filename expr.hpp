@@ -14,6 +14,8 @@ class BufferedLexer;
 class Expr;
 typedef unique_ptr<Expr> ExprPtr;
 
+class Env;
+
 class Expr
 {
 public:
@@ -43,7 +45,7 @@ public:
   string GetErrors() const;
 
   // expr-infer.cpp
-  void Infer();
+  void Infer(Env& env);
 
   Expr(const Expr&) = delete;
   Expr& operator=(const Expr&) = delete;

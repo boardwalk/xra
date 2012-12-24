@@ -1,8 +1,6 @@
 #ifndef XRA_TYPE_HPP
 #define XRA_TYPE_HPP
 
-#include "scoped_map.hpp"
-
 namespace xra {
 
 class BufferedLexer;
@@ -80,8 +78,6 @@ struct TypeScheme
   TypePtr type;
 };
 
-typedef scoped_map<string, TypeScheme> TypeEnv;
-
 extern const TypePtr VoidType;
 extern const TypePtr BooleanType;
 extern const TypePtr IntegerType;
@@ -90,6 +86,7 @@ extern const TypePtr StringType;
 
 // type-apply.cpp
 TypePtr Apply(const TypeSubst&, Type&);
+void Apply(const TypeSubst&, TypeScheme&);
 
 // type-unify.cpp
 TypeSubst Unify(Type& left, Type& right);
@@ -99,12 +96,7 @@ void GetVariables(const Type& type, set<string>& variables);
 
 // type.cpp
 TypePtr MakeTypeVar();
-void Apply(const TypeSubst&, TypeScheme&);
-void Apply(const TypeSubst&, TypeEnv&);
 void Compose(const TypeSubst&, TypeSubst&);
-
-// builtins.cpp
-void SetBuiltins(TypeEnv&);
 
 /*
  * Subtypes

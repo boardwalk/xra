@@ -1,12 +1,16 @@
 #include "common.hpp"
-#include "expr.hpp"
 #include "buffered-lexer.hpp"
+#include "env.hpp"
 #include <fstream>
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
 
 using namespace xra;
+
+namespace xra {
+  void AddBuiltins(Env&);
+}
 
 int main(int argc, char** argv)
 {
@@ -69,8 +73,11 @@ int main(int argc, char** argv)
   {
     ExprPtr expr = Expr::Parse(bufferedLexer);
 
+    Env env;
+    AddBuiltins(env);
+
     if(mode == AnalyzeMode)
-      expr->Infer();
+      expr->Infer(env);
 
     string errors = expr->GetErrors();
     if(!errors.empty()) {
