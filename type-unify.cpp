@@ -26,10 +26,8 @@ struct TypeUnifyVisitor : TypeVisitor<TypeUnifyVisitor, Type>
 
   void VisitVariable(TVariable& type)
   {
-    if(type.name == static_cast<TVariable&>(other).name)
-      return;
-
-    BindVariable(type.name, other, subst);
+    if(type.name != static_cast<TVariable&>(other).name)
+      BindVariable(type.name, other, subst);
   }
 
   void VisitList(TList& type)
