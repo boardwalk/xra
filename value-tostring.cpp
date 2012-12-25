@@ -21,7 +21,6 @@ struct ValueToStringVisitor : ValueVisitor<ValueToStringVisitor, const Value>
     }                                \
   }
 
-  VISIT(Error)
   VISIT(Builtin)
   VISIT(Temporary)
   VISIT(Constant)
@@ -34,7 +33,7 @@ struct ValueToStringVisitor : ValueVisitor<ValueToStringVisitor, const Value>
 void ToString(const Value& value, stringstream& ss)
 {
   ValueToStringVisitor visitor(ss);
-  visitor.Visit(value);
+  visitor.Visit(&value);
 }
 
 } // namespace xra

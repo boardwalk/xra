@@ -10,13 +10,11 @@ OBJECTS = common.o \
 	lexer.o \
 	expr-parser.o \
 	expr-tostring.o \
-	expr-geterrors.o \
 	expr-infer.o \
 	value-tostring.o \
 	type.o \
 	type-parser.o \
 	type-tostring.o \
-	type-geterrors.o \
 	type-apply.o \
 	type-unify.o \
 	type-getvariables.o \

@@ -16,9 +16,7 @@ struct ExprVisitor
 
 #define CASE(c) \
   case Expr::Kind_E##c: \
-    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, E##c>::type&>(node));
-
-  VISIT(Error) {}
+    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, E##c>::type&>(*node));
 
   VISIT(Void) {}
   
@@ -33,26 +31,26 @@ struct ExprVisitor
   VISIT(String) {}
 
   VISIT(Function) {
-    SUBCLASS.Visit(*expr.param);
-    SUBCLASS.Visit(*expr.body);
+    SUBCLASS.Visit(expr.param.get());
+    SUBCLASS.Visit(expr.body.get());
   }
   
   VISIT(Call) {
-    SUBCLASS.Visit(*expr.function);
-    SUBCLASS.Visit(*expr.argument);
+    SUBCLASS.Visit(expr.function.get());
+    SUBCLASS.Visit(expr.argument.get());
   }
 
   VISIT(List) {
     for(auto& e : expr.exprs)
-      SUBCLASS.Visit(*e);
+      SUBCLASS.Visit(e.get());
   }
 
   VISIT(Extern) {}
 
-  void Visit(NodeTy& node)
+  void Visit(NodeTy* node)
   {
-    switch(node.kind) {
-      CASE(Error)
+    assert(node);
+    switch(node->kind) {
       CASE(Void)
       CASE(Variable)
       CASE(Boolean)

@@ -21,7 +21,7 @@ struct TypeGetVariablesVisitor : TypeVisitor<TypeGetVariablesVisitor, const Type
 void GetVariables(const Type& type, set<string>& variables)
 {
   TypeGetVariablesVisitor visitor(variables);
-  visitor.Visit(type);
+  visitor.Visit(&type);
 }
 
 } // namespace xra

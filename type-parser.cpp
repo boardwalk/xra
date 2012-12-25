@@ -5,9 +5,8 @@
 #define TOKEN(t) (lexer().type == Token::t)
 #define ERROR(what) \
   { \
-    stringstream ss; \
-    ss << what << " near " << lexer() << " at type.parser.cpp:" << __LINE__; \
-    return TypePtr(new TError(ss.str())); \
+    Error() << what << " near " << lexer() << " at type.parser.cpp:" << __LINE__; \
+    return TypePtr(); \
   }
 #define EXPECTED(t) \
   ERROR("expected " #t)
@@ -52,9 +51,7 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
   }
 
   if(!type) {
-    stringstream ss;
-    ss << "unexpected token " << lexer();
-    type.reset(new TError(ss.str()));
+    Error() << "unexpected token " << lexer() << " parsing type";
     lexer.Consume();
     return type;
   }
@@ -75,14 +72,14 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
         list = new TList();
         list->types.push_back(type);
         list->types.push_back(typeRight);
-        type.reset(list);
+        type = list;
       }
     }
     else if(lexer().strValue == "->")
     {
       lexer.Consume();
       TypePtr typeRight = Parse(lexer);
-      type.reset(new TFunction(type, typeRight));
+      type = new TFunction(type, typeRight);
     }
   }
 

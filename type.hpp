@@ -13,7 +13,6 @@ class Type
 {
 public:
   enum Kind {
-    Kind_TError,
     Kind_TVoid,
     Kind_TBoolean,
     Kind_TInteger,
@@ -28,9 +27,6 @@ public:
 
   // type-parser.cpp
   static TypePtr Parse(BufferedLexer&);
-
-  // type-geterrors.cpp
-  string GetErrors() const;
 
   Type(const Type&) = delete;
   Type& operator=(const Type&) = delete;
@@ -89,19 +85,6 @@ void ToString(const TypeSubst&, stringstream&);
 
  #define CLASSOF(c) \
    static bool classof(const Type* type) { return type->kind == Kind_##c; }
-
-class TError : public Type
-{
-public:
-  TError(string what_) :
-    Type(Kind_TError),
-    what(move(what_))
-  {}
-
-  CLASSOF(TError)
-
-  const string what;
-};
 
 class TVoid : public Type
 {

@@ -17,7 +17,6 @@ class Expr
 {
 public:
   enum Kind {
-    Kind_EError,
     Kind_EVoid,
     Kind_EVariable,
     Kind_EBoolean,
@@ -34,9 +33,6 @@ public:
 
   // expr-parser.cpp
   static ExprPtr Parse(BufferedLexer&);
-
-  // expr-geterrors.cpp
-  string GetErrors() const;
 
   // expr-infer.cpp
   void Infer(Env&, TypeSubst&);
@@ -64,18 +60,6 @@ void ToString(const Expr&, stringstream&);
 #define CLASSOF(c) \
  static bool classof(const Expr* expr) { return expr->kind == Kind_##c; }
 
-class EError : public Expr
-{
-public:
-  EError(string what_) :
-    Expr(Kind_EError),
-    what(move(what_))
-  {}
-
-  CLASSOF(EError)
-
-  const string what;
-};
 class EVoid : public Expr
 {
 public:

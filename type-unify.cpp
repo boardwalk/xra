@@ -9,10 +9,10 @@ static void BindVariable(const string& name, Type& type, TypeSubst& subst)
   set<string> variables;
   GetVariables(type, variables);
 
-  if(variables.find(name) != variables.end())
-    subst[name] = new TError("occur check fails");
-  else
+  if(variables.find(name) == variables.end())
     subst[name] = &type;
+  else
+    Error() << "occur check fails for " << name;
 }
 
 struct TypeUnifyVisitor : TypeVisitor<TypeUnifyVisitor, Type>
@@ -35,7 +35,7 @@ struct TypeUnifyVisitor : TypeVisitor<TypeUnifyVisitor, Type>
     auto& otherList = static_cast<TList&>(other);
 
     if(type.types.size() != otherList.types.size()) {
-      subst["#error"] = new TError("lists differ in length");
+      Error() << "lists differ in length";
       return;
     }
 
@@ -69,7 +69,7 @@ TypeSubst Unify(Type& left, Type& right)
 
   if(left.kind == right.kind) {
     TypeUnifyVisitor visitor(right);
-    visitor.Visit(left);
+    visitor.Visit(&left);
     subst = move(visitor.subst);
   }
   else if(left.kind == Type::Kind_TVariable) {
@@ -79,7 +79,7 @@ TypeSubst Unify(Type& left, Type& right)
     BindVariable(static_cast<TVariable&>(right).name, left, subst);
   }
   else {
-    subst["#error"] = new TError("expected equal types or at least one variable");
+    Error() << "expected equal types or at least one variable: " << left << "; " << right;
   }
 
   return subst;

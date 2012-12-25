@@ -61,8 +61,10 @@ int main(int argc, char** argv)
     while(true) {
       outputStream << bufferedLexer() << endl;
 
-      if(bufferedLexer().type == Token::Error)
+      if(bufferedLexer().type == Token::Error) {
+        cerr << "lexing failed" << endl;
         return EXIT_FAILURE;
+      }
 
       if(bufferedLexer().type == Token::EndOfFile)
         break;
@@ -74,21 +76,29 @@ int main(int argc, char** argv)
   {
     ExprPtr expr = Expr::Parse(bufferedLexer);
 
-    Env env;
-    AddBuiltins(env);
-
-    if(mode == AnalyzeMode) {
-      TypeSubst subst;
-      expr->Infer(env, subst);
-      env.Apply(subst);
-    }
-
-    cout << env << endl;
-
-    string errors = expr->GetErrors();
+    string errors = Error::Get();
     if(!errors.empty()) {
-      cerr << errors << endl;
+      cerr << errors;
+      cerr << "parsing failed" << endl;
       return EXIT_FAILURE;
+    }
+    cerr << "parsing ok" << endl;
+
+    if(mode == AnalyzeMode)
+    {
+      Env env;
+      TypeSubst subst;
+      AddBuiltins(env);
+      expr->Infer(env, subst);
+      cout << env << endl;
+
+      errors = Error::Get();
+      if(!errors.empty()) {
+        cerr << errors;
+        cerr << "analysis failed" << endl;
+        return EXIT_FAILURE;
+      }
+      cerr << "analysis ok" << endl;
     }
 
     outputStream << *expr << endl;

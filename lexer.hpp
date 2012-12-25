@@ -50,15 +50,9 @@ struct Token
     long intValue;
     double floatValue;
   };
-
-  string ToString() const;
 };
 
-template<class T>
-T& operator<<(T& stm, const Token& token)
-{
-  return stm << token.ToString();
-}
+void ToString(const Token&, stringstream&);
 
 class Lexer
 {

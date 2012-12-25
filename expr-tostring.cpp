@@ -30,10 +30,6 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
     level--;                              \
   }
 
-  BEGIN(Error)
-    ss << " " << expr.what;
-  END(Error)
-
   BEGIN(Void)
   END(Void)
 
@@ -79,7 +75,7 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
 void ToString(const Expr& expr, stringstream& ss)
 {
   ExprToStringVisitor visitor(ss);
-  visitor.Visit(expr);
+  visitor.Visit(&expr);
 }
 
 } // namespace xra

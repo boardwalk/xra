@@ -8,19 +8,19 @@ namespace xra {
 struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
 {
   TypeSubst subst;
-  string error;
 
   void VisitVariable(const EVariable& expr)
   {
     if(!subst.insert({expr.name, expr.type}).second)
-      error = "duplicate parameter";
+      Error() << "duplicate parameter: " << expr.name;
   }
 
-  void Visit(Expr& expr)
-  {
-    base::Visit(expr);
-    if(!isa<EVariable>(&expr) && !isa<EList>(&expr))
-      error = "expression not allowed in function parameter";
+  void Visit(Expr* expr)
+  {    
+    if(expr && !isa<EVariable>(expr) && !isa<EList>(expr))
+      Error() << "only variables and lists allowed in function parameter";
+    else
+      base::Visit(expr);
   }
 };
 
@@ -33,11 +33,6 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     env(env_)
   {}
 
-  void VisitError(EError& expr)
-  {
-    expr.value = new VError("expression error");
-  }
-
   void VisitVoid(EVoid& expr)
   {
     expr.value = new VConstant();
@@ -47,7 +42,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
   {
     expr.value = env[expr.name];
     if(!expr.value)
-      expr.value = new VError("unbound variable");
+      Error() << "unbound variable " << expr.name;
   }
 
   void VisitBoolean(EBoolean& expr)
@@ -76,12 +71,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
     // tv <- newTyVar "a"
     ParamCollector paramCollector;
-    paramCollector.Visit(*expr.param);
-
-    if(!paramCollector.error.empty()) {
-      expr.value = new VError(paramCollector.error);
-      return;
-    }
+    paramCollector.Visit(expr.param.get());
 
     for(auto& param : paramCollector.subst) {
       if(!param.second)
@@ -98,15 +88,21 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
     // ADDED
     InferVisitor paramVisitor(env);
-    paramVisitor.Visit(*expr.param);
+    paramVisitor.Visit(expr.param.get());
+
+    if(!expr.param->value)
+      return;
 
     // (s1, t1) <- ti env'' e
     InferVisitor bodyVisitor(env);
-    bodyVisitor.Visit(*expr.body);
+    bodyVisitor.Visit(expr.body.get());
+
+    if(!expr.body->value)
+      return;
 
     // return (s1, TFun(apply s1 tv) t1)
     // MODIFIED (apply s1 tv) removed, unneeded
-    Visit(*expr.body);
+    Visit(expr.body.get());
     expr.value = new VTemporary;
     expr.value->type = new TFunction(expr.param->value->type, expr.body->value->type);
   }
@@ -114,11 +110,16 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
   void VisitCall(ECall& expr)
   {
     // (s1, t1) <- ti env e1
-    InferVisitor functionVisitor(env);
-    functionVisitor.Visit(*expr.function);
+    Visit(expr.function.get());
+
+    if(!expr.function->value)
+      return;
+
+    TypeSubst functionSubst;
+    subst.swap(functionSubst);
 
     // apply s1 env
-    env.Apply(functionVisitor.subst);
+    env.Apply(functionSubst);
 
     auto builtin = dyn_cast<VBuiltin>(expr.function->value.get());
     if(builtin) {
@@ -130,11 +131,16 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       expr.value->type = MakeTypeVar();
 
       // (s2, t2) <- ti (apply s1 env) e2
-      InferVisitor argumentVisitor(env);
-      argumentVisitor.Visit(*expr.argument);
+      Visit(expr.argument.get());
+
+      if(!expr.argument->value)
+        return;
+
+      TypeSubst argumentSubst;
+      subst.swap(argumentSubst);
 
       // s3 <- mgu (apply s2 t1) (TFun t2 tv)
-      TypePtr leftType = Apply(argumentVisitor.subst, *expr.function->value->type);
+      TypePtr leftType = Apply(argumentSubst, *expr.function->value->type);
       TypePtr rightType = new TFunction(expr.argument->value->type, expr.value->type);
       subst = Unify(*leftType, *rightType);
 
@@ -142,11 +148,11 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       expr.value->type = Apply(subst, *expr.value->type);
 
       // s3 `composeSubst` s2
-      Compose(subst, argumentVisitor.subst);
+      Compose(subst, argumentSubst);
     }
 
     // s2 `composeSubst` s1
-    Compose(subst, functionVisitor.subst);
+    Compose(subst, functionSubst);
   }
 
   void VisitList(EList& expr)
@@ -158,7 +164,10 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       TypeSubst lastSubst;
       subst.swap(lastSubst);
 
-      Visit(*e);
+      Visit(e.get());
+
+      if(!e->value)
+        return;
 
       Compose(lastSubst, subst);
 
@@ -178,18 +187,18 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     expr.value = new VConstant;
   }
 
-  void Visit(Expr& expr)
+  void Visit(Expr* expr)
   {
     base::Visit(expr);
-    if(expr.type)
-      Compose(Unify(*expr.value->type, *expr.type), subst);
+    if(expr && expr->type)
+      Compose(Unify(*expr->value->type, *expr->type), subst);
   }
 };
 
 void Expr::Infer(Env& env, TypeSubst& subst)
 {
   InferVisitor visitor(env);
-  visitor.Visit(*this);
+  visitor.Visit(this);
   subst.swap(visitor.subst);
 }
 

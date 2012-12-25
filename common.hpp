@@ -30,7 +30,7 @@ struct CopyConst { typedef Target type; };
 template<typename Source, typename Target>
 struct CopyConst<const Source, Target> { typedef const Target type; };
 
-void EscapeString(const string&, stringstream&);
+class Token;
 
 class Expr;
 typedef unique_ptr<Expr> ExprPtr;
@@ -47,6 +47,9 @@ class Env;
 
 template<class T>
 struct has_tostring : false_type {};
+
+template<>
+struct has_tostring<Token> : true_type {};
 
 template<>
 struct has_tostring<Expr> : true_type {};
@@ -72,6 +75,49 @@ operator<<(StmTy& stm, const ValTy& val)
   stm << ss.str();
   return stm;
 }
+
+template<class StmTy, class ValTy>
+typename enable_if<has_tostring<ValTy>::value, StmTy>::type&
+operator<<(StmTy& stm, const ValTy* val)
+{
+  if(!val) {
+    stm << "(null)";
+    return stm;
+  }
+  return stm << *val;
+}
+
+class Error
+{
+public:
+  Error()
+  {}
+
+  ~Error()
+  {
+    ss << endl;
+  }
+
+  template<class T>
+  Error& operator<<(T&& value)
+  {
+    ss << forward<T>(value);
+    return *this;
+  }
+
+  static string Get()
+  {
+    return ss.str();
+  }
+
+  Error(const Error&) = delete;
+  Error& operator=(const Error&) = delete;
+
+private:
+  static stringstream ss;
+};
+
+void EscapeString(const string&, stringstream&);
 
 } // namespace xra
 

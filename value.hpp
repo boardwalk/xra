@@ -13,7 +13,6 @@ class Value
 {
 public:
   enum Kind {
-    Kind_VError,
     Kind_VBuiltin,
     Kind_VTemporary,
     Kind_VConstant,
@@ -70,26 +69,12 @@ void ToString(const Value&, stringstream&);
 #define CLASSOF(c) \
  static bool classof(const Value* value) { return value->kind == Kind_##c; }
 
-class VError : public Value
-{
-public:
-  VError(const string& what) :
-    Value(Kind_VError)
-  {
-    type = new TError(what);
-  }
-
-  CLASSOF(VError)
-};
-
 class VBuiltin : public Value
 {
 public:
   VBuiltin() :
     Value(Kind_VBuiltin)
-  {
-    type = new TError("Builtin");
-  }
+  {}
 
   CLASSOF(VBuiltin)
 

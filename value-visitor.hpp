@@ -16,9 +16,7 @@ struct ValueVisitor
 
 #define CASE(c) \
   case Value::Kind_V##c: \
-    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, V##c>::type&>(node));
-
-  VISIT(Error) {}
+    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, V##c>::type&>(*node));
 
   VISIT(Builtin) {}
 
@@ -30,10 +28,10 @@ struct ValueVisitor
 
   VISIT(Extern) {}
 
-  void Visit(NodeTy& node)
+  void Visit(NodeTy* node)
   {
-    switch(node.kind) {
-      CASE(Error)
+    assert(node);
+    switch(node->kind) {
       CASE(Builtin)
       CASE(Temporary)
       CASE(Constant)

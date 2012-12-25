@@ -16,9 +16,7 @@ struct TypeVisitor
 
 #define CASE(c) \
   case Type::Kind_T##c: \
-    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, T##c>::type&>(node));
-
-  VISIT(Error) {}
+    return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, T##c>::type&>(*node));
 
   VISIT(Void) {}
 
@@ -34,18 +32,18 @@ struct TypeVisitor
 
   VISIT(List) {
     for(auto& t : type.types)
-      SUBCLASS.Visit(*t);
+      SUBCLASS.Visit(t.get());
   }
 
   VISIT(Function) {
-    SUBCLASS.Visit(*type.parameter);
-    SUBCLASS.Visit(*type.result);
+    SUBCLASS.Visit(type.parameter.get());
+    SUBCLASS.Visit(type.result.get());
   }
 
-  void Visit(NodeTy& node)
+  void Visit(NodeTy* node)
   {
-    switch(node.kind) {
-      CASE(Error)
+    assert(node);
+    switch(node->kind) {
       CASE(Void)
       CASE(Boolean)
       CASE(Integer)

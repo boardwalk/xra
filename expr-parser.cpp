@@ -5,9 +5,8 @@
 #define TOKEN(t) (lexer().type == Token::t)
 #define ERROR(what) \
   { \
-    stringstream ss; \
-    ss << what << " near " << lexer() << " at parser.cpp:" << __LINE__;  \
-    return ExprPtr(new EError(ss.str())); \
+    Error() << what << " near " << lexer() << " at parser.cpp:" << __LINE__; \
+    return {}; \
   }
 #define EXPECTED(t) \
   ERROR("expected " #t)
@@ -63,9 +62,7 @@ static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
     lexer.Consume();
   }
 
-  return ExprPtr(new ECall(
-    ExprPtr(new EVariable(";")),
-    ExprPtr(list.release())));
+  return ExprPtr(new ECall(ExprPtr(new EVariable(";")), ExprPtr(list.release())));
 }
 
 static ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
@@ -172,7 +169,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 {
   ExprPtr expr = ParseExpr_P(lexer, required);
   if(!expr)
-    return {};
+    return ExprPtr();
 
   string lastOp;
 
@@ -200,9 +197,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
     }
 
     if(op == "$") {
-      expr.reset(new ECall(
-        move(expr),
-        move(exprRight)));
+      expr = ExprPtr(new ECall(move(expr), move(exprRight)));
     }
     else if(op == "," && lastOp == ",") {
       auto list = static_cast<EList*>(expr.get());
@@ -213,12 +208,10 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
       list->exprs.push_back(move(expr));
       list->exprs.push_back(move(exprRight));
 
-      if(op == ",") {
-        expr.reset(list.release());
-      }
-      else {
-        expr.reset(new ECall(ExprPtr(new EVariable(op)), ExprPtr(list.release())));
-      }
+      if(op == ",")
+        expr = ExprPtr(list.release());
+      else
+        expr = ExprPtr(new ECall(ExprPtr(new EVariable(op)), ExprPtr(list.release())));
     }
 
     lastOp = move(op);
@@ -240,10 +233,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
       ERROR("unknown unary operator")
 
     expr = ParseExpr_Exp(lexer, unaryOp->second, true);
-
-    expr.reset(new ECall(
-      ExprPtr(new EVariable(unaryOp->first)),
-      move(expr)));
+    expr = ExprPtr(new ECall(ExprPtr(new EVariable(unaryOp->first)), move(expr)));
   }
   else if(TOKEN(OpenParen))
   {
@@ -251,7 +241,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
     expr = ParseExpr_Exp(lexer, 0, false);
     if(!expr)
-      expr.reset(new EVoid);
+      expr = ExprPtr(new EVoid);
 
     if(!TOKEN(CloseParen))
       EXPECTED(CloseParen)
@@ -263,7 +253,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
     if(!TOKEN(Operator))
       EXPECTED(Operator)
-    expr.reset(new EVariable(lexer().strValue));
+    expr = ExprPtr(new EVariable(lexer().strValue));
     lexer.Consume();
 
     if(!TOKEN(Backtick))
@@ -271,27 +261,27 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     lexer.Consume();
   }
   else if(TOKEN(Identifier)) {
-    expr.reset(new EVariable(lexer().strValue));
+    expr = ExprPtr(new EVariable(lexer().strValue));
     lexer.Consume();
   }
   else if(TOKEN(True)) {
-    expr.reset(new EBoolean(true));
+    expr = ExprPtr(new EBoolean(true));
     lexer.Consume();
   }
   else if(TOKEN(False)) {
-    expr.reset(new EBoolean(false));
+    expr = ExprPtr(new EBoolean(false));
     lexer.Consume();
   }
   else if(TOKEN(Integer)) {
-    expr.reset(new EInteger(lexer().intValue));
+    expr = ExprPtr(new EInteger(lexer().intValue));
     lexer.Consume();
   }
   else if(TOKEN(Float)) {
-    expr.reset(new EFloat(lexer().floatValue));
+    expr = ExprPtr(new EFloat(lexer().floatValue));
     lexer.Consume();
   }
   else if(TOKEN(String)) {
-    expr.reset(new EString(lexer().strValue));
+    expr = ExprPtr(new EString(lexer().strValue));
     lexer.Consume();
   }
   else if(TOKEN(Extern)) {
@@ -313,9 +303,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
   if(!expr) {
     if(required) {
-      stringstream ss;
-      ss << "unexpected token " << lexer();
-      expr.reset(new EError(ss.str()));
+      Error() << "unexpected token " << lexer() << " parsing type";
       lexer.Consume();
     }
     return expr;

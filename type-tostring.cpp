@@ -13,11 +13,6 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     ss(ss_), firstVisit(true)
   {}
 
-  void VisitError(const TError& type)
-  {
-    ss << "<" << type.what << ">";
-  }
-
   void VisitVoid(const TVoid& type)
   {
     ss << "()";
@@ -62,7 +57,7 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     ss << ")";
   }
 
-  void Visit(const Type& type)
+  void Visit(const Type* type)
   {
     if(firstVisit)
       firstVisit = false;
@@ -75,7 +70,7 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 void ToString(const Type& type, stringstream& ss)
 {
   TypeToStringVisitor visitor(ss);
-  visitor.Visit(type);
+  visitor.Visit(&type);
 }
 
 } // namespace xra

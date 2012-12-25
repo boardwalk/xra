@@ -70,10 +70,7 @@ inline void ToString(const Env& env, stringstream& ss)
 {
   ss << "{env";
   for(auto& pair : env.Values())
-  {
-    ss << " " << pair.first << "=";
-    ToString(*pair.second, ss);
-  }
+    ss << " " << pair.first << "=" << pair.second.get();
   ss << "}";
 
 }

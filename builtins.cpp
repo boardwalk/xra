@@ -13,9 +13,11 @@ class BSequence : public VBuiltin
 public:
   ValuePtr Infer(Env& env, TypeSubst& subst, Expr& argument)
   {
-    if(!isa<EList>(argument))
-      return new VError("expected list argument to BAssign");
-
+    if(!isa<EList>(argument)) {
+      Error() << "expected list argument to BSequence";
+      return {};
+    }
+    
     auto& list = static_cast<EList&>(argument);
 
     for(auto& e : list.exprs)
@@ -24,6 +26,9 @@ public:
       subst.swap(lastSubst);
 
       e->Infer(env, subst);
+
+      if(!e->value)
+        return {};
 
       Compose(lastSubst, subst);
     }
@@ -37,43 +42,50 @@ class BAssign : public VBuiltin
 public:
   ValuePtr Infer(Env& env, TypeSubst& subst, Expr& argument)
   {
-    if(!isa<EList>(argument))
-      return new VError("expected list argument to BAssign");
+    if(!isa<EList>(argument)) {
+      Error() << "expected list argument to BAssign";
+      return {};
+    }
 
     auto& list = static_cast<EList&>(argument);
 
-    if(list.exprs.size() != 2)
-      return new VError("expected two arguments to BAssign");
+    if(list.exprs.size() != 2) {
+      Error() << "expected two arguments to BAssign";
+      return {};
+    }
 
-    Expr& lhs = *list.exprs[0];
-    Expr& rhs = *list.exprs[1];
+    ExprPtr& left = list.exprs[0];
+    ExprPtr& right = list.exprs[1];
 
-    rhs.Infer(env, subst);
+    right->Infer(env, subst);
+
+    if(!right->value)
+      return {};
 
     // if the left side is a plain variable not in the environment, create a fresh local
-    if(isa<EVariable>(lhs))
+    if(isa<EVariable>(left.get()))
     {
-      auto& name = static_cast<EVariable&>(lhs).name;
+      auto& name = static_cast<EVariable&>(*left).name;
       if(!env[name]) {
-        lhs.value.reset(new VLocal);
-        lhs.value->type = MakeTypeVar();
-        env.AddValue(name, lhs.value);
+        left->value = new VLocal;
+        left->value->type = MakeTypeVar();
+        env.AddValue(name, left->value);
       }
     }
 
-    if(!lhs.value) {
-      TypeSubst lastSubst;
-      subst.swap(lastSubst);
-      lhs.Infer(env, subst);
-      Compose(lastSubst, subst);
+    if(!left->value)
+    {
+      TypeSubst leftSubst;
+      left->Infer(env, leftSubst);
+      if(!left->value)
+        return {};
+      Compose(leftSubst, subst);
     }
 
-    auto unifySubst = Unify(*lhs.value->type, *rhs.value->type);
-
-    lhs.value->type = xra::Apply(unifySubst, *lhs.value->type);
-
+    auto unifySubst = Unify(*left->value->type, *right->value->type);
+    left->value->type = xra::Apply(unifySubst, *left->value->type);
     Compose(unifySubst, subst);
-    return lhs.value;
+    return left->value;
   }
 };
 
