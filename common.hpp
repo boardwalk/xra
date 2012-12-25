@@ -67,6 +67,9 @@ public:
 
   virtual ~Base() {}
 
+  Base(const Base&) = delete;
+  Base& operator=(const Base&) = delete;
+
 private:
   friend void intrusive_ptr_add_ref(Base* base);
   friend void intrusive_ptr_release(Base* base);

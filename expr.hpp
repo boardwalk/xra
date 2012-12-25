@@ -33,9 +33,6 @@ public:
   // expr-infer.cpp
   void Infer(Env&, TypeSubst&);
 
-  Expr(const Expr&) = delete;
-  Expr& operator=(const Expr&) = delete;
-
   const Kind kind;
   TypePtr type; // from annotation
   ValuePtr value; // filled by Infer

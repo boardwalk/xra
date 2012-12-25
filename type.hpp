@@ -26,9 +26,6 @@ public:
   // type-parser.cpp
   static TypePtr Parse(BufferedLexer&);
 
-  Type(const Type&) = delete;
-  Type& operator=(const Type&) = delete;
-
   const Kind kind;
 
 protected:
