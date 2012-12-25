@@ -60,6 +60,10 @@ void ToString(const Expr&, stringstream&);
 /*
  * Subexpressions
  */
+
+#define CLASSOF(c) \
+ static bool classof(const Expr* expr) { return expr->kind == Kind_##c; }
+
 class EError : public Expr
 {
 public:
@@ -68,10 +72,7 @@ public:
     what(move(what_))
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EError;
-  }
+  CLASSOF(EError)
 
   const string what;
 };
@@ -82,10 +83,7 @@ public:
     Expr(Kind_EVoid)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EVoid;
-  }
+  CLASSOF(EVoid)
 };
 
 class EVariable : public Expr
@@ -96,10 +94,7 @@ public:
     name(name_)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EVariable;
-  }
+  CLASSOF(EVariable)
 
   const string name;
 };
@@ -113,10 +108,7 @@ public:
     literal(literal_)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EBoolean;
-  }
+  CLASSOF(EBoolean)
 
   const bool literal;
 };
@@ -129,10 +121,7 @@ public:
     literal(literal_)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EInteger;
-  }
+  CLASSOF(EInteger)
 
   const long literal;
 };
@@ -145,10 +134,7 @@ public:
     literal(literal_)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EFloat;
-  }
+  CLASSOF(EFloat)
 
   const double literal;
 };
@@ -161,10 +147,7 @@ public:
     literal(literal_)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EString;
-  }
+  CLASSOF(EString)
 
   const string literal;
 };
@@ -178,10 +161,7 @@ public:
     body(move(body_))
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EFunction;
-  }
+  CLASSOF(EFunction)
 
   ExprPtr param;
   ExprPtr body;
@@ -196,10 +176,7 @@ public:
     argument(move(argument_))
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_ECall;
-  }
+  CLASSOF(ECall)
 
   ExprPtr function;
   ExprPtr argument;
@@ -212,10 +189,7 @@ public:
     Expr(Kind_EList)
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EList;
-  }
+  CLASSOF(EList)
 
   vector<ExprPtr> exprs;
 };
@@ -229,14 +203,13 @@ public:
     externType(move(externType_))
   {}
 
-  static bool classof(const Expr* expr)
-  {
-    return expr->kind == Kind_EExtern;
-  }
+  CLASSOF(EExtern)
 
   const string name;
   const TypePtr externType;
 };
+
+#undef CLASSOF
 
 } // namespace xra
 

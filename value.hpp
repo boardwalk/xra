@@ -67,6 +67,9 @@ void ToString(const Value&, stringstream&);
  * Subvalues
  */
 
+#define CLASSOF(c) \
+ static bool classof(const Value* value) { return value->kind == Kind_##c; }
+
 class VError : public Value
 {
 public:
@@ -76,10 +79,7 @@ public:
     type = new TError(what);
   }
 
-  static bool classof(const Value* value)
-  {
-    return value->kind == Kind_VError;
-  }
+  CLASSOF(VError)
 };
 
 class VBuiltin : public Value
@@ -91,10 +91,7 @@ public:
     type = new TError("Builtin");
   }
 
-  static bool classof(const Value* value)
-  {
-    return value->kind == Kind_VBuiltin;
-  }
+  CLASSOF(VBuiltin)
 
   virtual ValuePtr Infer(Env& env, TypeSubst&, Expr&) = 0;
 };
@@ -106,10 +103,7 @@ public:
     Value(Kind_VTemporary)
   {}
 
-  static bool classof(const Value* value)
-  {
-    return value->kind == Kind_VTemporary;
-  }
+  CLASSOF(VTemporary)
 };
 
 class VConstant : public Value
@@ -149,10 +143,7 @@ public:
     type = StringType;
   }
 
-  static bool classof(const Value* value)
-  {
-    return value->kind == Kind_VConstant;
-  }
+  CLASSOF(VConstant)
 
   const union {
     bool boolValue;
@@ -169,10 +160,7 @@ public:
     Value(Kind_VLocal)
   {}
 
-  static bool classof(const Value* value)
-  {
-    return value->kind == Kind_VLocal;
-  }
+  CLASSOF(VLocal)
 };
 
 class VExtern : public Value
@@ -182,11 +170,10 @@ public:
     Value(Kind_VExtern)
   {}
 
-  static bool classof(const Value* value)
-  {
-    return value->kind == Kind_VExtern;
-  }
+  CLASSOF(VExtern)
 };
+
+#undef CLASSOF
 
 } // namespace xra
 

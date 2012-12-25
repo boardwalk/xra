@@ -83,6 +83,9 @@ void ToString(const TypeSubst&, stringstream&);
  * Subtypes
  */
 
+ #define CLASSOF(c) \
+   static bool classof(const Type* type) { return type->kind == Kind_##c; }
+
 class TError : public Type
 {
 public:
@@ -91,10 +94,7 @@ public:
     what(move(what_))
   {}
 
-  static bool classof(const Type* type)
-  {
-    return type->kind == Kind_TError;
-  }
+  CLASSOF(TError)
 
   const string what;
 };
@@ -106,10 +106,7 @@ public:
     Type(Kind_TVoid)
   {}
 
-  static bool classof(const Type* type)
-  {
-    return type->kind == Kind_TVoid;
-  }
+  CLASSOF(TVoid)
 };
 
 class TVariable : public Type
@@ -120,10 +117,7 @@ public:
     name(move(name_))
   {}
 
-  static bool classof(const Type* type)
-  {
-    return type->kind == Kind_TVariable;
-  }
+  CLASSOF(TVariable)
 
   const string name;
 };
@@ -135,10 +129,7 @@ public:
     Type(Kind_TList)
   {}
 
-  static bool classof(const Type* type)
-  {
-    return type->kind == Kind_TList;
-  }
+  CLASSOF(TList)
 
   vector<TypePtr> types;
 };
@@ -157,14 +148,13 @@ public:
     result(move(result_))
   {}
 
-  static bool classof(const Type* type)
-  {
-    return type->kind == Kind_TFunction;
-  }
+  CLASSOF(TFunction)
 
   TypePtr parameter;
   TypePtr result;
 };
+
+#undef CLASSOF
 
 } // namespace xra
 
