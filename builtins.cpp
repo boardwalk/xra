@@ -61,7 +61,7 @@ public:
       }
     }
 
-    if(!lhs.value->type) {
+    if(!lhs.value) {
       TypeSubst lastSubst;
       subst.swap(lastSubst);
       lhs.Infer(env, subst);
