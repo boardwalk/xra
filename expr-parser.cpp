@@ -322,7 +322,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
   if(!expr) {
     if(required) {
-      Error() << "unexpected token " << lexer() << " parsing type";
+      Error() << "unexpected token " << lexer() << " parsing expression";
       lexer.Consume();
     }
     return expr;
