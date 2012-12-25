@@ -87,6 +87,13 @@ operator<<(StmTy& stm, const ValTy* val)
   return stm << *val;
 }
 
+struct SourceLoc
+{
+  shared_ptr<string> source;
+  int line;
+  int column;
+};
+
 class Error
 {
 public:

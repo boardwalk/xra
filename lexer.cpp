@@ -35,7 +35,7 @@ void ToString(const Token& token, stringstream& ss)
 {
   switch(token.type) {
     case Token::Error:
-      ss << "<error " << token.strValue << ">";
+      ss << "<" << token.strValue << ">";
       break;
     case Token::Indent:
       ss << "<indent>";
@@ -121,17 +121,17 @@ void ToString(const Token& token, stringstream& ss)
       ss << "<unknown>";
       break;
   }
-  ss << " L" << token.line << "C" << token.column;
+  ss << " at " << *token.loc.source << ":" << token.loc.line << ":" << token.loc.column;
 }
 
 char Lexer::GetChar()
 {
   if(lastChar == '\n') {
-    line++;
-    column = 1;
+    loc.line++;
+    loc.column = 1;
   }
   else {
-    column++;
+    loc.column++;
   }
   lastChar = inputStream.get();    
   return lastChar;
@@ -148,22 +148,21 @@ void Lexer::UngetStr(const string& str)
   for(ssize_t i = str.size() - 1; i > 0; i--)
     inputStream.putback(str[i]);
 
-  column -= str.size();
+  loc.column -= str.size();
 }
 
 Token Lexer::MakeToken(Token::Type type)
 {
   Token token;
   token.type = type;
-  token.line = line;
-  token.column = column;
+  token.loc = loc;
   return token;
 }
 
-Token Lexer::MakeError(const char* err)
+Token Lexer::MakeError(string err)
 {
   Token token = MakeToken(Token::Error);
-  token.strValue = err;
+  token.strValue = move(err);
   return token;
 }
 
@@ -308,7 +307,7 @@ Token Lexer::operator()()
     return MakeToken(Token::EndOfFile);
   }
 
-  return MakeError("invalid character");
+  return MakeError(string("invalid character ") + lastChar);
 }
 
 bool Lexer::NestableComment()

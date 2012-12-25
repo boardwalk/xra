@@ -51,7 +51,7 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
   }
 
   if(!type) {
-    Error() << "unexpected token " << lexer() << " parsing type";
+    Error() << "unexpected token " << lexer() << " while parsing type";
     lexer.Consume();
     return type;
   }

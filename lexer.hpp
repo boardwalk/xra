@@ -41,9 +41,7 @@ struct Token
   };
 
   Type type;
-
-  int line;
-  int column;
+  SourceLoc loc;
 
   string strValue;
   union {
@@ -57,11 +55,8 @@ void ToString(const Token&, stringstream&);
 class Lexer
 {
   istream& inputStream;
+  SourceLoc loc;
   char lastChar;
-
-  int line;
-  int column;
-
   stack<int> indents;
   int dedentCount;
 
@@ -71,20 +66,21 @@ class Lexer
   char GetChar();
   void UngetStr(const string& str);
   Token MakeToken(Token::Type type);
-  Token MakeError(const char* err);
+  Token MakeError(string err);
 
   bool NestableComment();
   bool Number(Token& token);
   bool String(Token& token);
 
 public:
-  Lexer(istream& inputStream_) :
+  Lexer(istream& inputStream_, const string& source) :
     inputStream(inputStream_),
     lastChar(' '),
-    line(1),
-    column(0),
     dedentCount(-1)
   {
+    loc.source = make_shared<string>(source);
+    loc.line = 1;
+    loc.column = 0;
     indents.push(0);
   }
 

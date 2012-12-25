@@ -20,6 +20,7 @@ int main(int argc, char** argv)
 
   ifstream ifs;
   ofstream ofs;
+  string source = "stdin";
 
   // parse options
   int c;
@@ -48,12 +49,13 @@ int main(int argc, char** argv)
       cerr << "could not open input file " << argv[optind] << endl;
       return EXIT_FAILURE;
     }
+    source = argv[optind];
   }
 
   istream& inputStream = ifs.is_open() ? ifs : cin;
   ostream& outputStream = ofs.is_open() ? ofs : cout;
 
-  Lexer lexer(inputStream);  
+  Lexer lexer(inputStream, source);  
   BufferedLexer bufferedLexer(lexer);
   
   if(mode == LexMode)
