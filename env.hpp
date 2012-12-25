@@ -66,13 +66,18 @@ public:
   }
 };
 
-inline void ToString(const Env& env, stringstream& ss)
+inline ostream& operator<<(ostream& os, const Env& env)
 {
-  ss << "{env";
-  for(auto& pair : env.Values())
-    ss << " " << pair.first << "=" << pair.second.get();
-  ss << "}";
-
+  os << "{env";
+  for(auto& pair : env.Values()) {
+    os << " " << pair.first << "=";
+    if(pair.second)
+      os << *pair.second;
+    else
+      os << "(null)";
+  }
+  os << "}";
+  return os;
 }
 
 class Scope

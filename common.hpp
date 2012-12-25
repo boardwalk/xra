@@ -31,61 +31,25 @@ template<typename Source, typename Target>
 struct CopyConst<const Source, Target> { typedef const Target type; };
 
 class Token;
+ostream& operator<<(ostream&, const Token&);
 
 class Expr;
 typedef unique_ptr<Expr> ExprPtr;
+ostream& operator<<(ostream&, const Expr&);
 
 class Value;
 typedef boost::intrusive_ptr<Value> ValuePtr;
+ostream& operator<<(ostream&, const Value&);
 
 class Type;
 typedef boost::intrusive_ptr<Type> TypePtr;
+ostream& operator<<(ostream&, const Type&);
 
 typedef map<string, TypePtr> TypeSubst;
+ostream& operator<<(ostream&, const TypeSubst&);
 
 class Env;
-
-template<class T>
-struct has_tostring : false_type {};
-
-template<>
-struct has_tostring<Token> : true_type {};
-
-template<>
-struct has_tostring<Expr> : true_type {};
-
-template<>
-struct has_tostring<Value> : true_type {};
-
-template<>
-struct has_tostring<Type> : true_type {};
-
-template<>
-struct has_tostring<TypeSubst> : true_type {};
-
-template<>
-struct has_tostring<Env> : true_type {};
-
-template<class StmTy, class ValTy>
-typename enable_if<has_tostring<ValTy>::value, StmTy>::type&
-operator<<(StmTy& stm, const ValTy& val)
-{
-  stringstream ss;
-  ToString(val, ss);
-  stm << ss.str();
-  return stm;
-}
-
-template<class StmTy, class ValTy>
-typename enable_if<has_tostring<ValTy>::value, StmTy>::type&
-operator<<(StmTy& stm, const ValTy* val)
-{
-  if(!val) {
-    stm << "(null)";
-    return stm;
-  }
-  return stm << *val;
-}
+ostream& operator<<(ostream&, const Env&);
 
 struct SourceLoc
 {
@@ -124,7 +88,7 @@ private:
   static stringstream ss;
 };
 
-void EscapeString(const string&, stringstream&);
+void EscapeString(const string&, ostream&);
 
 } // namespace xra
 

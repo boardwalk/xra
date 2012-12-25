@@ -62,9 +62,6 @@ extern const TypePtr IntegerType;
 extern const TypePtr FloatType;
 extern const TypePtr StringType;
 
-// type-tostring.cpp
-void ToString(const Type&, stringstream&);
-
 // type-apply.cpp
 TypePtr Apply(const TypeSubst&, Type&);
 

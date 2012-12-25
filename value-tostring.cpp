@@ -6,19 +6,17 @@ namespace xra {
 
 struct ValueToStringVisitor : ValueVisitor<ValueToStringVisitor, const Value>
 {
-  stringstream& ss;
+  ostream& os;
 
-  ValueToStringVisitor(stringstream& ss_) :
-    ss(ss_)
+  ValueToStringVisitor(ostream& os_) :
+    os(os_)
   {}
 
 #define VISIT(c) \
   void Visit##c(const V##c& value) { \
-    ss << #c;                        \
-    if(value.type) {                 \
-      ss << ":";                     \
-      ToString(*value.type, ss);     \
-    }                                \
+    os << #c;                        \
+    if(value.type)                   \
+      os << ":" << *value.type;      \
   }
 
   VISIT(Builtin)
@@ -30,10 +28,11 @@ struct ValueToStringVisitor : ValueVisitor<ValueToStringVisitor, const Value>
 #undef VISIT
 };
 
-void ToString(const Value& value, stringstream& ss)
+ostream& operator<<(ostream& os, const Value& value)
 {
-  ValueToStringVisitor visitor(ss);
+  ValueToStringVisitor visitor(os);
   visitor.Visit(&value);
+  return os;
 }
 
 } // namespace xra

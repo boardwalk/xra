@@ -50,9 +50,6 @@ protected:
   {}
 };
 
-// expr-tostring.cpp
-void ToString(const Expr&, stringstream&);
-
 /*
  * Subexpressions
  */

@@ -6,53 +6,51 @@ namespace xra {
 
 struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
 {
-  stringstream& ss;
+  ostream& os;
   int level;
 
-  ExprToStringVisitor(stringstream& ss_) :
-    ss(ss_),
+  ExprToStringVisitor(ostream& os_) :
+    os(os_),
     level(0)
   {}
 
-#define BEGIN(e)                          \
-  void Visit##e(const E##e& expr) {       \
-    for(int i = 0; i < level; i++)        \
-      ss << "  ";                         \
-    ss << #e;
-#define END(e)                            \
-    if(expr.value) {                      \
-      ss << " ";                          \
-      ToString(*expr.value, ss);          \
-    }                                     \
-    ss << endl;                           \
-    level++;                              \
-    base::Visit##e(expr);                 \
-    level--;                              \
+#define BEGIN(e)                     \
+  void Visit##e(const E##e& expr) {  \
+    for(int i = 0; i < level; i++)   \
+      os << "  ";                    \
+    os << #e;
+#define END(e)                       \
+    if(expr.value)                   \
+      os << " " << *expr.value;      \
+    os << endl;                      \
+    level++;                         \
+    base::Visit##e(expr);            \
+    level--;                         \
   }
 
   BEGIN(Void)
   END(Void)
 
   BEGIN(Variable)
-    ss << " `" << expr.name << "`";
+    os << " `" << expr.name << "`";
   END(Variable)
 
   BEGIN(Boolean)
-    ss << " " << (expr.literal ? "true" : "false");
+    os << " " << (expr.literal ? "true" : "false");
   END(Boolean)
 
   BEGIN(Integer)
-    ss << " " << expr.literal;
+    os << " " << expr.literal;
   END(Integer)
 
   BEGIN(Float)
-    ss << " " << expr.literal;
+    os << " " << expr.literal;
   END(Float)
 
   BEGIN(String)
-    ss << " \"";
-    EscapeString(expr.literal, ss);
-    ss << "\"";
+    os << " \"";
+    EscapeString(expr.literal, os);
+    os << "\"";
   END(String)
 
   BEGIN(Function)
@@ -65,17 +63,18 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
   END(List)
 
   BEGIN(Extern)
-    ss << " " << expr.name << " " << *expr.externType;
+    os << " " << expr.name << " " << *expr.externType;
   END(Extern)
 
 #undef BEGIN
 #undef END
 };
 
-void ToString(const Expr& expr, stringstream& ss)
+ostream& operator<<(ostream& os, const Expr& expr)
 {
-  ExprToStringVisitor visitor(ss);
+  ExprToStringVisitor visitor(os);
   visitor.Visit(&expr);
+  return os;
 }
 
 } // namespace xra

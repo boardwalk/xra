@@ -5,15 +5,15 @@ namespace xra {
 
 stringstream Error::ss;
 
-void EscapeString(const string& str, stringstream& ss)
+void EscapeString(const string& str, ostream& os)
 {
   for(size_t i = 0; i < str.size(); i++) {
     if(str[i] == '\"')
-      ss << "\\\"";
+      os << "\\\"";
     else if(!isprint(str[i]))
-      ss << "\\x" << hex << setw(2) << setfill('0') << (int)str[i];
+      os << "\\x" << hex << setw(2) << setfill('0') << (int)str[i];
     else
-      ss << str[i];
+      os << str[i];
   }
 }
 

@@ -6,55 +6,55 @@ namespace xra {
 
 struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 {
-  stringstream& ss;
+  ostream& os;
   bool firstVisit;
 
-  TypeToStringVisitor(stringstream& ss_) :
-    ss(ss_), firstVisit(true)
+  TypeToStringVisitor(ostream& os_) :
+    os(os_), firstVisit(true)
   {}
 
   void VisitVoid(const TVoid& type)
   {
-    ss << "()";
+    os << "()";
   }
 
   void VisitBoolean(const TBoolean& type)
   {
-    ss << "bool";
+    os << "bool";
   }
 
   void VisitInteger(const TInteger& type)
   {
-    ss << "int";
+    os << "int";
   }
 
   void VisitFloat(const TFloat& type)
   {
-    ss << "float";
+    os << "float";
   }
 
   void VisitString(const TString& type)
   {
-    ss << "str";
+    os << "str";
   }
 
   void VisitVariable(const TVariable& type)
   {
-    ss << "`" << type.name << "`";
+    os << "`" << type.name << "`";
   }
 
   void VisitList(const TList& type)
   {
-    ss << "(list";
+    os << "(list";
     base::VisitList(type);
-    ss << ")";
+    os << ")";
   }
 
   void VisitFunction(const TFunction& type)
   {
-    ss << "(fn";
+    os << "(fn";
     base::VisitFunction(type);
-    ss << ")";
+    os << ")";
   }
 
   void Visit(const Type* type)
@@ -62,15 +62,16 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     if(firstVisit)
       firstVisit = false;
     else
-      ss << " ";
+      os << " ";
     base::Visit(type);
   }
 };
 
-void ToString(const Type& type, stringstream& ss)
+ostream& operator<<(ostream& os, const Type& type)
 {
-  TypeToStringVisitor visitor(ss);
+  TypeToStringVisitor visitor(os);
   visitor.Visit(&type);
+  return os;
 }
 
 } // namespace xra

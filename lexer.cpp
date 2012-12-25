@@ -31,97 +31,98 @@ static bool Operator(char c)
   return false;
 }
 
-void ToString(const Token& token, stringstream& ss)
+ostream& operator<<(ostream& os, const Token& token)
 {
   switch(token.type) {
     case Token::Error:
-      ss << "<" << token.strValue << ">";
+      os << "<" << token.strValue << ">";
       break;
     case Token::Indent:
-      ss << "<indent>";
+      os << "<indent>";
       break;
     case Token::Nodent:
-      ss << "<nodent>";
+      os << "<nodent>";
       break;
     case Token::Dedent:
-      ss << "<dedent>";
+      os << "<dedent>";
       break;
     case Token::Fn:
-      ss << "fn";
+      os << "fn";
       break;
     case Token::Else:
-      ss << "else";
+      os << "else";
       break;
     case Token::Elsif:
-      ss << "elsif";
+      os << "elsif";
       break;
     case Token::If:
-      ss << "if";
+      os << "if";
       break;
     case Token::Then:
-      ss << "then";
+      os << "then";
       break;
     case Token::Return:
-      ss << "return";
+      os << "return";
       break;
     case Token::BooleanType:
-      ss << "bool";
+      os << "bool";
       break;
     case Token::IntegerType:
-      ss << "int";
+      os << "int";
       break;
     case Token::FloatType:
-      ss << "float";
+      os << "float";
       break;
     case Token::StringType:
-      ss << "str";
+      os << "str";
       break;
     case Token::True:
-      ss << "true";
+      os << "true";
       break;
     case Token::False:
-      ss << "false";
+      os << "false";
       break;
     case Token::Extern:
-      ss << "extern";
+      os << "extern";
       break;
     case Token::Identifier:
-      ss << "<identifier " << token.strValue << ">";
+      os << "<identifier " << token.strValue << ">";
       break;
     case Token::OpenParen:
-      ss << '(';
+      os << '(';
       break;
     case Token::CloseParen:
-      ss << ')';
+      os << ')';
       break;
     case Token::Colon:
-      ss << ':';
+      os << ':';
       break;
     case Token::Backtick:
-      ss << '`';
+      os << '`';
       break;
     case Token::Integer:
-      ss << token.intValue;
+      os << token.intValue;
       break;
     case Token::Float:
-      ss << token.floatValue;
+      os << token.floatValue;
       break;
     case Token::String:
-      ss << "\"";
-      EscapeString(token.strValue, ss);
-      ss << "\"";
+      os << "\"";
+      EscapeString(token.strValue, os);
+      os << "\"";
       break;
     case Token::Operator:
-      ss << "<operator " << token.strValue << ">";
+      os << "<operator " << token.strValue << ">";
       break;
     case Token::EndOfFile:
-      ss << "<eof>";
+      os << "<eof>";
       break;
     default:
-      ss << "<unknown>";
+      os << "<unknown>";
       break;
   }
-  ss << " at " << *token.loc.source << ":" << token.loc.line << ":" << token.loc.column;
+  os << " at " << *token.loc.source << ":" << token.loc.line << ":" << token.loc.column;
+  return os;
 }
 
 char Lexer::GetChar()

@@ -59,9 +59,6 @@ inline void intrusive_ptr_release(Value* value)
     delete value;
 }
 
-// value-tostring.cpp
-void ToString(const Value&, stringstream&);
-
 /*
  * Subvalues
  */
