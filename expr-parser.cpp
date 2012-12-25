@@ -342,7 +342,7 @@ static ExprPtr ParseExpr(BufferedLexer& lexer)
 ExprPtr Expr::Parse(BufferedLexer& lexer)
 {
   ExprPtr expr = ParseFlatBlock(lexer);
-  if(!TOKEN(EndOfFile)) // TODO this is masking better errors!
+  if(!TOKEN(EndOfFile))
     EXPECTED(EndOfFile)
   return expr;
 }
