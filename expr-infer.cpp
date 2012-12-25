@@ -91,7 +91,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     // TypeEnv env' = remove env n
     // env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
     for(auto& param : paramCollector.subst) {
-      ValuePtr value(new VLocal);
+      ValuePtr value = new VLocal;
       value->type = param.second;
       env.AddValue(param.first, value);
     }
@@ -138,6 +138,9 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
       TypePtr rightType = new TFunction(expr.argument->value->type, expr.value->type);
       subst = Unify(*leftType, *rightType);
 
+      // apply s3 tv
+      expr.value->type = Apply(subst, *expr.value->type);
+
       // s3 `composeSubst` s2
       Compose(subst, argumentVisitor.subst);
     }
@@ -168,9 +171,10 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
 
   void VisitExtern(EExtern& expr)
   {
-    ValuePtr value(new VExtern);
+    ValuePtr value = new VExtern;
     value->type = expr.externType;
     env.AddValue(expr.name, value);
+
     expr.value = new VConstant;
   }
 

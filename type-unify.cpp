@@ -51,16 +51,15 @@ struct TypeUnifyVisitor : TypeVisitor<TypeUnifyVisitor, Type>
     auto& otherFunc = static_cast<TFunction&>(other);
 
     // s1 <- mgu l l'
-    auto paramSubst = Unify(*type.parameter, *otherFunc.parameter);
+    subst = Unify(*type.parameter, *otherFunc.parameter);
 
     // s2 <- mgu (apply s1 r) (apply s1 r')
-    auto unifySubst = Unify(
-      *Apply(paramSubst, *type.result),
-      *Apply(paramSubst, *otherFunc.result));
+    auto result = Apply(subst, *type.result);
+    auto otherResult = Apply(subst, *otherFunc.result);
+    auto unifySubst = Unify(*result, *otherResult);
 
     // return s1 `composeSubst` s2
-    subst.swap(paramSubst);
-    Compose(unifySubst, paramSubst);
+    Compose(unifySubst, subst);
   }
 };
 
