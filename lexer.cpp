@@ -169,7 +169,7 @@ Token Lexer::MakeError(const char* err)
   return token;
 }
 
-Token Lexer::Get()
+Token Lexer::operator()()
 {
   if(dedentCount > 0) {
     dedentCount--;
@@ -198,7 +198,7 @@ Token Lexer::Get()
     }
 
     if(lastChar == '\r' || lastChar == '\n' || lastChar == '#' || lastChar == EOF)
-      return Get();
+      return (*this)();
 
     if(indentSize > indents.top()) {
       indents.push(indentSize);
@@ -232,7 +232,7 @@ Token Lexer::Get()
       while(lastChar != '\r' && lastChar != '\n' && lastChar != EOF)
         GetChar();
     }
-    return Get();
+    return (*this)();
   }
 
   if(IdentifierInitial(lastChar))

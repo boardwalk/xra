@@ -2,11 +2,11 @@
 #include "expr.hpp"
 #include "buffered-lexer.hpp"
 
-#define TOKEN(t) (lexer.Get().type == Token::t)
+#define TOKEN(t) (lexer().type == Token::t)
 #define ERROR(what) \
   { \
     stringstream ss; \
-    ss << what << " near " << lexer.Get() << " at parser.cpp:" << __LINE__;  \
+    ss << what << " near " << lexer() << " at parser.cpp:" << __LINE__;  \
     return ExprPtr(new EError(ss.str())); \
   }
 #define EXPECTED(t) \
@@ -83,7 +83,7 @@ static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
 {
   if(!TOKEN(Identifier))
     EXPECTED(Identifier)
-  string name = lexer.Get().strValue;
+  string name = lexer().strValue;
   lexer.Consume();
 
   TypePtr type = Type::Parse(lexer);
@@ -121,7 +121,7 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 
     if(TOKEN(Elsif))
       lexer.Consume();
-    else if(TOKEN(Nodent) && lexer.Get(1).type == Token::Elsif)
+    else if(TOKEN(Nodent) && lexer(1).type == Token::Elsif)
       lexer.Consume(2);
     else
       more = false;
@@ -130,7 +130,7 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
   more = true;
   if(TOKEN(Else))
     lexer.Consume();
-  else if(TOKEN(Nodent) && lexer.Get(1).type == Token::Else)
+  else if(TOKEN(Nodent) && lexer(1).type == Token::Else)
     lexer.Consume(2);
   else
     more = false;
@@ -150,7 +150,7 @@ static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 {
   ExprPtr param = ParseExpr(lexer);
 
-  if(!TOKEN(Operator) || lexer.Get().strValue != "->")
+  if(!TOKEN(Operator) || lexer().strValue != "->")
     EXPECTED(Operator)
   lexer.Consume();
 
@@ -178,7 +178,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
   while(!TOKEN(EndOfFile))
   {
-    string op = TOKEN(Operator) ? lexer.Get().strValue : "$";
+    string op = TOKEN(Operator) ? lexer().strValue : "$";
 
     auto binaryOp = binaryOperators.find(op);
     if(binaryOp == binaryOperators.end())
@@ -233,7 +233,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
   if(TOKEN(Operator))
   {
-    auto unaryOp = unaryOperators.find(lexer.Get().strValue);
+    auto unaryOp = unaryOperators.find(lexer().strValue);
     lexer.Consume();
 
     if(unaryOp == unaryOperators.end())
@@ -263,7 +263,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
     if(!TOKEN(Operator))
       EXPECTED(Operator)
-    expr.reset(new EVariable(lexer.Get().strValue));
+    expr.reset(new EVariable(lexer().strValue));
     lexer.Consume();
 
     if(!TOKEN(Backtick))
@@ -271,7 +271,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     lexer.Consume();
   }
   else if(TOKEN(Identifier)) {
-    expr.reset(new EVariable(lexer.Get().strValue));
+    expr.reset(new EVariable(lexer().strValue));
     lexer.Consume();
   }
   else if(TOKEN(True)) {
@@ -283,15 +283,15 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     lexer.Consume();
   }
   else if(TOKEN(Integer)) {
-    expr.reset(new EInteger(lexer.Get().intValue));
+    expr.reset(new EInteger(lexer().intValue));
     lexer.Consume();
   }
   else if(TOKEN(Float)) {
-    expr.reset(new EFloat(lexer.Get().floatValue));
+    expr.reset(new EFloat(lexer().floatValue));
     lexer.Consume();
   }
   else if(TOKEN(String)) {
-    expr.reset(new EString(lexer.Get().strValue));
+    expr.reset(new EString(lexer().strValue));
     lexer.Consume();
   }
   else if(TOKEN(Extern)) {
@@ -314,7 +314,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   if(!expr) {
     if(required) {
       stringstream ss;
-      ss << "unexpected token " << lexer.Get();
+      ss << "unexpected token " << lexer();
       expr.reset(new EError(ss.str()));
       lexer.Consume();
     }

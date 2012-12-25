@@ -2,11 +2,11 @@
 #include "type.hpp"
 #include "buffered-lexer.hpp"
 
-#define TOKEN(t) (lexer.Get().type == Token::t)
+#define TOKEN(t) (lexer().type == Token::t)
 #define ERROR(what) \
   { \
     stringstream ss; \
-    ss << what << " near " << lexer.Get() << " at type.parser.cpp:" << __LINE__; \
+    ss << what << " near " << lexer() << " at type.parser.cpp:" << __LINE__; \
     return TypePtr(new TError(ss.str())); \
   }
 #define EXPECTED(t) \
@@ -19,7 +19,7 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
   TypePtr type;
 
   if(TOKEN(Identifier)) {
-    type = new TVariable(lexer.Get().strValue);
+    type = new TVariable(lexer().strValue);
     lexer.Consume();
   }
   else if(TOKEN(BooleanType)) {
@@ -53,7 +53,7 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
 
   if(!type) {
     stringstream ss;
-    ss << "unexpected token " << lexer.Get();
+    ss << "unexpected token " << lexer();
     type.reset(new TError(ss.str()));
     lexer.Consume();
     return type;
@@ -61,7 +61,7 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
 
   if(TOKEN(Operator))
   {
-    if(lexer.Get().strValue == ",")
+    if(lexer().strValue == ",")
     {
       lexer.Consume();
       TypePtr typeRight = Parse(lexer);
@@ -78,7 +78,7 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
         type.reset(list);
       }
     }
-    else if(lexer.Get().strValue == "->")
+    else if(lexer().strValue == "->")
     {
       lexer.Consume();
       TypePtr typeRight = Parse(lexer);

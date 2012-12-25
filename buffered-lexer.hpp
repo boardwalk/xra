@@ -26,11 +26,11 @@ public:
     }
   }
 
-  Token& Get(ssize_t i = 0)
+  Token& operator()(ssize_t i = 0)
   {
     assert(pos + i >= 0);
     while(pos + i >= (ssize_t)buffer.size())
-      buffer.push_back(lexer.Get());
+      buffer.push_back(lexer());
     return buffer[pos + i];
   }
 };

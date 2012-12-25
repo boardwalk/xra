@@ -94,7 +94,7 @@ public:
     indents.push(0);
   }
 
-  Token Get();
+  Token operator()();
 };
 
 } // namespace xra

@@ -59,12 +59,12 @@ int main(int argc, char** argv)
   if(mode == LexMode)
   {
     while(true) {
-      outputStream << bufferedLexer.Get() << endl;
+      outputStream << bufferedLexer() << endl;
 
-      if(bufferedLexer.Get().type == Token::Error)
+      if(bufferedLexer().type == Token::Error)
         return EXIT_FAILURE;
 
-      if(bufferedLexer.Get().type == Token::EndOfFile)
+      if(bufferedLexer().type == Token::EndOfFile)
         break;
 
       bufferedLexer.Consume();

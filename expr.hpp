@@ -99,7 +99,6 @@ public:
   const string name;
 };
 
-
 class EBoolean : public Expr
 {
 public:
