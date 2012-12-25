@@ -31,7 +31,6 @@ struct Token
     OpenParen,
     CloseParen,
     Colon,
-    Semicolon,
     Backtick,
     Integer, // intValue
     Float, // floatValue

@@ -117,9 +117,6 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::EndOfFile:
       os << "<eof>";
       break;
-    default:
-      os << "<unknown>";
-      break;
   }
   os << " at " << *token.loc.source << ":" << token.loc.line << ":" << token.loc.column;
   return os;
