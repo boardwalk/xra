@@ -190,7 +190,7 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
   void Visit(Expr* expr)
   {
     base::Visit(expr);
-    if(expr && expr->type)
+    if(expr && expr->value && expr->type)
       Compose(Unify(*expr->value->type, *expr->type), subst);
   }
 };
