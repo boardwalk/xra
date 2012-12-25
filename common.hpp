@@ -34,7 +34,7 @@ class Token;
 ostream& operator<<(ostream&, const Token&);
 
 class Expr;
-typedef unique_ptr<Expr> ExprPtr;
+typedef boost::intrusive_ptr<Expr> ExprPtr;
 ostream& operator<<(ostream&, const Expr&);
 
 class Value;
@@ -57,6 +57,32 @@ struct SourceLoc
   int line;
   int column;
 };
+
+class Base
+{
+public:
+  Base() :
+    refcount(0)
+  {}
+
+  virtual ~Base() {}
+
+private:
+  friend void intrusive_ptr_add_ref(Base* base);
+  friend void intrusive_ptr_release(Base* base);
+  int refcount;
+};
+
+inline void intrusive_ptr_add_ref(Base* base)
+{
+  base->refcount++;
+}
+
+inline void intrusive_ptr_release(Base* base)
+{
+  if(--base->refcount == 0)
+    delete base;
+}
 
 class Error
 {

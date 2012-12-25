@@ -9,7 +9,7 @@ class BufferedLexer;
  * Base type
  */
 
-class Type
+class Type : public Base
 {
 public:
   enum Kind {
@@ -23,8 +23,6 @@ public:
     Kind_TFunction
   };
 
-  virtual ~Type() {}
-
   // type-parser.cpp
   static TypePtr Parse(BufferedLexer&);
 
@@ -35,26 +33,9 @@ public:
 
 protected:
   Type(Kind kind_) :
-    kind(kind_),
-    refcount(0)
+    kind(kind_)
   {}
-
-private:
-  friend void intrusive_ptr_add_ref(Type* type);
-  friend void intrusive_ptr_release(Type* type);
-  int refcount;
 };
-
-inline void intrusive_ptr_add_ref(Type* type)
-{
-  type->refcount++;
-}
-
-inline void intrusive_ptr_release(Type* type)
-{
-  if(--type->refcount == 0)
-    delete type;
-}
 
 extern const TypePtr VoidType;
 extern const TypePtr BooleanType;

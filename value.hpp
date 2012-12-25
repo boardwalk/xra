@@ -9,7 +9,7 @@ namespace xra {
  * Base value
  */
 
-class Value
+class Value : public Base
 {
 public:
   enum Kind {
@@ -19,8 +19,6 @@ public:
     Kind_VLocal,
     Kind_VExtern
   };
-
-  virtual ~Value() {}
 
   void Apply(const TypeSubst& subst)
   {
@@ -38,26 +36,9 @@ public:
 
 protected:
   Value(Kind kind_) :
-    kind(kind_),
-    refcount(0)
+    kind(kind_)
   {}
-
-private:
-  friend void intrusive_ptr_add_ref(Value* value);
-  friend void intrusive_ptr_release(Value* value);
-  int refcount;
 };
-
-inline void intrusive_ptr_add_ref(Value* value)
-{
-  value->refcount++;
-}
-
-inline void intrusive_ptr_release(Value* value)
-{
-  if(--value->refcount == 0)
-    delete value;
-}
 
 /*
  * Subvalues

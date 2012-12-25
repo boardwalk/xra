@@ -11,9 +11,7 @@ class BufferedLexer;
  * Base expression
  */
 
-class Env;
-
-class Expr
+class Expr : public Base
 {
 public:
   enum Kind {
@@ -28,8 +26,6 @@ public:
     Kind_EList,
     Kind_EExtern
   };
-
-  virtual ~Expr() {}
 
   // expr-parser.cpp
   static ExprPtr Parse(BufferedLexer&);
