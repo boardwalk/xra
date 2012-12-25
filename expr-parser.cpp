@@ -63,7 +63,7 @@ static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
     lexer.Consume();
   }
 
-  return ExprPtr(new ECall(ExprPtr(new EVariable(";")), ExprPtr(list.release())));
+  return new ECall(new EVariable(";"), list.release());
 }
 
 static ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
@@ -88,7 +88,7 @@ static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
   if(!type)
     EXPECTED(Type)
 
-  return ExprPtr(new EExtern(name, type));
+  return new EExtern(name, type);
 }
 
 static ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
@@ -136,12 +136,12 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
   if(more)
     list->exprs.push_back(ParseIfClause(lexer, false));
 
-  return ExprPtr(new ECall(ExprPtr(new EVariable("#if")), ExprPtr(list.release())));
+  return new ECall(new EVariable("#if"), list.release());
 }
 
 static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
-  return ExprPtr(new ECall(ExprPtr(new EVariable("#return")), ParseExpr(lexer)));
+  return new ECall(new EVariable("#return"), ParseExpr(lexer));
 }
 
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
@@ -161,7 +161,7 @@ static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
     body = ParseExpr(lexer);
   }
 
-  return ExprPtr(new EFunction(move(param), move(body)));
+  return new EFunction(param, body);
 }
 
 static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
@@ -214,7 +214,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
     }
 
     if(op == "$") {
-      expr = ExprPtr(new ECall(move(expr), move(exprRight)));
+      expr = new ECall(expr, exprRight);
     }
     else if(op == "," && lastOp == ",") {
       auto list = static_cast<EList*>(expr.get());
@@ -226,9 +226,9 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
       list->exprs.push_back(move(exprRight));
 
       if(op == ",")
-        expr = ExprPtr(list.release());
+        expr = list.release();
       else
-        expr = ExprPtr(new ECall(ExprPtr(new EVariable(op)), ExprPtr(list.release())));
+        expr = new ECall(new EVariable(op), list.release());
     }
 
     lastOp = move(op);
@@ -250,7 +250,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
       ERROR("unknown unary operator")
 
     expr = ParseExpr_Exp(lexer, unaryOp->second, true);
-    expr = ExprPtr(new ECall(ExprPtr(new EVariable(unaryOp->first)), move(expr)));
+    expr = new ECall(new EVariable(unaryOp->first), expr);
   }
   else if(TOKEN(OpenParen))
   {
@@ -258,7 +258,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
     expr = ParseExpr_Exp(lexer, 0, false);
     if(!expr)
-      expr = ExprPtr(new EVoid);
+      expr = new EVoid;
 
     if(!TOKEN(CloseParen))
       EXPECTED(CloseParen)
@@ -270,7 +270,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
     if(!TOKEN(Operator))
       EXPECTED(Operator)
-    expr = ExprPtr(new EVariable(lexer().strValue));
+    expr = new EVariable(lexer().strValue);
     lexer.Consume();
 
     if(!TOKEN(Backtick))
@@ -278,27 +278,27 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     lexer.Consume();
   }
   else if(TOKEN(Identifier)) {
-    expr = ExprPtr(new EVariable(lexer().strValue));
+    expr = new EVariable(lexer().strValue);
     lexer.Consume();
   }
   else if(TOKEN(True)) {
-    expr = ExprPtr(new EBoolean(true));
+    expr = new EBoolean(true);
     lexer.Consume();
   }
   else if(TOKEN(False)) {
-    expr = ExprPtr(new EBoolean(false));
+    expr = new EBoolean(false);
     lexer.Consume();
   }
   else if(TOKEN(Integer)) {
-    expr = ExprPtr(new EInteger(lexer().intValue));
+    expr = new EInteger(lexer().intValue);
     lexer.Consume();
   }
   else if(TOKEN(Float)) {
-    expr = ExprPtr(new EFloat(lexer().floatValue));
+    expr = new EFloat(lexer().floatValue);
     lexer.Consume();
   }
   else if(TOKEN(String)) {
-    expr = ExprPtr(new EString(lexer().strValue));
+    expr = new EString(lexer().strValue);
     lexer.Consume();
   }
   else if(TOKEN(Extern)) {
