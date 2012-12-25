@@ -14,11 +14,12 @@
 namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
-  {"\\", {19, false}},
-  {".", {18, false}},
-  {"$", {16, false}},
-  {"*", {15, false}},
-  {"/", {15, false}},
+  {"\\", {20, false}},
+  {".", {19, false}},
+  {"`", {18, false}},
+  {"$", {17, false}},
+  {"*", {16, false}},
+  {"/", {16, false}},
   {"+", {14, false}},
   {"-", {14, false}},
   {"<<", {13, false}},
@@ -40,12 +41,12 @@ static const map<string, pair<int, bool> > binaryOperators {
 };
 
 static const map<string, int> unaryOperators {
-  {"+", 17},
-  {"-", 17},
-  {"!", 17},
-  {"~", 17},
-  {"*", 17},
-  {"&", 17}
+  {"+", 18},
+  {"-", 18},
+  {"!", 18},
+  {"~", 18},
+  {"*", 18},
+  {"&", 18}
 };
 
 static ExprPtr ParseExpr(BufferedLexer&);
@@ -175,7 +176,14 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
   while(!TOKEN(EndOfFile))
   {
-    string op = TOKEN(Operator) ? lexer().strValue : "$";
+    string op(1, '$');
+
+    if(TOKEN(Backtick)) {
+      op = "`";
+    }
+    else if(TOKEN(Operator)) {
+      op = lexer().strValue;
+    }
 
     auto binaryOp = binaryOperators.find(op);
     if(binaryOp == binaryOperators.end())
@@ -184,8 +192,19 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
     bool rightAssoc = binaryOp->second.second;
     if(prec < p)
       break;
+    
     if(op != "$")
       lexer.Consume();
+
+    if(op == "`") {
+      if(!TOKEN(Identifier))
+        EXPECTED(Identifier);
+      op = lexer().strValue;
+      lexer.Consume();
+      if(!TOKEN(Backtick))
+        EXPECTED(Backtick);
+      lexer.Consume();
+    }
 
     int q = rightAssoc ? prec : (1 + prec);
 
