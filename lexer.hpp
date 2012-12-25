@@ -5,7 +5,12 @@
 
 namespace xra {
 
-using namespace std;
+struct SourceLoc
+{
+  shared_ptr<string> source;
+  int line;
+  int column;
+};
 
 struct Token
 {

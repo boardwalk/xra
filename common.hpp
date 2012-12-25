@@ -51,13 +51,6 @@ ostream& operator<<(ostream&, const TypeSubst&);
 class Env;
 ostream& operator<<(ostream&, const Env&);
 
-struct SourceLoc
-{
-  shared_ptr<string> source;
-  int line;
-  int column;
-};
-
 class Base
 {
 public:
