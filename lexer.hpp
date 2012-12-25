@@ -54,8 +54,6 @@ struct Token
   };
 };
 
-void ToString(const Token&, stringstream&);
-
 class Lexer
 {
   istream& inputStream;

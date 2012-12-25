@@ -52,7 +52,6 @@ void GetVariables(const Type&, set<string>&);
 // type.cpp
 TypePtr MakeTypeVar();
 void Compose(const TypeSubst&, TypeSubst&);
-void ToString(const TypeSubst&, stringstream&);
 
 /*
  * Subtypes
