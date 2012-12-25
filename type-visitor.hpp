@@ -22,6 +22,14 @@ struct TypeVisitor
 
   VISIT(Void) {}
 
+  VISIT(Boolean) {}
+
+  VISIT(Integer) {}
+
+  VISIT(Float) {}
+
+  VISIT(String) {}
+
   VISIT(Variable) {}
 
   VISIT(List) {
@@ -39,6 +47,10 @@ struct TypeVisitor
     switch(node.kind) {
       CASE(Error)
       CASE(Void)
+      CASE(Boolean)
+      CASE(Integer)
+      CASE(Float)
+      CASE(String)
       CASE(Variable)
       CASE(List)
       CASE(Function)

@@ -19,7 +19,23 @@ TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
   TypePtr type;
 
   if(TOKEN(Identifier)) {
-    type.reset(new TVariable(lexer.Get().strValue));
+    type = new TVariable(lexer.Get().strValue);
+    lexer.Consume();
+  }
+  else if(TOKEN(BooleanType)) {
+    type = BooleanType;
+    lexer.Consume();
+  }
+  else if(TOKEN(IntegerType)) {
+    type = IntegerType;
+    lexer.Consume();
+  }
+  else if(TOKEN(FloatType)) {
+    type = FloatType;
+    lexer.Consume();
+  }
+  else if(TOKEN(StringType)) {
+    type = StringType;
     lexer.Consume();
   }
   else if(TOKEN(OpenParen)) {

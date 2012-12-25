@@ -15,6 +15,10 @@ public:
   enum Kind {
     Kind_TError,
     Kind_TVoid,
+    Kind_TBoolean,
+    Kind_TInteger,
+    Kind_TFloat,
+    Kind_TString,
     Kind_TVariable,
     Kind_TList,
     Kind_TFunction
@@ -107,6 +111,46 @@ public:
   {}
 
   CLASSOF(TVoid)
+};
+
+class TBoolean : public Type
+{
+public:
+  TBoolean() :
+    Type(Kind_TBoolean)
+  {}
+
+  CLASSOF(TBoolean)
+};
+
+class TInteger : public Type
+{
+public:
+  TInteger() :
+    Type(Kind_TInteger)
+  {}
+
+  CLASSOF(TInteger)
+};
+
+class TFloat : public Type
+{
+public:
+  TFloat() :
+    Type(Kind_TFloat)
+  {}
+
+  CLASSOF(TFloat)
+};
+
+class TString : public Type
+{
+public:
+  TString() :
+    Type(Kind_TString)
+  {}
+
+  CLASSOF(TString)
 };
 
 class TVariable : public Type

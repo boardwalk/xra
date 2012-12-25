@@ -23,6 +23,26 @@ struct TypeApplyVisitor : TypeVisitor<TypeApplyVisitor, Type>
     result = &type;
   }
 
+  void VisitBoolean(TBoolean& type)
+  {
+    result = &type;
+  }
+
+  void VisitInteger(TInteger& type)
+  {
+    result = &type;
+  }
+
+  void VisitFloat(TFloat& type)
+  {
+    result = &type;
+  }
+
+  void VisitString(TString& type)
+  {
+    result = &type;
+  }
+
   void VisitVariable(TVariable& type)
   {
     auto it = subst.find(type.name);

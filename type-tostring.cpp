@@ -23,9 +23,29 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     ss << "()";
   }
 
+  void VisitBoolean(const TBoolean& type)
+  {
+    ss << "bool";
+  }
+
+  void VisitInteger(const TInteger& type)
+  {
+    ss << "int";
+  }
+
+  void VisitFloat(const TFloat& type)
+  {
+    ss << "float";
+  }
+
+  void VisitString(const TString& type)
+  {
+    ss << "str";
+  }
+
   void VisitVariable(const TVariable& type)
   {
-    ss << type.name;
+    ss << "`" << type.name << "`";
   }
 
   void VisitList(const TList& type)

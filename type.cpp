@@ -4,10 +4,10 @@
 namespace xra {
 
 const TypePtr VoidType(new TVoid);
-const TypePtr BooleanType(new TVariable("boolean"));
-const TypePtr IntegerType(new TVariable("integer"));
-const TypePtr FloatType(new TVariable("float"));
-const TypePtr StringType(new TVariable("string"));
+const TypePtr BooleanType(new TBoolean);
+const TypePtr IntegerType(new TInteger);
+const TypePtr FloatType(new TFloat);
+const TypePtr StringType(new TString);
 
 TypePtr MakeTypeVar()
 {

@@ -65,6 +65,18 @@ string Token::ToString() const
     case Return:
       ss << "return";
       break;
+    case BooleanType:
+      ss << "bool";
+      break;
+    case IntegerType:
+      ss << "int";
+      break;
+    case FloatType:
+      ss << "float";
+      break;
+    case StringType:
+      ss << "str";
+      break;
     case True:
       ss << "true";
       break;
@@ -234,6 +246,10 @@ Token Lexer::Get()
     if(str == "elsif") return MakeToken(Token::Elsif);
     if(str == "else") return MakeToken(Token::Else);
     if(str == "return") return MakeToken(Token::Return);
+    if(str == "bool") return MakeToken(Token::BooleanType);
+    if(str == "int") return MakeToken(Token::IntegerType);
+    if(str == "float") return MakeToken(Token::FloatType);
+    if(str == "str") return MakeToken(Token::StringType);
     if(str == "true") return MakeToken(Token::True);
     if(str == "false") return MakeToken(Token::False);
     if(str == "extern") return MakeToken(Token::Extern);
