@@ -50,14 +50,14 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
 
   void VisitList(const TList& type)
   {
-    ss << " (list";
+    ss << "(list";
     base::VisitList(type);
     ss << ")";
   }
 
   void VisitFunction(const TFunction& type)
   {
-    ss << " (fn";
+    ss << "(fn";
     base::VisitFunction(type);
     ss << ")";
   }
