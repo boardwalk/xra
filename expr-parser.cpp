@@ -178,7 +178,7 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
   {
     string op(1, '$');
 
-    if(TOKEN(Backtick)) {
+    if(TOKEN(Backtick) && lexer(1).type == Token::Identifier) {
       op = "`";
     }
     else if(TOKEN(Operator)) {
@@ -197,8 +197,6 @@ ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
       lexer.Consume();
 
     if(op == "`") {
-      if(!TOKEN(Identifier))
-        EXPECTED(Identifier);
       op = lexer().strValue;
       lexer.Consume();
       if(!TOKEN(Backtick))
