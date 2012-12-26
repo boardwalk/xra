@@ -5,6 +5,15 @@ namespace xra {
 
 stringstream Error::ss;
 
+ostream& operator<<(ostream& os, const SourceLoc& loc)
+{
+  if(loc.source)
+    os << *loc.source << ":" << loc.line << ":" << loc.column;
+  else
+    os << "(unknown)";
+  return os;
+}
+
 void EscapeString(const string& str, ostream& os)
 {
   for(size_t i = 0; i < str.size(); i++) {

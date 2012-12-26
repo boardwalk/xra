@@ -5,13 +5,6 @@
 
 namespace xra {
 
-struct SourceLoc
-{
-  shared_ptr<string> source;
-  int line;
-  int column;
-};
-
 struct Token
 {
   enum Type {

@@ -18,7 +18,9 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
   void Visit##e(const E##e& expr) {  \
     for(int i = 0; i < level; i++)   \
       os << "  ";                    \
-    os << #e;
+    os << #e;                        \
+    if(expr.loc.source)              \
+      os << " (" << expr.loc << ")";
 #define END(e)                       \
     if(expr.value)                   \
       os << " " << *expr.value;      \

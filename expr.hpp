@@ -34,6 +34,7 @@ public:
   void Infer(Env&, TypeSubst&);
 
   const Kind kind;
+  SourceLoc loc;
   TypePtr type; // from annotation
   ValuePtr value; // filled by Infer
 

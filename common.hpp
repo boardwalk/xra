@@ -41,6 +41,13 @@ typedef boost::intrusive_ptr<Type> TypePtr;
 
 class Env;
 
+struct SourceLoc
+{
+  shared_ptr<string> source;
+  int line;
+  int column;
+};
+
 class Base
 {
 public:
@@ -99,6 +106,8 @@ public:
 private:
   static stringstream ss;
 };
+
+ostream& operator<<(ostream&, const SourceLoc&);
 
 void EscapeString(const string&, ostream&);
 

@@ -118,7 +118,7 @@ ostream& operator<<(ostream& os, const Token& token)
       os << "<eof>";
       break;
   }
-  os << " at " << *token.loc.source << ":" << token.loc.line << ":" << token.loc.column;
+  os << " at " << token.loc;
   return os;
 }
 
