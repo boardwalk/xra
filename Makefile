@@ -18,7 +18,8 @@ OBJECTS = common.o \
 	type-apply.o \
 	type-unify.o \
 	type-getvariables.o \
-	builtins.o
+	builtins.o \
+	compile.o
 
 all: xra
 

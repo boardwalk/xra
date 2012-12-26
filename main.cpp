@@ -2,6 +2,7 @@
 #include "buffered-lexer.hpp"
 #include "expr.hpp"
 #include "env.hpp"
+#include <llvm/Support/raw_os_ostream.h>
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -11,12 +12,13 @@ using namespace xra;
 
 namespace xra {
   void AddBuiltins(Env&);
+  void Compile(Expr&, llvm::Module&);
 }
 
 int main(int argc, char** argv)
 {
-  enum Mode { LexMode, ParseMode, AnalyzeMode };
-  Mode mode = ParseMode;
+  enum Mode { LexMode, ParseMode, AnalyzeMode, CompileMode };
+  Mode mode = CompileMode;
 
   ifstream ifs;
   ofstream ofs;
@@ -24,22 +26,27 @@ int main(int argc, char** argv)
 
   // parse options
   int c;
-  while((c = getopt(argc, argv, "lpao:")) != -1) {
-    if(c == 'l') {
+  while((c = getopt(argc, argv, "lpaco:")) != -1) {
+    switch(c) {
+    case 'l':
       mode = LexMode;
-    }
-    else if(c == 'p') {
+      break;
+    case 'p':
       mode = ParseMode;
-    }
-    else if(c == 'a') {
+      break;
+    case 'a':
       mode = AnalyzeMode;
-    }
-    else if(c == 'o') {
+      break;
+    case 'c':
+      mode = CompileMode;
+      break;
+    case 'o':
       ofs.open(optarg);
       if(!ofs) {
         cerr << "could not open output file " << optarg << endl;
         return EXIT_FAILURE;
       }
+      break;
     }
   }
 
@@ -73,38 +80,43 @@ int main(int argc, char** argv)
 
       bufferedLexer.Consume();
     }
+    return EXIT_SUCCESS;
   }
-  else if(mode == ParseMode || mode == AnalyzeMode)
-  {
-    ExprPtr expr = Expr::Parse(bufferedLexer);
 
-    string errors = Error::Get();
-    if(!errors.empty()) {
-      cerr << errors;
-      cerr << "parsing failed" << endl;
-      return EXIT_FAILURE;
-    }
-    cerr << "parsing ok" << endl;
+  ExprPtr expr = Expr::Parse(bufferedLexer);
 
-    if(mode == AnalyzeMode)
-    {
-      Env env;
-      TypeSubst subst;
-      AddBuiltins(env);
-      expr->Infer(env, subst);
-      cout << env << endl;
-
-      errors = Error::Get();
-      if(!errors.empty()) {
-        cerr << errors;
-        cerr << "analysis failed" << endl;
-        return EXIT_FAILURE;
-      }
-      cerr << "analysis ok" << endl;
-    }
-
-    outputStream << *expr << endl;
+  string errors = Error::Get();
+  if(!errors.empty()) {
+    cerr << errors;
+    cerr << "parsing failed" << endl;
+    return EXIT_FAILURE;
   }
+  cerr << "parsing ok" << endl;
+
+  if(mode == ParseMode)
+    return EXIT_SUCCESS;
+ 
+  Env env;
+  TypeSubst subst;
+  AddBuiltins(env);
+  expr->Infer(env, subst);
+
+  errors = Error::Get();
+  if(!errors.empty()) {
+    cerr << errors;
+    cerr << "analysis failed" << endl;
+    return EXIT_FAILURE;
+  }
+  cerr << "analysis ok" << endl;
+
+  if(mode == AnalyzeMode)
+    return EXIT_SUCCESS;
+ 
+  auto module = make_unique<llvm::Module>(source, llvm::getGlobalContext());
+  Compile(*expr, *module);
+
+  llvm::raw_os_ostream llvmos(outputStream);
+  module->print(llvmos, nullptr);
 
   return EXIT_SUCCESS;
 }

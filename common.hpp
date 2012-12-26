@@ -1,6 +1,11 @@
 #ifndef XRA_COMMON_HPP
 #define XRA_COMMON_HPP
 
+#include <llvm/DerivedTypes.h>
+#include <llvm/LLVMContext.h>
+#include <llvm/Module.h>
+#include <boost/intrusive_ptr.hpp>
+
 #include <deque>
 #include <map>
 #include <memory>
@@ -8,8 +13,6 @@
 #include <sstream>
 #include <stack>
 #include <vector>
-#include <llvm/Support/Casting.h>
-#include <boost/intrusive_ptr.hpp>
 
 namespace xra {
 
