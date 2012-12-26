@@ -20,6 +20,9 @@ struct Compiler : Visitor<Compiler, const Expr>
 
   void VisitEVariable(const EVariable&);
   void VisitEBoolean(const EBoolean&);
+  void VisitEInteger(const EInteger&);
+  void VisitEFloat(const EFloat&);
+  void VisitEString(const EString&);
   void VisitEFunction(const EFunction&);
   void VisitECall(const ECall&);
   void VisitEList(const EList&);

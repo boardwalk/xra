@@ -4,14 +4,6 @@
 
 namespace xra {
 
-void Compiler::VisitEList(const EList& expr)
-{
-  if(expr.exprs.empty())
-    return;
-
-  // TODO
-}
-
 void Compiler::VisitEVariable(const EVariable& expr)
 {
   auto local = dyn_cast<VLocal>(expr.value.get());
@@ -28,7 +20,22 @@ void Compiler::VisitEVariable(const EVariable& expr)
 
 void Compiler::VisitEBoolean(const EBoolean& expr)
 {
-  result = expr.value ? builder.getTrue() : builder.getFalse();
+  result = expr.literal ? builder.getTrue() : builder.getFalse();
+}
+
+void Compiler::VisitEInteger(const EInteger& expr)
+{
+  result = llvm::ConstantInt::get(ToLLVM(*expr.value->type, module.getContext()), expr.literal);
+}
+
+void Compiler::VisitEFloat(const EFloat& expr)
+{
+  result = llvm::ConstantFP::get(ToLLVM(*expr.value->type, module.getContext()), expr.literal);
+}
+
+void Compiler::VisitEString(const EString& expr)
+{
+  result = builder.CreateGlobalStringPtr(expr.literal, "EString");
 }
 
 void Compiler::VisitEFunction(const EFunction& expr)
@@ -75,6 +82,14 @@ void Compiler::VisitECall(const ECall& expr)
 
     result = builder.CreateCall(function, llvm::ArrayRef<llvm::Value*>(argument));
   }
+}
+
+void Compiler::VisitEList(const EList& expr)
+{
+  if(expr.exprs.empty())
+    return;
+
+  // TODO
 }
 
 } // namespace xra

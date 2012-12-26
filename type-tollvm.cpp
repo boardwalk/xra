@@ -18,6 +18,21 @@ struct TypeToLLVMVisitor : Visitor<TypeToLLVMVisitor, const Type>
     result = llvm::Type::getInt1Ty(ctx);
   }
 
+  void VisitTInteger(const TInteger&)
+  {
+    result = llvm::Type::getInt32Ty(ctx);
+  }
+
+  void VisitTFloat(const TFloat&)
+  {
+    result = llvm::Type::getFloatTy(ctx);
+  }
+
+  void VisitTString(const TString&)
+  {
+    result = llvm::Type::getInt8PtrTy(ctx);
+  }
+
   void VisitTList(const TList& type)
   {
     if(type.types.empty()) {
