@@ -9,16 +9,20 @@ struct Compiler : Visitor<Compiler, const Expr>
 {
   llvm::Module& module;
   llvm::IRBuilder<> builder;
-  llvm::Value* value;
+  map<string, llvm::AllocaInst*> values;
+  llvm::Value* result;
 
   Compiler(llvm::Module& module_) :
     module(module_),
     builder(module_.getContext()),
-    value(nullptr)
+    result(nullptr)
   {}
 
-  void VisitVoid(const EVoid& expr);
-  void VisitCall(const ECall& expr);
+  void VisitEVariable(const EVariable&);
+  void VisitEBoolean(const EBoolean&);
+  void VisitEFunction(const EFunction&);
+  void VisitECall(const ECall&);
+  void VisitEList(const EList&);
 };
 
 } // namespace xra

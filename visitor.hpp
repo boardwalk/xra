@@ -28,69 +28,89 @@ struct Visitor
   case Base::Kind_##c: \
     return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, c>::type&>(*node));
 
-  VISIT(EVoid) {}
+  /*
+   * Expressions
+   */
+  VISIT(EVariable)
+  {}
   
-  VISIT(EVariable) {}
+  VISIT(EBoolean)
+  {}
   
-  VISIT(EBoolean) {}
+  VISIT(EInteger)
+  {}
   
-  VISIT(EInteger) {}
+  VISIT(EFloat)
+  {}
   
-  VISIT(EFloat) {}
-  
-  VISIT(EString) {}
+  VISIT(EString)
+  {}
 
-  VISIT(EFunction) {
+  VISIT(EFunction)
+  {
     SUBCLASS.Visit(node.param.get());
     SUBCLASS.Visit(node.body.get());
   }
   
-  VISIT(ECall) {
+  VISIT(ECall)
+  {
     SUBCLASS.Visit(node.function.get());
     SUBCLASS.Visit(node.argument.get());
   }
 
-  VISIT(EList) {
+  VISIT(EList)
+  {
     for(auto& e : node.exprs)
       SUBCLASS.Visit(e.get());
   }
 
-  VISIT(EExtern) {}
+  VISIT(EExtern)
+  {}
 
   /*
    * Values
    */
-  VISIT(VBuiltin) {}
+  VISIT(VBuiltin)
+  {}
 
-  VISIT(VTemporary) {}
+  VISIT(VTemporary)
+  {}
 
-  VISIT(VConstant) {}
+  VISIT(VConstant)
+  {}
 
-  VISIT(VLocal) {}
+  VISIT(VLocal)
+  {}
 
-  VISIT(VExtern) {}
+  VISIT(VExtern)
+  {}
 
   /*
    * Types
    */
-  VISIT(TVoid) {}
+  VISIT(TBoolean)
+  {}
 
-  VISIT(TBoolean) {}
+  VISIT(TInteger)
+  {}
 
-  VISIT(TInteger) {}
+  VISIT(TFloat)
+  {}
 
-  VISIT(TFloat) {}
+  VISIT(TString)
+  {}
 
-  VISIT(TString) {}
+  VISIT(TVariable)
+  {}
 
-  VISIT(TVariable) {}
-
-  VISIT(TList) {
+  VISIT(TList)
+  {
     for(auto& t : node.types)
       SUBCLASS.Visit(t.get());
   }
 
-  VISIT(TFunction) {
+  VISIT(TFunction)
+  {
     SUBCLASS.Visit(node.parameter.get());
     SUBCLASS.Visit(node.result.get());
   }
@@ -100,7 +120,6 @@ struct Visitor
     assert(node);
     switch(node->kind) {
       // Expressions
-      CASE(EVoid)
       CASE(EVariable)
       CASE(EBoolean)
       CASE(EInteger)
@@ -117,7 +136,6 @@ struct Visitor
       CASE(VLocal)
       CASE(VExtern)
       // Types
-      CASE(TVoid)
       CASE(TBoolean)
       CASE(TInteger)
       CASE(TFloat)

@@ -56,20 +56,11 @@ public:
 class VConstant : public Value
 {
 public:
-  VConstant();
-  VConstant(bool value);
-  VConstant(long value);
-  VConstant(double value);
-  VConstant(const string& value);
+  VConstant() :
+    Value(Kind_VConstant)
+  {}
 
   CLASSOF(VConstant)
-
-  const union {
-    bool boolValue;
-    long intValue;
-    double floatValue;
-  };
-  const string strValue;
 };
 
 class VLocal : public Value

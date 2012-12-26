@@ -29,9 +29,6 @@ struct ExprToStringVisitor : Visitor<ExprToStringVisitor, const Expr>
     level--;                         \
   }
 
-  BEGIN(EVoid)
-  END(EVoid)
-
   BEGIN(EVariable)
     os << " `" << expr.name << "`";
   END(EVariable)

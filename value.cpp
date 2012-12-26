@@ -14,38 +14,4 @@ void Value::Apply(const TypeSubst& subst)
   }
 }
 
-VConstant::VConstant() :
-  Value(Kind_VConstant)
-{
-  type = VoidType;
-}
-
-VConstant::VConstant(bool value) :
-  Value(Kind_VConstant),
-  boolValue(value)
-{
-  type = BooleanType;
-}
-
-VConstant::VConstant(long value) :
-  Value(Kind_VConstant),
-  intValue(value)
-{
-  type = IntegerType;
-}
-
-VConstant::VConstant(double value) :
-  Value(Kind_VConstant),
-  floatValue(value)
-{
-  type = FloatType;
-}
-
-VConstant::VConstant(const string& value) :
-  Value(Kind_VConstant),
-  strValue(value)
-{
-  type = StringType;
-}
-
 } // namespace xra

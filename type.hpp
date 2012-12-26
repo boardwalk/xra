@@ -27,6 +27,11 @@ extern const TypePtr IntegerType;
 extern const TypePtr FloatType;
 extern const TypePtr StringType;
 
+// type.cpp
+TypePtr MakeTypeVar();
+void Compose(const TypeSubst&, TypeSubst&);
+ostream& operator<<(ostream&, const TypeSubst&);
+
 // type-tostring.cpp
 ostream& operator<<(ostream&, const Type&);
 
@@ -39,24 +44,12 @@ TypeSubst Unify(Type&, Type&);
 // type-getvariables.cpp
 void GetVariables(const Type&, set<string>&);
 
-// type.cpp
-TypePtr MakeTypeVar();
-void Compose(const TypeSubst&, TypeSubst&);
-ostream& operator<<(ostream&, const TypeSubst&);
+// type-tollvm.cpp
+llvm::Type* ToLLVM(const Type&, llvm::LLVMContext&);
 
 /*
  * Subtypes
  */
-
-class TVoid : public Type
-{
-public:
-  TVoid() :
-    Type(Kind_TVoid)
-  {}
-
-  CLASSOF(TVoid)
-};
 
 class TBoolean : public Type
 {

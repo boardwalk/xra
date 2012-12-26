@@ -5,7 +5,7 @@ CXXFLAGS = -I/Users/at0m13/homebrew/include \
   -std=c++11 -g -O0 \
   `llvm-config --cxxflags`
 LDFLAGS = -g -O0 `llvm-config --ldflags`
-LIBS = `llvm-config --libs core`
+LIBS = `llvm-config --libs core bitwriter`
 
 OBJECTS = common.o \
 	main.o \
@@ -22,6 +22,7 @@ OBJECTS = common.o \
 	type-apply.o \
 	type-unify.o \
 	type-getvariables.o \
+	type-tollvm.o \
 	builtins.o \
 	compiler.o
 

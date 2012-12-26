@@ -34,16 +34,6 @@ ostream& operator<<(ostream&, const Expr&);
  * Subexpressions
  */
 
-class EVoid : public Expr
-{
-public:
-  EVoid() :
-    Expr(Kind_EVoid)
-  {}
-
-  CLASSOF(EVoid)
-};
-
 class EVariable : public Expr
 {
 public:

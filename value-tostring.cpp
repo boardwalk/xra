@@ -12,17 +12,17 @@ struct ValueToStringVisitor : Visitor<ValueToStringVisitor, const Value>
   {}
 
 #define VISIT(c) \
-  void Visit##c(const V##c& value) { \
-    os << #c;                        \
-    if(value.type)                   \
-      os << ":" << *value.type;      \
+  void Visit##c(const c& value) { \
+    os << #c;                     \
+    if(value.type)                \
+      os << ":" << *value.type;   \
   }
 
-  VISIT(Builtin)
-  VISIT(Temporary)
-  VISIT(Constant)
-  VISIT(Local)
-  VISIT(Extern)
+  VISIT(VBuiltin)
+  VISIT(VTemporary)
+  VISIT(VConstant)
+  VISIT(VLocal)
+  VISIT(VExtern)
 
 #undef VISIT
 };

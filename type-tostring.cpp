@@ -12,11 +12,6 @@ struct TypeToStringVisitor : Visitor<TypeToStringVisitor, const Type>
     os(os_), firstVisit(true)
   {}
 
-  void VisitTVoid(const TVoid& type)
-  {
-    os << "()";
-  }
-
   void VisitTBoolean(const TBoolean& type)
   {
     os << "bool";

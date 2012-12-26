@@ -8,7 +8,6 @@ class Base
 public:
   enum Kind {
     // Expressions
-    Kind_EVoid,
     Kind_EVariable,
     Kind_EBoolean,
     Kind_EInteger,
@@ -25,7 +24,6 @@ public:
     Kind_VLocal,
     Kind_VExtern,
     // Types
-    Kind_TVoid,
     Kind_TBoolean,
     Kind_TInteger,
     Kind_TFloat,

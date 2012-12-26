@@ -23,13 +23,13 @@ struct TypeUnifyVisitor : Visitor<TypeUnifyVisitor, Type>
     other(other_)
   {}
 
-  void VisitVariable(TVariable& type)
+  void VisitTVariable(TVariable& type)
   {
     if(type.name != static_cast<TVariable&>(other).name)
       BindVariable(type.name, other, subst);
   }
 
-  void VisitList(TList& type)
+  void VisitTList(TList& type)
   {
     auto& otherList = static_cast<TList&>(other);
 
@@ -45,7 +45,7 @@ struct TypeUnifyVisitor : Visitor<TypeUnifyVisitor, Type>
     }
   }
 
-  void VisitFunction(TFunction& type)
+  void VisitTFunction(TFunction& type)
   {
     auto& otherFunc = static_cast<TFunction&>(other);
 

@@ -259,7 +259,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
     expr = ParseExpr_Exp(lexer, 0, false);
     if(!expr)
-      expr = new EVoid;
+      expr = new EList;
 
     if(!TOKEN(CloseParen))
       EXPECTED(CloseParen)
@@ -342,10 +342,26 @@ static ExprPtr ParseExpr(BufferedLexer& lexer)
 
 ExprPtr Expr::Parse(BufferedLexer& lexer)
 {
-  ExprPtr expr = ParseFlatBlock(lexer);
+  auto list = make_unique<EList>();
+
+  while(true) {
+    list->exprs.push_back(ParseExpr(lexer));
+
+    if(!TOKEN(Nodent))
+      break;
+    lexer.Consume();
+  }
+
   if(!TOKEN(EndOfFile))
     EXPECTED(EndOfFile)
-  return expr;
+
+  list->exprs.push_back(new EList);
+
+  return new EFunction(
+    new EList,
+    new ECall(
+      new EVariable(";"),
+      list.release()));
 }
 
 } // namespace xra

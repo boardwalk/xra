@@ -4,6 +4,8 @@
 #include "compiler.hpp"
 
 #include <llvm/Support/raw_os_ostream.h>
+#include <llvm/Bitcode/ReaderWriter.h>
+
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -23,10 +25,11 @@ int main(int argc, char** argv)
   ifstream ifs;
   ofstream ofs;
   string source = "stdin";
+  bool bitcode = false;
 
   // parse options
   int c;
-  while((c = getopt(argc, argv, "lpaco:")) != -1) {
+  while((c = getopt(argc, argv, "lpacmo:b")) != -1) {
     switch(c) {
     case 'l':
       mode = LexMode;
@@ -47,6 +50,9 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
       }
       break;
+    case 'b':
+      bitcode = true;
+      break;
     }
   }
 
@@ -64,7 +70,10 @@ int main(int argc, char** argv)
 
   Lexer lexer(inputStream, source);  
   BufferedLexer bufferedLexer(lexer);
-  
+
+  /*
+   * Lexing (testing only)
+   */
   if(mode == LexMode)
   {
     while(true) {
@@ -83,6 +92,9 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
   }
 
+  /*
+   * Parsing
+   */
   ExprPtr expr = Expr::Parse(bufferedLexer);
 
   string errors = Error::Get();
@@ -91,11 +103,15 @@ int main(int argc, char** argv)
     cerr << "parsing failed" << endl;
     return EXIT_FAILURE;
   }
-  cerr << "parsing ok" << endl;
-
-  if(mode == ParseMode)
+  if(mode == ParseMode) {
+    cout << *expr << endl;
+    cerr << "parsing ok" << endl;
     return EXIT_SUCCESS;
- 
+  }
+
+  /*
+   * Analysis
+   */
   Env env;
   TypeSubst subst;
   AddBuiltins(env);
@@ -107,16 +123,35 @@ int main(int argc, char** argv)
     cerr << "analysis failed" << endl;
     return EXIT_FAILURE;
   }
-  cerr << "analysis ok" << endl;
-
-  if(mode == AnalyzeMode)
+  if(mode == AnalyzeMode) {
+    cout << *expr << endl;
+    cerr << "analysis ok" << endl;
     return EXIT_SUCCESS;
- 
+  }
+
+  /*
+   * Compilation
+   */
   auto module = make_unique<llvm::Module>(source, llvm::getGlobalContext());
+
   Compiler(*module).Visit(expr.get());
 
-  llvm::raw_os_ostream llvmos(outputStream);
-  module->print(llvmos, nullptr);
+  auto mainFunc = module->begin();
+  mainFunc->setName("main");
+  mainFunc->setLinkage(llvm::Function::ExternalLinkage);
 
+  llvm::raw_os_ostream llvmos(outputStream);
+  if(bitcode) {
+    if(!ofs.is_open()) {
+      cerr << "refusing to write bitcode to stdout" << endl;
+      return EXIT_FAILURE;
+    }
+    llvm::WriteBitcodeToFile(module.get(), llvmos);
+  }
+  else {
+    module->print(llvmos, nullptr);
+  }
+
+  cerr << "compilation ok" << endl;
   return EXIT_SUCCESS;
 }

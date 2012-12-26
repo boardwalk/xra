@@ -12,32 +12,27 @@ struct TypeApplyVisitor : Visitor<TypeApplyVisitor, Type>
     subst(subst_)
   {}
 
-  void VisitVoid(TVoid& type)
+  void VisitTBoolean(TBoolean& type)
   {
     result = &type;
   }
 
-  void VisitBoolean(TBoolean& type)
+  void VisitTInteger(TInteger& type)
   {
     result = &type;
   }
 
-  void VisitInteger(TInteger& type)
+  void VisitTFloat(TFloat& type)
   {
     result = &type;
   }
 
-  void VisitFloat(TFloat& type)
+  void VisitTString(TString& type)
   {
     result = &type;
   }
 
-  void VisitString(TString& type)
-  {
-    result = &type;
-  }
-
-  void VisitVariable(TVariable& type)
+  void VisitTVariable(TVariable& type)
   {
     auto it = subst.find(type.name);
     if(it != subst.end())
@@ -46,7 +41,7 @@ struct TypeApplyVisitor : Visitor<TypeApplyVisitor, Type>
       result = &type;
   }
 
-  void VisitList(TList& type)
+  void VisitTList(TList& type)
   {
     auto list = make_unique<TList>();
     for(auto& t : type.types) {
@@ -56,7 +51,7 @@ struct TypeApplyVisitor : Visitor<TypeApplyVisitor, Type>
     result = list.release();
   }
 
-  void VisitFunction(TFunction& type)
+  void VisitTFunction(TFunction& type)
   {
     auto function = make_unique<TFunction>();
     Visit(type.parameter.get());

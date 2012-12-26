@@ -3,7 +3,7 @@
 
 namespace xra {
 
-const TypePtr VoidType(new TVoid);
+const TypePtr VoidType(new TList);
 const TypePtr BooleanType(new TBoolean);
 const TypePtr IntegerType(new TInteger);
 const TypePtr FloatType(new TFloat);

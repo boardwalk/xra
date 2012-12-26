@@ -8,7 +8,7 @@ struct ParamCollector : Visitor<ParamCollector, const Expr>
 {
   TypeSubst subst;
 
-  void VisitVariable(const EVariable& expr)
+  void VisitEVariable(const EVariable& expr)
   {
     if(!subst.insert({expr.name, expr.type}).second)
       Error() << "duplicate parameter: " << expr.name;
@@ -32,39 +32,38 @@ struct InferVisitor : Visitor<InferVisitor, Expr>
     env(env_)
   {}
 
-  void VisitVoid(EVoid& expr)
-  {
-    expr.value = new VConstant();
-  }
-
-  void VisitVariable(EVariable& expr)
+  void VisitEVariable(EVariable& expr)
   {
     expr.value = env[expr.name];
     if(!expr.value)
       Error() << "unbound variable " << expr.name;
   }
 
-  void VisitBoolean(EBoolean& expr)
+  void VisitEBoolean(EBoolean& expr)
   {
-    expr.value = new VConstant(expr.literal);
+    expr.value = new VConstant;
+    expr.value->type = BooleanType;
   }
 
-  void VisitInteger(EInteger& expr)
+  void VisitEInteger(EInteger& expr)
   {
-    expr.value = new VConstant(expr.literal);
+    expr.value = new VConstant;
+    expr.value->type = IntegerType;
   }
 
-  void VisitFloat(EFloat& expr)
+  void VisitEFloat(EFloat& expr)
   {
-    expr.value = new VConstant(expr.literal);
+    expr.value = new VConstant;
+    expr.value->type = FloatType;
   }
 
-  void VisitString(EString& expr)
+  void VisitEString(EString& expr)
   {
-    expr.value = new VConstant(expr.literal);
+    expr.value = new VConstant;
+    expr.value->type = StringType;
   }
 
-  void VisitFunction(EFunction& expr)
+  void VisitEFunction(EFunction& expr)
   {
     Scope scope(env);
 
@@ -106,7 +105,7 @@ struct InferVisitor : Visitor<InferVisitor, Expr>
     expr.value->type = new TFunction(expr.param->value->type, expr.body->value->type);
   }
 
-  void VisitCall(ECall& expr)
+  void VisitECall(ECall& expr)
   {
     // (s1, t1) <- ti env e1
     Visit(expr.function.get());
@@ -154,8 +153,14 @@ struct InferVisitor : Visitor<InferVisitor, Expr>
     Compose(subst, functionSubst);
   }
 
-  void VisitList(EList& expr)
+  void VisitEList(EList& expr)
   {
+    if(expr.exprs.empty()) {
+      expr.value = new VConstant;
+      expr.value->type = VoidType;
+      return;
+    }
+
     auto r = make_unique<TList>();
 
     for(auto& e : expr.exprs)
@@ -177,7 +182,7 @@ struct InferVisitor : Visitor<InferVisitor, Expr>
     expr.value->type = r.release();
   }
 
-  void VisitExtern(EExtern& expr)
+  void VisitEExtern(EExtern& expr)
   {
     ValuePtr value = new VExtern;
     value->type = expr.externType;

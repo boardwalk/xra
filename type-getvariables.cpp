@@ -11,7 +11,7 @@ struct TypeGetVariablesVisitor : Visitor<TypeGetVariablesVisitor, const Type>
     variables(variables_)
   {}
 
-  void VisitVariable(const TVariable& type)
+  void VisitTVariable(const TVariable& type)
   {
     variables.insert(type.name);
   }
