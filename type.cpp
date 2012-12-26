@@ -18,7 +18,7 @@ TypePtr MakeTypeVar()
   for(int i = count; i > 0; i /= 26)
     name += ('a' + (i % 26) - 1);
 
-  return TypePtr(new TVariable(move(name)));
+  return new TVariable(move(name));
 }
 
 void Compose(const TypeSubst& a, TypeSubst& b)
