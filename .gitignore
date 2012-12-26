@@ -6,3 +6,6 @@ xra
 \#*
 *.*~
 .#*
+*.bc
+*.ll
+.gdb_history
