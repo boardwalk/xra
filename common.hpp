@@ -30,26 +30,16 @@ struct CopyConst { typedef Target type; };
 template<typename Source, typename Target>
 struct CopyConst<const Source, Target> { typedef const Target type; };
 
-class Token;
-ostream& operator<<(ostream&, const Token&);
-
 class Expr;
 typedef boost::intrusive_ptr<Expr> ExprPtr;
-ostream& operator<<(ostream&, const Expr&);
 
 class Value;
 typedef boost::intrusive_ptr<Value> ValuePtr;
-ostream& operator<<(ostream&, const Value&);
 
 class Type;
 typedef boost::intrusive_ptr<Type> TypePtr;
-ostream& operator<<(ostream&, const Type&);
-
-typedef map<string, TypePtr> TypeSubst;
-ostream& operator<<(ostream&, const TypeSubst&);
 
 class Env;
-ostream& operator<<(ostream&, const Env&);
 
 class Base
 {

@@ -5,6 +5,8 @@ namespace xra {
 
 class BufferedLexer;
 
+typedef map<string, TypePtr> TypeSubst;
+
 /*
  * Base type
  */
@@ -40,6 +42,9 @@ extern const TypePtr IntegerType;
 extern const TypePtr FloatType;
 extern const TypePtr StringType;
 
+// type-tostring.cpp
+ostream& operator<<(ostream&, const Type&);
+
 // type-apply.cpp
 TypePtr Apply(const TypeSubst&, Type&);
 
@@ -52,6 +57,7 @@ void GetVariables(const Type&, set<string>&);
 // type.cpp
 TypePtr MakeTypeVar();
 void Compose(const TypeSubst&, TypeSubst&);
+ostream& operator<<(ostream&, const TypeSubst&);
 
 /*
  * Subtypes

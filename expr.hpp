@@ -43,6 +43,9 @@ protected:
   {}
 };
 
+// expr-tostring.cpp
+ostream& operator<<(ostream&, const Expr&);
+
 /*
  * Subexpressions
  */

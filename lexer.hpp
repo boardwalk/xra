@@ -54,6 +54,8 @@ struct Token
   };
 };
 
+ostream& operator<<(ostream&, const Token&);
+
 class Lexer
 {
   istream& inputStream;

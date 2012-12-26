@@ -40,6 +40,9 @@ protected:
   {}
 };
 
+// value-tostring.cpp
+ostream& operator<<(ostream&, const Value&);
+
 /*
  * Subvalues
  */
