@@ -1,10 +1,9 @@
 #include "common.hpp"
-#include "type.hpp"
-#include "type-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
-struct TypeApplyVisitor : TypeVisitor<TypeApplyVisitor, Type>
+struct TypeApplyVisitor : Visitor<TypeApplyVisitor, Type>
 {
   const TypeSubst& subst;
   TypePtr result;

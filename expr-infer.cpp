@@ -1,11 +1,10 @@
 #include "common.hpp"
-#include "expr.hpp"
-#include "expr-visitor.hpp"
+#include "visitor.hpp"
 #include "env.hpp"
 
 namespace xra {
 
-struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
+struct ParamCollector : Visitor<ParamCollector, const Expr>
 {
   TypeSubst subst;
 
@@ -15,16 +14,16 @@ struct ParamCollector : ExprVisitor<ParamCollector, const Expr>
       Error() << "duplicate parameter: " << expr.name;
   }
 
-  void Visit(Expr* expr)
+  void Visit(Base* base)
   {    
-    if(expr && !isa<EVariable>(expr) && !isa<EList>(expr))
+    if(base && !isa<EVariable>(base) && !isa<EList>(base))
       Error() << "only variables and lists allowed in function parameter";
     else
-      base::Visit(expr);
+      base::Visit(base);
   }
 };
 
-struct InferVisitor : ExprVisitor<InferVisitor, Expr>
+struct InferVisitor : Visitor<InferVisitor, Expr>
 {
   Env& env;
   TypeSubst subst;
@@ -187,9 +186,10 @@ struct InferVisitor : ExprVisitor<InferVisitor, Expr>
     expr.value = new VConstant;
   }
 
-  void Visit(Expr* expr)
+  void Visit(Base* base)
   {
-    base::Visit(expr);
+    base::Visit(base);
+    auto expr = static_cast<Expr*>(base);
     if(expr && expr->value && expr->type)
       Compose(Unify(*expr->value->type, *expr->type), subst);
   }

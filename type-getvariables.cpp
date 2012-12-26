@@ -1,10 +1,9 @@
 #include "common.hpp"
-#include "type.hpp"
-#include "type-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
-struct TypeGetVariablesVisitor : TypeVisitor<TypeGetVariablesVisitor, const Type>
+struct TypeGetVariablesVisitor : Visitor<TypeGetVariablesVisitor, const Type>
 {
   set<string>& variables;
 
@@ -20,8 +19,7 @@ struct TypeGetVariablesVisitor : TypeVisitor<TypeGetVariablesVisitor, const Type
 
 void GetVariables(const Type& type, set<string>& variables)
 {
-  TypeGetVariablesVisitor visitor(variables);
-  visitor.Visit(&type);
+  TypeGetVariablesVisitor(variables).Visit(&type);
 }
 
 } // namespace xra

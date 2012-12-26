@@ -1,10 +1,9 @@
 #include "common.hpp"
-#include "expr.hpp"
-#include "expr-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
-struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
+struct ExprToStringVisitor : Visitor<ExprToStringVisitor, const Expr>
 {
   ostream& os;
   int level;
@@ -15,7 +14,7 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
   {}
 
 #define BEGIN(e)                     \
-  void Visit##e(const E##e& expr) {  \
+  void Visit##e(const e& expr) {  \
     for(int i = 0; i < level; i++)   \
       os << "  ";                    \
     os << #e;                        \
@@ -30,43 +29,43 @@ struct ExprToStringVisitor : ExprVisitor<ExprToStringVisitor, const Expr>
     level--;                         \
   }
 
-  BEGIN(Void)
-  END(Void)
+  BEGIN(EVoid)
+  END(EVoid)
 
-  BEGIN(Variable)
+  BEGIN(EVariable)
     os << " `" << expr.name << "`";
-  END(Variable)
+  END(EVariable)
 
-  BEGIN(Boolean)
+  BEGIN(EBoolean)
     os << " " << (expr.literal ? "true" : "false");
-  END(Boolean)
+  END(EBoolean)
 
-  BEGIN(Integer)
+  BEGIN(EInteger)
     os << " " << expr.literal;
-  END(Integer)
+  END(EInteger)
 
-  BEGIN(Float)
+  BEGIN(EFloat)
     os << " " << expr.literal;
-  END(Float)
+  END(EFloat)
 
-  BEGIN(String)
+  BEGIN(EString)
     os << " \"";
     EscapeString(expr.literal, os);
     os << "\"";
-  END(String)
+  END(EString)
 
-  BEGIN(Function)
-  END(Function)
+  BEGIN(EFunction)
+  END(EFunction)
 
-  BEGIN(Call)
-  END(Call)
+  BEGIN(ECall)
+  END(ECall)
 
-  BEGIN(List)
-  END(List)
+  BEGIN(EList)
+  END(EList)
 
-  BEGIN(Extern)
+  BEGIN(EExtern)
     os << " " << expr.name << " " << *expr.externType;
-  END(Extern)
+  END(EExtern)
 
 #undef BEGIN
 #undef END

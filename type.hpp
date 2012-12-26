@@ -1,11 +1,9 @@
 #ifndef XRA_TYPE_HPP
 #define XRA_TYPE_HPP
 
+#include "base.hpp"
+
 namespace xra {
-
-class BufferedLexer;
-
-typedef map<string, TypePtr> TypeSubst;
 
 /*
  * Base type
@@ -14,25 +12,12 @@ typedef map<string, TypePtr> TypeSubst;
 class Type : public Base
 {
 public:
-  enum Kind {
-    Kind_TVoid,
-    Kind_TBoolean,
-    Kind_TInteger,
-    Kind_TFloat,
-    Kind_TString,
-    Kind_TVariable,
-    Kind_TList,
-    Kind_TFunction
-  };
-
   // type-parser.cpp
   static TypePtr Parse(BufferedLexer&);
 
-  const Kind kind;
-
 protected:
   Type(Kind kind_) :
-    kind(kind_)
+    Base(kind_)
   {}
 };
 
@@ -62,9 +47,6 @@ ostream& operator<<(ostream&, const TypeSubst&);
 /*
  * Subtypes
  */
-
- #define CLASSOF(c) \
-   static bool classof(const Type* type) { return type->kind == Kind_##c; }
 
 class TVoid : public Type
 {
@@ -160,8 +142,6 @@ public:
   TypePtr parameter;
   TypePtr result;
 };
-
-#undef CLASSOF
 
 } // namespace xra
 

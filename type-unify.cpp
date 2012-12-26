@@ -1,6 +1,5 @@
 #include "common.hpp"
-#include "type.hpp"
-#include "type-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
@@ -15,7 +14,7 @@ static void BindVariable(const string& name, Type& type, TypeSubst& subst)
     Error() << "occur check fails for " << name;
 }
 
-struct TypeUnifyVisitor : TypeVisitor<TypeUnifyVisitor, Type>
+struct TypeUnifyVisitor : Visitor<TypeUnifyVisitor, Type>
 {
   Type& other;
   TypeSubst subst;

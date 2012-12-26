@@ -1,11 +1,9 @@
 #ifndef XRA_EXPR_HPP
 #define XRA_EXPR_HPP
 
-#include "value.hpp"
+#include "base.hpp"
 
 namespace xra {
-
-class BufferedLexer;
 
 /*
  * Base expression
@@ -14,34 +12,19 @@ class BufferedLexer;
 class Expr : public Base
 {
 public:
-  enum Kind {
-    Kind_EVoid,
-    Kind_EVariable,
-    Kind_EBoolean,
-    Kind_EInteger,
-    Kind_EFloat,
-    Kind_EString,
-    Kind_EFunction,
-    Kind_ECall,
-    Kind_EList,
-    Kind_EExtern
-  };
-
   // expr-parser.cpp
   static ExprPtr Parse(BufferedLexer&);
 
   // expr-infer.cpp
   void Infer(Env&, TypeSubst&);
 
-  const Kind kind;
   SourceLoc loc;
   TypePtr type; // from annotation
   ValuePtr value; // filled by Infer
 
 protected:
-  Expr(Kind kind_) :
-    kind(kind_)
-  {}
+  Expr(Kind kind_);
+  ~Expr();
 };
 
 // expr-tostring.cpp
@@ -50,9 +33,6 @@ ostream& operator<<(ostream&, const Expr&);
 /*
  * Subexpressions
  */
-
-#define CLASSOF(c) \
- static bool classof(const Expr* expr) { return expr->kind == Kind_##c; }
 
 class EVoid : public Expr
 {
@@ -185,8 +165,6 @@ public:
   const string name;
   const TypePtr externType;
 };
-
-#undef CLASSOF
 
 } // namespace xra
 

@@ -1,12 +1,11 @@
 #ifndef XRA_COMPILER_HPP
 #define XRA_COMPILER_HPP
 
-#include "expr.hpp"
-#include "expr-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
-struct Compiler : ExprVisitor<Compiler, const Expr>
+struct Compiler : Visitor<Compiler, const Expr>
 {
   llvm::Module& module;
   llvm::IRBuilder<> builder;

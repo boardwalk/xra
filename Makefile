@@ -10,9 +10,11 @@ LIBS = `llvm-config --libs core`
 OBJECTS = common.o \
 	main.o \
 	lexer.o \
+	expr.o \
 	expr-parser.o \
 	expr-tostring.o \
 	expr-infer.o \
+	value.o \
 	value-tostring.o \
 	type.o \
 	type-parser.o \

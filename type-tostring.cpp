@@ -1,10 +1,9 @@
 #include "common.hpp"
-#include "type.hpp"
-#include "type-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
-struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
+struct TypeToStringVisitor : Visitor<TypeToStringVisitor, const Type>
 {
   ostream& os;
   bool firstVisit;
@@ -13,57 +12,57 @@ struct TypeToStringVisitor : TypeVisitor<TypeToStringVisitor, const Type>
     os(os_), firstVisit(true)
   {}
 
-  void VisitVoid(const TVoid& type)
+  void VisitTVoid(const TVoid& type)
   {
     os << "()";
   }
 
-  void VisitBoolean(const TBoolean& type)
+  void VisitTBoolean(const TBoolean& type)
   {
     os << "bool";
   }
 
-  void VisitInteger(const TInteger& type)
+  void VisitTInteger(const TInteger& type)
   {
     os << "int";
   }
 
-  void VisitFloat(const TFloat& type)
+  void VisitTFloat(const TFloat& type)
   {
     os << "float";
   }
 
-  void VisitString(const TString& type)
+  void VisitTString(const TString& type)
   {
     os << "str";
   }
 
-  void VisitVariable(const TVariable& type)
+  void VisitTVariable(const TVariable& type)
   {
     os << "`" << type.name << "`";
   }
 
-  void VisitList(const TList& type)
+  void VisitTList(const TList& type)
   {
     os << "(list";
-    base::VisitList(type);
+    base::VisitTList(type);
     os << ")";
   }
 
-  void VisitFunction(const TFunction& type)
+  void VisitTFunction(const TFunction& type)
   {
     os << "(fn";
-    base::VisitFunction(type);
+    base::VisitTFunction(type);
     os << ")";
   }
 
-  void Visit(const Type* type)
+  void Visit(const Base* base)
   {
     if(firstVisit)
       firstVisit = false;
     else
       os << " ";
-    base::Visit(type);
+    base::Visit(base);
   }
 };
 

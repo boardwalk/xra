@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include "expr.hpp"
+#include "type.hpp"
 #include "buffered-lexer.hpp"
 
 #define TOKEN(t) (lexer().type == Token::t)
@@ -166,7 +167,7 @@ static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 
 static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
 
-ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
+static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 {
   ExprPtr expr = ParseExpr_P(lexer, required);
   if(!expr)

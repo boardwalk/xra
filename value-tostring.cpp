@@ -1,10 +1,9 @@
 #include "common.hpp"
-#include "value.hpp"
-#include "value-visitor.hpp"
+#include "visitor.hpp"
 
 namespace xra {
 
-struct ValueToStringVisitor : ValueVisitor<ValueToStringVisitor, const Value>
+struct ValueToStringVisitor : Visitor<ValueToStringVisitor, const Value>
 {
   ostream& os;
 
