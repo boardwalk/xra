@@ -26,6 +26,7 @@ struct Compiler : Visitor<Compiler, const Expr>
   void VisitEFunction(const EFunction&);
   void VisitECall(const ECall&);
   void VisitEList(const EList&);
+  void VisitEExtern(const EExtern&);
 };
 
 } // namespace xra

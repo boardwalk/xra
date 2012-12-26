@@ -6,16 +6,21 @@ namespace xra {
 
 void Compiler::VisitEVariable(const EVariable& expr)
 {
-  auto local = dyn_cast<VLocal>(expr.value.get());
-  if(local) {
+  if(isa<VLocal>(expr.value.get())) {
     auto& alloc = values[expr.name];
-    if(!alloc)
-      alloc = builder.CreateAlloca(ToLLVM(*expr.value->type, module.getContext()), nullptr, expr.name);
+    if(!alloc) {
+      auto type = ToLLVM(*expr.value->type, module.getContext());
+      alloc = builder.CreateAlloca(type, nullptr, expr.name);
+    }
     result = alloc;
-    return;
+  }
+  else if(isa<VExtern>(expr.value.get())) {
+    result = module.getGlobalVariable(expr.name);
+    if(!result)
+      result = module.getFunction(expr.name);
   }
 
-  // Otherwise do nothing
+  assert(result);
 }
 
 void Compiler::VisitEBoolean(const EBoolean& expr)
@@ -90,6 +95,20 @@ void Compiler::VisitEList(const EList& expr)
     return;
 
   // TODO
+}
+
+void Compiler::VisitEExtern(const EExtern& expr)
+{
+  if(isa<TFunction>(expr.externType.get()))
+  {
+    auto funcType = dyn_cast<llvm::FunctionType>(ToLLVM(*expr.externType, module.getContext())->getPointerElementType());
+    llvm::Function::Create(funcType, llvm::Function::ExternalLinkage, expr.name, &module);
+  }
+  else
+  {
+    auto varType = ToLLVM(*expr.externType, module.getContext());
+    new llvm::GlobalVariable(module, varType, false, llvm::GlobalVariable::ExternalLinkage, nullptr, expr.name);
+  }
 }
 
 } // namespace xra
