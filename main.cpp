@@ -1,7 +1,8 @@
 #include "common.hpp"
 #include "buffered-lexer.hpp"
-#include "expr.hpp"
 #include "env.hpp"
+#include "compiler.hpp"
+
 #include <llvm/Support/raw_os_ostream.h>
 #include <fstream>
 #include <iostream>
@@ -12,7 +13,6 @@ using namespace xra;
 
 namespace xra {
   void AddBuiltins(Env&);
-  void Compile(Expr&, llvm::Module&);
 }
 
 int main(int argc, char** argv)
@@ -113,7 +113,7 @@ int main(int argc, char** argv)
     return EXIT_SUCCESS;
  
   auto module = make_unique<llvm::Module>(source, llvm::getGlobalContext());
-  Compile(*expr, *module);
+  Compiler(*module).Visit(expr.get());
 
   llvm::raw_os_ostream llvmos(outputStream);
   module->print(llvmos, nullptr);

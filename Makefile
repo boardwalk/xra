@@ -3,7 +3,9 @@ CXX = g++-4.7
 CXXFLAGS = -I/Users/at0m13/homebrew/include \
   -Wall -Werror -pedantic-errors \
   -std=c++11 -g -O0 \
-  `llvm-config --cxxflags --ldflags --libs core`
+  `llvm-config --cxxflags`
+LDFLAGS = -g -O0 `llvm-config --ldflags`
+LIBS = `llvm-config --libs core`
 
 OBJECTS = common.o \
 	main.o \
@@ -19,7 +21,7 @@ OBJECTS = common.o \
 	type-unify.o \
 	type-getvariables.o \
 	builtins.o \
-	compile.o
+	compiler.o
 
 all: xra
 
@@ -27,7 +29,7 @@ clean:
 	rm -f *.o *.gch *.d xra
 
 xra: $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 	dsymutil $@
 
 $(OBJECTS): common.hpp.gch

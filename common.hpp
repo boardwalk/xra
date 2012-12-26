@@ -4,6 +4,7 @@
 #include <llvm/DerivedTypes.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
+#include <llvm/Support/IRBuilder.h>
 #include <boost/intrusive_ptr.hpp>
 
 #include <deque>

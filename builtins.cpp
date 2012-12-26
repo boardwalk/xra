@@ -1,5 +1,5 @@
 #include "common.hpp"
-#include "expr.hpp"
+#include "compiler.hpp"
 #include "env.hpp"
 #include <iostream>
 
@@ -34,6 +34,12 @@ public:
     }
 
     return list.exprs.back()->value;
+  }
+
+  void Compile(Compiler& compiler, const vector<ExprPtr>& argument)
+  {
+    for(auto& e : argument)
+      compiler.Visit(e.get());
   }
 };
 
@@ -86,6 +92,10 @@ public:
     left->value->type = xra::Apply(unifySubst, *left->value->type);
     Compose(unifySubst, subst);
     return left->value;
+  }
+
+  void Compile(Compiler& compiler, const vector<ExprPtr>& args)
+  {
   }
 };
 
