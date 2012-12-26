@@ -8,14 +8,14 @@ namespace xra {
 class BSequence : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env&, TypeSubst&, Expr&);
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
 class BAssign : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env& env, TypeSubst& subst, Expr& argument);
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
@@ -25,16 +25,9 @@ void AddBuiltins(Env& env)
   env.AddValue("=", new BAssign);
 }
 
-ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, Expr& argument)
+ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
 {
-  if(!isa<EList>(argument)) {
-    Error() << "expected list argument to BSequence";
-    return {};
-  }
-
-  auto& list = static_cast<EList&>(argument);
-
-  for(auto& e : list.exprs)
+  for(auto& e : args)
   {
     TypeSubst lastSubst;
     subst.swap(lastSubst);
@@ -47,25 +40,15 @@ ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, Expr& argument)
     Compose(lastSubst, subst);
   }
 
-  return list.exprs.back()->value;
+  return args.back()->value;
 }
 
-ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, Expr& argument)
+ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
 {
-  if(!isa<EList>(argument)) {
-    Error() << "expected list argument to BAssign";
-    return {};
-  }
+  assert(args.size() == 2);
 
-  auto& list = static_cast<EList&>(argument);
-
-  if(list.exprs.size() != 2) {
-    Error() << "expected two arguments to BAssign";
-    return {};
-  }
-
-  ExprPtr& left = list.exprs[0];
-  ExprPtr& right = list.exprs[1];
+  auto& left = args[0];
+  auto& right = args[1];
 
   right->Infer(env, subst);
 
@@ -95,6 +78,7 @@ ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, Expr& argument)
   auto unifySubst = Unify(*left->value->type, *right->value->type);
   left->value->type = xra::Apply(unifySubst, *left->value->type);
   Compose(unifySubst, subst);
+
   return left->value;
 }
 

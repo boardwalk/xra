@@ -39,7 +39,7 @@ public:
 
   CLASSOF(VBuiltin)
 
-  virtual ValuePtr Infer(Env&, TypeSubst&, Expr&) = 0;
+  virtual ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&) = 0;
   virtual void Compile(Compiler&, const vector<ExprPtr>&) = 0;
 };
 

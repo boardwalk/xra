@@ -121,7 +121,9 @@ struct InferVisitor : Visitor<InferVisitor, Expr>
 
     auto builtin = dyn_cast<VBuiltin>(expr.function->value.get());
     if(builtin) {
-      expr.value = builtin->Infer(env, subst, *expr.argument);
+      assert(isa<EList>(expr.argument.get()));
+      auto& args = static_cast<EList&>(*expr.argument).exprs;
+      expr.value = builtin->Infer(env, subst, args);
     }
     else {
       // tv <- newTyVar "a"
