@@ -194,7 +194,8 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 /*
  * BArithmetic
  */
-#define ARITHMETIC_OP(c, iop, fop) \
+
+#define ARITHMETIC_OP(c, iop, fop, ic) \
   struct c { \
     static llvm::Value* IntOp(llvm::IRBuilder<>& b, llvm::Value* l, llvm::Value* r) { \
       return b.Create##iop(l, r); \
@@ -202,15 +203,31 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     static llvm::Value* FloatOp(llvm::IRBuilder<>& b, llvm::Value* l, llvm::Value* r) { \
       return b.Create##fop(l, r); \
     } \
+    typedef ic IsCompare; \
   }
 
-ARITHMETIC_OP(Add, Add, FAdd);
-ARITHMETIC_OP(Sub, Sub, FSub);
-ARITHMETIC_OP(Mul, Mul, FMul);
-ARITHMETIC_OP(Div, UDiv, FDiv);
-ARITHMETIC_OP(Rem, URem, FRem);
+ARITHMETIC_OP(Add, Add, FAdd, false_type);
+ARITHMETIC_OP(Sub, Sub, FSub, false_type);
+ARITHMETIC_OP(Mul, Mul, FMul, false_type);
+ARITHMETIC_OP(Div, UDiv, FDiv, false_type);
+ARITHMETIC_OP(Rem, URem, FRem, false_type);
+ARITHMETIC_OP(EQ, ICmpEQ, FCmpOEQ, true_type);
+ARITHMETIC_OP(NE, ICmpNE, FCmpONE, true_type);
+ARITHMETIC_OP(LT, ICmpULT, FCmpOLT, true_type);
+ARITHMETIC_OP(LE, ICmpULE, FCmpOLE, true_type);
+ARITHMETIC_OP(GT, ICmpUGT, FCmpOGT, true_type);
+ARITHMETIC_OP(GE, ICmpUGE, FCmpOGE, true_type);
 
 #undef ARITHMETIC_OP
+
+template<typename IsCompare>
+TypePtr ResultType(TypePtr);
+
+template<>
+TypePtr ResultType<false_type>(TypePtr type) { return type; }
+
+template<>
+TypePtr ResultType<true_type>(TypePtr type) { return BooleanType; }
 
 template<class Operation>
 class BArithmetic : public VBuiltin
@@ -249,7 +266,7 @@ ValuePtr BArithmetic<Operation>::Infer(Env& env, TypeSubst& subst, const vector<
   }
 
   ValuePtr value = new VTemporary;
-  value->type = type;
+  value->type = ResultType<typename Operation::IsCompare>(type);
   return value;
 }
 
@@ -280,6 +297,12 @@ void AddBuiltins(Env& env)
   env.AddValue("*", new BArithmetic<Mul>);
   env.AddValue("/", new BArithmetic<Div>);
   env.AddValue("%", new BArithmetic<Rem>);
+  env.AddValue("==", new BArithmetic<EQ>);
+  env.AddValue("!=", new BArithmetic<NE>);
+  env.AddValue("<", new BArithmetic<LT>);
+  env.AddValue("<=", new BArithmetic<LE>);
+  env.AddValue(">", new BArithmetic<GT>);
+  env.AddValue(">=", new BArithmetic<GE>);
 }
 
 } // namespace xra
