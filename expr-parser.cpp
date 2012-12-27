@@ -21,6 +21,7 @@ static const map<string, pair<int, bool> > binaryOperators {
   {"$", {17, false}},
   {"*", {16, false}},
   {"/", {16, false}},
+  {"%", {16, false}},
   {"+", {14, false}},
   {"-", {14, false}},
   {"<<", {13, false}},

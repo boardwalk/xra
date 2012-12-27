@@ -5,33 +5,16 @@
 
 namespace xra {
 
+/*
+ * BSequence
+ */
+
 class BSequence : public VBuiltin
 {
 public:
   ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
-
-class BAssign : public VBuiltin
-{
-public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
-  void Compile(Compiler&, const vector<ExprPtr>&);
-};
-
-class BIf : public VBuiltin
-{
-public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
-  void Compile(Compiler&, const vector<ExprPtr>&);
-};
-
-void AddBuiltins(Env& env)
-{
-  env.AddValue(";", new BSequence);
-  env.AddValue("=", new BAssign);
-  env.AddValue("#if", new BIf);
-}
 
 ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
 {
@@ -50,6 +33,25 @@ ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& arg
 
   return args.back()->value;
 }
+
+void BSequence::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  for(auto& e : args) {
+    compiler.result = nullptr;
+    compiler.Visit(e.get());
+  }
+}
+
+/*
+ * BAssign
+ */
+
+class BAssign : public VBuiltin
+{
+public:
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
 
 ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
 {
@@ -90,6 +92,33 @@ ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
   return left->value;
 }
 
+void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  compiler.Visit(args[1].get());
+  if(!compiler.result)
+    return;
+
+  auto rightResult = compiler.result;
+  compiler.result = nullptr;
+
+  compiler.Visit(args[0].get());
+  if(!compiler.result)
+    return;
+
+  compiler.builder.CreateStore(rightResult, compiler.result);
+}
+
+/*
+ * BIf
+ */
+
+class BIf : public VBuiltin
+{
+public:
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
 ValuePtr BIf::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
 {
   // conditions
@@ -125,32 +154,10 @@ ValuePtr BIf::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
   return value;
 }
 
-void BSequence::Compile(Compiler& compiler, const vector<ExprPtr>& args)
-{
-  for(auto& e : args) {
-    compiler.result = nullptr;
-    compiler.Visit(e.get());
-  }
-}
-
-void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
-{
-  compiler.Visit(args[1].get());
-  if(!compiler.result)
-    return;
-
-  auto rightResult = compiler.result;
-  compiler.result = nullptr;
-
-  compiler.Visit(args[0].get());
-  if(!compiler.result)
-    return;
-
-  compiler.builder.CreateStore(rightResult, compiler.result);
-}
-
 void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 {
+  assert(args.size() >= 2 && args.size() % 2 == 0);
+
   const int nclauses = args.size() / 2;
   auto& builder = compiler.builder;
   auto& ctx = compiler.module.getContext();
@@ -165,8 +172,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     auto elseBlock = (i < nclauses - 1) ? llvm::BasicBlock::Create(ctx, "else", func) : endifBlock;
 
     compiler.Visit(args[i * 2].get());
-    if(isa<llvm::AllocaInst>(compiler.result)) // Is this the best option?
-      compiler.result = builder.CreateLoad(compiler.result);
+    compiler.result = compiler.Read(compiler.result);
     builder.CreateCondBr(compiler.result, thenBlock, elseBlock);
     compiler.result = nullptr;
 
@@ -183,6 +189,97 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
   func->getBasicBlockList().push_back(endifBlock);
 
   compiler.result = builder.CreateLoad(alloc);
+}
+
+/*
+ * BArithmetic
+ */
+#define ARITHMETIC_OP(c, iop, fop) \
+  struct c { \
+    static llvm::Value* IntOp(llvm::IRBuilder<>& b, llvm::Value* l, llvm::Value* r) { \
+      return b.Create##iop(l, r); \
+    } \
+    static llvm::Value* FloatOp(llvm::IRBuilder<>& b, llvm::Value* l, llvm::Value* r) { \
+      return b.Create##fop(l, r); \
+    } \
+  }
+
+ARITHMETIC_OP(Add, Add, FAdd);
+ARITHMETIC_OP(Sub, Sub, FSub);
+ARITHMETIC_OP(Mul, Mul, FMul);
+ARITHMETIC_OP(Div, UDiv, FDiv);
+ARITHMETIC_OP(Rem, URem, FRem);
+
+#undef ARITHMETIC_OP
+
+template<class Operation>
+class BArithmetic : public VBuiltin
+{
+public:
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
+template<class Operation>
+ValuePtr BArithmetic<Operation>::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+{
+  assert(args.size() == 2);
+
+  auto& left = args[0];
+  auto& right = args[1];
+
+  TypeSubst leftSubst;
+  left->Infer(env, leftSubst);
+  if(!left->value)
+    return {};
+
+  TypeSubst rightSubst;
+  right->Infer(env, rightSubst);
+  if(!right->value)
+    return {};
+
+  Compose(leftSubst, subst);
+  Compose(rightSubst, subst);
+  Compose(Unify(*left->value->type, *right->value->type), subst);
+
+  auto type = left->value->type.get();
+  if(!isa<TInteger>(type) && !isa<TFloat>(type)) {
+    Error() << "Arithmetic operation requires float or integer operands";
+    return {};
+  }
+
+  ValuePtr value = new VTemporary;
+  value->type = type;
+  return value;
+}
+
+template<class Operation>
+void BArithmetic<Operation>::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  assert(args.size() == 2);
+
+  compiler.Visit(args[0].get());
+  auto left = compiler.Read(compiler.result);
+
+  compiler.Visit(args[1].get());
+  auto right = compiler.Read(compiler.result);
+
+  if(isa<TInteger>(args[0]->value->type.get()))
+    compiler.result = Operation::IntOp(compiler.builder, left, right);
+  else
+    compiler.result = Operation::FloatOp(compiler.builder, left, right);
+}
+
+void AddBuiltins(Env& env)
+{
+  env.AddValue(";", new BSequence);
+  env.AddValue("=", new BAssign);
+  env.AddValue("#if", new BIf);
+  env.AddValue("+", new BArithmetic<Add>);
+  env.AddValue("-", new BArithmetic<Sub>);
+  env.AddValue("*", new BArithmetic<Mul>);
+  env.AddValue("/", new BArithmetic<Div>);
+  env.AddValue("%", new BArithmetic<Rem>);
 }
 
 } // namespace xra

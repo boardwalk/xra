@@ -18,6 +18,13 @@ struct Compiler : Visitor<Compiler, const Expr>
     result(nullptr)
   {}
 
+  llvm::Value* Read(llvm::Value* val)
+  {
+    if(isa<llvm::AllocaInst>(val))
+      return builder.CreateLoad(val);
+    return val;
+  }
+
   void VisitEVariable(const EVariable&);
   void VisitEBoolean(const EBoolean&);
   void VisitEInteger(const EInteger&);
