@@ -19,10 +19,18 @@ public:
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
+class BIf : public VBuiltin
+{
+public:
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
 void AddBuiltins(Env& env)
 {
   env.AddValue(";", new BSequence);
   env.AddValue("=", new BAssign);
+  env.AddValue("#if", new BIf);
 }
 
 ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
@@ -82,6 +90,41 @@ ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
   return left->value;
 }
 
+ValuePtr BIf::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+{
+  // conditions
+  for(size_t i = 0; i < args.size(); i += 2)
+  {
+    TypeSubst condSubst;
+    args[i]->Infer(env, condSubst);
+    if(!args[i]->value)
+      return {};
+
+    Compose(condSubst, subst);
+    Compose(Unify(*args[i]->value->type, *BooleanType), subst);
+  }
+
+  // clauses
+  for(size_t i = 1; i < args.size(); i += 2)
+  {
+    TypeSubst clauseSubst;
+    args[i]->Infer(env, subst);
+    if(!args[i]->value)
+      return {};
+
+    Compose(clauseSubst, subst);
+    if(i != 1)
+      Compose(Unify(*args[i]->value->type, *args[i - 2]->value->type), subst);
+  }
+
+  for(auto& e : args)
+    e->value->type = xra::Apply(subst, *e->value->type);
+
+  ValuePtr value = new VTemporary;
+  value->type = args[1]->value->type;
+  return value;
+}
+
 void BSequence::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 {
   for(auto& e : args) {
@@ -104,6 +147,40 @@ void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     return;
 
   compiler.builder.CreateStore(rightResult, compiler.result);
+}
+
+void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  const int nclauses = args.size() / 2;
+  auto& builder = compiler.builder;
+  auto& ctx = compiler.module.getContext();
+  auto func = builder.GetInsertBlock()->getParent();
+
+  auto alloc = builder.CreateAlloca(ToLLVM(*args[1]->value->type, ctx), nullptr, "iftmp");
+  auto endifBlock = llvm::BasicBlock::Create(ctx, "endif");
+
+  for(int i = 0; i < nclauses; i++)
+  {
+    auto thenBlock = llvm::BasicBlock::Create(ctx, "then", func);
+    auto elseBlock = (i < nclauses - 1) ? llvm::BasicBlock::Create(ctx, "else", func) : endifBlock;
+
+    compiler.Visit(args[i * 2].get());
+    builder.CreateCondBr(compiler.result, thenBlock, elseBlock);
+    compiler.result = nullptr;
+
+    builder.SetInsertPoint(thenBlock);
+
+    compiler.Visit(args[i * 2 + 1].get());
+    builder.CreateStore(compiler.result, alloc);
+    compiler.result = nullptr;
+    builder.CreateBr(endifBlock);
+
+    builder.SetInsertPoint(elseBlock);
+  }
+
+  func->getBasicBlockList().push_back(endifBlock);
+
+  compiler.result = builder.CreateLoad(alloc);
 }
 
 } // namespace xra

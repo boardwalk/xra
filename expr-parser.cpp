@@ -134,8 +134,10 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
   else
     more = false;
 
-  if(more)
+  if(more) {
+    list->exprs.push_back(new EBoolean(true));
     list->exprs.push_back(ParseIfClause(lexer, false));
+  }
 
   return new ECall(new EVariable("#if"), list.release());
 }
