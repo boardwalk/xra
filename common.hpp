@@ -1,10 +1,15 @@
 #ifndef XRA_COMMON_HPP
 #define XRA_COMMON_HPP
 
+#include <llvm/Config/config.h>
 #include <llvm/DerivedTypes.h>
 #include <llvm/LLVMContext.h>
 #include <llvm/Module.h>
+#if LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR < 2
+#include <llvm/Support/IRBuilder.h>
+#else
 #include <llvm/IRBuilder.h>
+#endif
 #include <boost/intrusive_ptr.hpp>
 
 #include <deque>
