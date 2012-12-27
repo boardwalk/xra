@@ -201,6 +201,13 @@ Token Lexer::operator()()
     if(lastChar == '\r' || lastChar == '\n' || lastChar == '#' || lastChar == EOF)
       return (*this)();
 
+    if(indents.empty()) {
+      if(indentSize != 0)
+        return MakeError("leading indentation");
+      indents.push(0);
+      return (*this)();
+    }
+
     if(indentSize > indents.top()) {
       indents.push(indentSize);
       return MakeToken(Token::Indent);
@@ -351,18 +358,20 @@ bool Lexer::Number(Token& token)
 {
   int base = 10;
   if(lastChar == '0') {
-    switch(GetChar()) {
-    case 'x':
-      GetChar();
-      base = 16;
-      break;
-    case 'b':
+    GetChar();
+    if(lastChar == 'b') {
       GetChar();
       base = 2;
-      break;
-    default:
+    }
+    else if(lastChar == 'x') {
+      GetChar();
+      base = 16;
+    }
+    else if(isalnum(lastChar)) {
       base = 8;
-      break;
+    }
+    else {
+      UngetStr("0");
     }
   }
 
