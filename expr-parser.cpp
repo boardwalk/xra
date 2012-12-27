@@ -6,7 +6,7 @@
 #define TOKEN(t) (lexer().type == Token::t)
 #define ERROR(what) \
   { \
-    Error() << what << " near " << lexer() << " at parser.cpp:" << __LINE__; \
+    Error() << what << " near " << lexer() << " at expr-parser.cpp:" << __LINE__; \
     return {}; \
   }
 #define EXPECTED(t) \
