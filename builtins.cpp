@@ -165,6 +165,8 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     auto elseBlock = (i < nclauses - 1) ? llvm::BasicBlock::Create(ctx, "else", func) : endifBlock;
 
     compiler.Visit(args[i * 2].get());
+    if(isa<llvm::AllocaInst>(compiler.result)) // Is this the best option?
+      compiler.result = builder.CreateLoad(compiler.result);
     builder.CreateCondBr(compiler.result, thenBlock, elseBlock);
     compiler.result = nullptr;
 
