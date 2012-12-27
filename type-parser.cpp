@@ -56,9 +56,9 @@ static TypePtr ParseType(BufferedLexer& lexer, int level)
     return type;
   }
 
-  if(level != 0 && TOKEN(Operator))
+  if(TOKEN(Operator))
   {
-    if(lexer().strValue == ",")
+    if(level != 0 && lexer().strValue == ",")
     {
       lexer.Consume();
       TypePtr typeRight = ParseType(lexer, level);
