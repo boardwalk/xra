@@ -349,13 +349,44 @@ bool Lexer::NestableComment()
 
 bool Lexer::Number(Token& token)
 {
+  int base = 10;
+  if(lastChar == '0') {
+    switch(GetChar()) {
+    case 'x':
+      GetChar();
+      base = 16;
+      break;
+    case 'b':
+      GetChar();
+      base = 2;
+      break;
+    default:
+      base = 8;
+      break;
+    }
+  }
+
   string s(1, lastChar);
-  while(isdigit(GetChar()))
+  while(isalnum(GetChar()))
     s += lastChar;
+
+  for(char c : s) {
+    if(c >= '0' && c < ('0' + min(base, 10)))
+      continue;
+    if(base > 10 && tolower(c) >= 'a' && tolower(c) < ('a' + (base - 10)))
+      continue;
+    token = MakeError("invalid character in integer constant");
+    return true;
+  }
 
   if(lastChar != '.') {
     token = MakeToken(Token::Integer);
-    token.intValue = strtol(s.c_str(), nullptr, 10);
+    token.intValue = strtol(s.c_str(), nullptr, base);
+    return true;
+  }
+
+  if(base != 10) {
+    token = MakeError("non-decimal floating point not allowed");
     return true;
   }
 
