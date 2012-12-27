@@ -85,7 +85,7 @@ static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
   string name = lexer().strValue;
   lexer.Consume();
 
-  TypePtr type = Type::Parse(lexer);
+  TypePtr type = ParseType(lexer);
   if(!type)
     EXPECTED(Type)
 
@@ -327,7 +327,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
   if(TOKEN(Slash)) {
     lexer.Consume();
-    expr->type = Type::Parse(lexer);
+    expr->type = ParseType(lexer);
   }
 
   return expr;

@@ -86,7 +86,7 @@ static TypePtr ParseType(BufferedLexer& lexer, int level)
   return type;
 }
 
-TypePtr Type::Parse(BufferedLexer& lexer) // prefix: "\"
+TypePtr ParseType(BufferedLexer& lexer) // prefix: "\"
 {
   return ParseType(lexer, 0);
 }

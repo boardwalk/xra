@@ -11,10 +11,6 @@ namespace xra {
 
 class Type : public Base
 {
-public:
-  // type-parser.cpp
-  static TypePtr Parse(BufferedLexer&);
-
 protected:
   Type(Kind kind_) :
     Base(kind_)
@@ -31,6 +27,9 @@ extern const TypePtr StringType;
 TypePtr MakeTypeVar();
 void Compose(const TypeSubst&, TypeSubst&);
 ostream& operator<<(ostream&, const TypeSubst&);
+
+// type-parser.cpp
+TypePtr ParseType(BufferedLexer&);
 
 // type-tostring.cpp
 ostream& operator<<(ostream&, const Type&);
