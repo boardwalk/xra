@@ -143,6 +143,25 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
   return new ECall(new EVariable("#if"), list.release());
 }
 
+static ExprPtr ParseWhile(BufferedLexer& lexer) // prefix: while
+{
+  auto list = make_unique<EList>();
+  list->exprs.push_back(ParseExpr(lexer));
+
+  if(TOKEN(Indent)) {
+    lexer.Consume();
+    list->exprs.push_back(ParseBlock(lexer));
+  }
+  else {
+    if(!TOKEN(Do))
+      EXPECTED(Do)
+    lexer.Consume();
+    list->exprs.push_back(ParseExpr(lexer));
+  }
+
+  return new ECall(new EVariable("#while"), list.release());
+}
+
 static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
   return new ECall(new EVariable("#return"), ParseExpr(lexer));
@@ -312,6 +331,10 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   else if(TOKEN(If)) {
     lexer.Consume();
     expr = ParseIf(lexer);
+  }
+  else if(TOKEN(While)) {
+    lexer.Consume();
+    expr = ParseWhile(lexer);
   }
   else if(TOKEN(Return)) {
     lexer.Consume();

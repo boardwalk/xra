@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "compiler.hpp"
 #include "env.hpp"
-#include <iostream>
 
 namespace xra {
 
@@ -192,6 +191,68 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 }
 
 /*
+ * BWhile
+ */
+
+class BWhile : public VBuiltin
+{
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
+ValuePtr BWhile::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+{
+  assert(args.size() == 2);
+
+  TypeSubst condSubst;
+  args[0]->Infer(env, condSubst);
+  if(!args[0]->value)
+    return {};
+
+  TypeSubst bodySubst;
+  args[1]->Infer(env, bodySubst);
+  if(!args[1]->value)
+    return {};
+
+  Compose(condSubst, subst);
+  Compose(Unify(*args[0]->value->type, *BooleanType), subst);
+  Compose(bodySubst, subst);
+
+  ValuePtr value = new VConstant;
+  value->type = VoidType;
+  return value; // TODO should a while yield a value?
+}
+
+void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  auto& builder = compiler.builder;
+  auto& ctx = compiler.module.getContext();
+  auto func = builder.GetInsertBlock()->getParent();
+
+  auto condBlock = llvm::BasicBlock::Create(ctx, "while", func);
+  auto doBlock = llvm::BasicBlock::Create(ctx, "do", func);
+  auto endwhileBlock = llvm::BasicBlock::Create(ctx, "endwhile");
+
+  builder.CreateBr(condBlock);
+
+  builder.SetInsertPoint(condBlock);
+
+  compiler.Visit(args[0].get());
+  builder.CreateCondBr(compiler.result, doBlock, endwhileBlock);
+  compiler.result = nullptr;
+
+  builder.SetInsertPoint(doBlock);
+
+  compiler.Visit(args[1].get());
+  compiler.result = nullptr;
+  builder.CreateBr(condBlock);
+
+  func->getBasicBlockList().push_back(endwhileBlock);
+
+  builder.SetInsertPoint(endwhileBlock);
+}
+
+/*
  * BArithmetic
  */
 
@@ -292,6 +353,7 @@ void AddBuiltins(Env& env)
   env.AddValue(";", new BSequence);
   env.AddValue("=", new BAssign);
   env.AddValue("#if", new BIf);
+  env.AddValue("#while", new BWhile);
   env.AddValue("+", new BArithmetic<Add>);
   env.AddValue("-", new BArithmetic<Sub>);
   env.AddValue("*", new BArithmetic<Mul>);

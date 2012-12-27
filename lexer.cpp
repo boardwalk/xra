@@ -49,17 +49,26 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Fn:
       os << "fn";
       break;
+    case Token::If:
+      os << "if";
+      break;
+    case Token::Then:
+      os << "then";
+      break;
     case Token::Else:
       os << "else";
       break;
     case Token::Elsif:
       os << "elsif";
       break;
-    case Token::If:
-      os << "if";
+    case Token::While:
+      os << "while";
       break;
-    case Token::Then:
-      os << "then";
+    case Token::Do:
+      os << "do";
+      break;
+    case Token::Break:
+      os << "break";
       break;
     case Token::Return:
       os << "return";
@@ -240,6 +249,9 @@ Token Lexer::operator()()
     if(str == "then") return MakeToken(Token::Then);
     if(str == "elsif") return MakeToken(Token::Elsif);
     if(str == "else") return MakeToken(Token::Else);
+    if(str == "while") return MakeToken(Token::While);
+    if(str == "do") return MakeToken(Token::Do);
+    if(str == "break") return MakeToken(Token::Break);
     if(str == "return") return MakeToken(Token::Return);
     if(str == "bool") return MakeToken(Token::BooleanType);
     if(str == "int") return MakeToken(Token::IntegerType);
