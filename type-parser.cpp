@@ -13,7 +13,7 @@
 
 namespace xra {
 
-TypePtr Type::Parse(BufferedLexer& lexer) // prefix: :
+TypePtr Type::Parse(BufferedLexer& lexer) // prefix: ::
 {
   TypePtr type;
 

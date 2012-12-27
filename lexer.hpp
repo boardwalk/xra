@@ -14,11 +14,9 @@ struct Token
     Dedent,
     Fn,
     If,
-    Then,
     Elsif,
     Else,
     While,
-    Do,
     Break,
     Return,
     BooleanType,
@@ -32,6 +30,7 @@ struct Token
     OpenParen,
     CloseParen,
     Colon,
+    DoubleColon,
     Backtick,
     Integer, // intValue
     Float, // floatValue

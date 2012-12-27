@@ -52,9 +52,6 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::If:
       os << "if";
       break;
-    case Token::Then:
-      os << "then";
-      break;
     case Token::Else:
       os << "else";
       break;
@@ -63,9 +60,6 @@ ostream& operator<<(ostream& os, const Token& token)
       break;
     case Token::While:
       os << "while";
-      break;
-    case Token::Do:
-      os << "do";
       break;
     case Token::Break:
       os << "break";
@@ -106,6 +100,8 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Colon:
       os << ':';
       break;
+    case Token::DoubleColon:
+      os << "::";
     case Token::Backtick:
       os << '`';
       break;
@@ -246,11 +242,9 @@ Token Lexer::operator()()
       str += lastChar;
     if(str == "fn") return MakeToken(Token::Fn);
     if(str == "if") return MakeToken(Token::If);
-    if(str == "then") return MakeToken(Token::Then);
     if(str == "elsif") return MakeToken(Token::Elsif);
     if(str == "else") return MakeToken(Token::Else);
     if(str == "while") return MakeToken(Token::While);
-    if(str == "do") return MakeToken(Token::Do);
     if(str == "break") return MakeToken(Token::Break);
     if(str == "return") return MakeToken(Token::Return);
     if(str == "bool") return MakeToken(Token::BooleanType);
@@ -277,6 +271,10 @@ Token Lexer::operator()()
 
   if(lastChar == ':') {
     GetChar();
+    if(lastChar == ':') {
+      GetChar();
+      return MakeToken(Token::DoubleColon);
+    }
     return MakeToken(Token::Colon);
   }
 

@@ -93,18 +93,16 @@ static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
   return new EExtern(name, type);
 }
 
-static ExprPtr ParseIfClause(BufferedLexer& lexer, bool needThen)
+static ExprPtr ParseClause(BufferedLexer& lexer)
 {
   if(TOKEN(Indent)) {
     lexer.Consume();
     return ParseBlock(lexer);
   }
 
-  if(needThen) {
-    if(!TOKEN(Then))
-      EXPECTED(Then)
-    lexer.Consume();
-  }
+  if(!TOKEN(Colon))
+    EXPECTED(Colon)
+  lexer.Consume();
 
   return ParseExpr(lexer);
 }
@@ -117,7 +115,7 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
   while(more)
   {
     list->exprs.push_back(ParseExpr(lexer));
-    list->exprs.push_back(ParseIfClause(lexer, true));
+    list->exprs.push_back(ParseClause(lexer));
 
     if(TOKEN(Elsif))
       lexer.Consume();
@@ -137,7 +135,7 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 
   if(more) {
     list->exprs.push_back(new EBoolean(true));
-    list->exprs.push_back(ParseIfClause(lexer, false));
+    list->exprs.push_back(ParseClause(lexer));
   }
 
   return new ECall(new EVariable("#if"), list.release());
@@ -147,17 +145,7 @@ static ExprPtr ParseWhile(BufferedLexer& lexer) // prefix: while
 {
   auto list = make_unique<EList>();
   list->exprs.push_back(ParseExpr(lexer));
-
-  if(TOKEN(Indent)) {
-    lexer.Consume();
-    list->exprs.push_back(ParseBlock(lexer));
-  }
-  else {
-    if(!TOKEN(Do))
-      EXPECTED(Do)
-    lexer.Consume();
-    list->exprs.push_back(ParseExpr(lexer));
-  }
+  list->exprs.push_back(ParseClause(lexer));
 
   return new ECall(new EVariable("#while"), list.release());
 }
@@ -353,7 +341,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     return expr;
   }
 
-  if(TOKEN(Colon)) {
+  if(TOKEN(DoubleColon)) {
     lexer.Consume();
     expr->type = Type::Parse(lexer);
   }
