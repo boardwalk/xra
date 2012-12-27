@@ -15,7 +15,6 @@
 namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
-  {"\\", {20, false}},
   {".", {19, false}},
   {"`", {18, false}},
   {"$", {17, false}},
@@ -326,7 +325,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     return expr;
   }
 
-  if(TOKEN(DoubleColon)) {
+  if(TOKEN(Slash)) {
     lexer.Consume();
     expr->type = Type::Parse(lexer);
   }

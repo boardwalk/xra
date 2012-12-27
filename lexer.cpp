@@ -100,8 +100,9 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Colon:
       os << ':';
       break;
-    case Token::DoubleColon:
-      os << "::";
+    case Token::Slash:
+      os << '\\';
+      break;
     case Token::Backtick:
       os << '`';
       break;
@@ -271,11 +272,12 @@ Token Lexer::operator()()
 
   if(lastChar == ':') {
     GetChar();
-    if(lastChar == ':') {
-      GetChar();
-      return MakeToken(Token::DoubleColon);
-    }
     return MakeToken(Token::Colon);
+  }
+
+  if(lastChar == '\\') {
+    GetChar();
+    return MakeToken(Token::Slash);
   }
 
   if(lastChar == '`') {

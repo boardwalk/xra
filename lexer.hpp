@@ -30,7 +30,7 @@ struct Token
     OpenParen,
     CloseParen,
     Colon,
-    DoubleColon,
+    Slash,
     Backtick,
     Integer, // intValue
     Float, // floatValue
