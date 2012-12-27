@@ -157,22 +157,7 @@ static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 {
-  ExprPtr param = ParseExpr(lexer);
-
-  if(!TOKEN(Operator) || lexer().strValue != "->")
-    EXPECTED(Operator)
-  lexer.Consume();
-
-  ExprPtr body;
-  if(TOKEN(Indent)) {
-    lexer.Consume();
-    body = ParseBlock(lexer);
-  }
-  else {
-    body = ParseExpr(lexer);
-  }
-
-  return new EFunction(param, body);
+  return new EFunction(ParseExpr(lexer), ParseClause(lexer));
 }
 
 static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
