@@ -12,9 +12,6 @@ namespace xra {
 class Expr : public Base
 {
 public:
-  // expr-parser.cpp
-  static ExprPtr Parse(BufferedLexer&);
-
   // expr-infer.cpp
   void Infer(Env&, TypeSubst&);
 
@@ -26,6 +23,9 @@ protected:
   Expr(Kind kind_);
   ~Expr();
 };
+
+// expr-parser.cpp
+ExprPtr ParseTopLevel(BufferedLexer&);
 
 // expr-tostring.cpp
 ostream& operator<<(ostream&, const Expr&);

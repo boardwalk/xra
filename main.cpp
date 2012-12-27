@@ -95,7 +95,7 @@ int main(int argc, char** argv)
   /*
    * Parsing
    */
-  ExprPtr expr = Expr::Parse(bufferedLexer);
+  ExprPtr expr = ParseTopLevel(bufferedLexer);
 
   string errors = Error::Get();
   if(!errors.empty()) {

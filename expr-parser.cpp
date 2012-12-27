@@ -338,7 +338,7 @@ static ExprPtr ParseExpr(BufferedLexer& lexer)
   return ParseExpr_Exp(lexer, 0, true);
 }
 
-ExprPtr Expr::Parse(BufferedLexer& lexer)
+ExprPtr ParseTopLevel(BufferedLexer& lexer)
 {
   auto list = make_unique<EList>();
 
