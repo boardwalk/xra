@@ -16,11 +16,12 @@ namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
   {".", {19, false}},
-  {"`", {18, false}},
-  {"$", {17, true}},
+  {"#infix", {18, false}}, // a call to a regular function using backticks (x `f` y)
+  {"#call", {17, true}}, // a call to a function using a space (f x)
   {"*", {16, false}},
   {"/", {16, false}},
   {"%", {16, false}},
+  {"#custom", {15, false}}, // default settings for custom operators (any not listed)
   {"+", {14, false}},
   {"-", {14, false}},
   {"<<", {13, false}},
@@ -171,10 +172,10 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
   while(!TOKEN(EndOfFile))
   {
-    string op(1, '$');
+    string op = "#call";
 
     if(TOKEN(Backtick) && lexer(1).type == Token::Identifier) {
-      op = "`";
+      op = "#infix";
     }
     else if(TOKEN(Operator)) {
       op = lexer().strValue;
@@ -182,16 +183,17 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
     auto binaryOp = binaryOperators.find(op);
     if(binaryOp == binaryOperators.end())
-      break;
+      binaryOp = binaryOperators.find("#custom");
+
     int prec = binaryOp->second.first;
     bool rightAssoc = binaryOp->second.second;
     if(prec < p)
       break;
     
-    if(op != "$")
+    if(op != "#call")
       lexer.Consume();
 
-    if(op == "`") {
+    if(op == "#infix") {
       op = lexer().strValue;
       lexer.Consume();
       if(!TOKEN(Backtick))
@@ -203,12 +205,12 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
     auto exprRight = ParseExpr_Exp(lexer, q, false);
     if(!exprRight) {
-      if(op == "$")
+      if(op == "#call")
         break;
       EXPECTED(Expr)
     }
 
-    if(op == "$") {
+    if(op == "#call") {
       expr = new ECall(expr, exprRight);
     }
     else if(op == "," && lastOp == ",") {
