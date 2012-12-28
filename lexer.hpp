@@ -80,6 +80,7 @@ public:
     loc.source = make_shared<string>(source);
     loc.line = 1;
     loc.column = 0;
+    indents.push(0);
   }
 
   Token operator()();

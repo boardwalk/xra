@@ -201,16 +201,6 @@ Token Lexer::operator()()
     if(lastChar == '\r' || lastChar == '\n' || lastChar == '#' || lastChar == EOF)
       return (*this)();
 
-    // TODO FIXME
-    if(indents.empty())
-      indents.push(0);
-    //if(indents.empty()) {
-    //  if(indentSize != 0)
-    //    return MakeError("leading indentation");
-    //  indents.push(0);
-    //  return (*this)();
-    //}
-
     if(indentSize > indents.top()) {
       indents.push(indentSize);
       return MakeToken(Token::Indent);

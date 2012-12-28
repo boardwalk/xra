@@ -340,6 +340,10 @@ static ExprPtr ParseExpr(BufferedLexer& lexer)
 
 ExprPtr ParseTopLevel(BufferedLexer& lexer)
 {
+  // lexer may generate a leading nodent, eat it
+  if(TOKEN(Nodent))
+    lexer.Consume();
+
   auto list = make_unique<EList>();
 
   while(true) {
