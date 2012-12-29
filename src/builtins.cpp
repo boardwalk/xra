@@ -249,15 +249,15 @@ void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 
   auto condBlock = llvm::BasicBlock::Create(ctx, "while", func);
   auto doBlock = llvm::BasicBlock::Create(ctx, "do", func);
-  auto lastEndWhileBlock = compiler.endWhileBlock;
-  compiler.endWhileBlock = llvm::BasicBlock::Create(ctx, "endwhile");
+  auto lastEndLoopBlock = compiler.endLoopBlock;
+  compiler.endLoopBlock = llvm::BasicBlock::Create(ctx, "endwhile");
 
   builder.CreateBr(condBlock);
 
   // while
   builder.SetInsertPoint(condBlock);
   compiler.Visit(args[0].get());
-  builder.CreateCondBr(compiler.result, doBlock, compiler.endWhileBlock);
+  builder.CreateCondBr(compiler.result, doBlock, compiler.endLoopBlock);
   compiler.result = nullptr;
 
   // do
@@ -266,10 +266,10 @@ void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
   compiler.result = nullptr;
   builder.CreateBr(condBlock);
 
-  // endwhile
-  func->getBasicBlockList().push_back(compiler.endWhileBlock);
-  builder.SetInsertPoint(compiler.endWhileBlock);
-  compiler.endWhileBlock = lastEndWhileBlock;
+  // endloop
+  func->getBasicBlockList().push_back(compiler.endLoopBlock);
+  builder.SetInsertPoint(compiler.endLoopBlock);
+  compiler.endLoopBlock = lastEndLoopBlock;
 }
 
 /*
@@ -301,7 +301,7 @@ void BBreak::Compile(Compiler& compiler, const vector<ExprPtr>&)
   auto func = builder.GetInsertBlock()->getParent();
   auto contBlock = llvm::BasicBlock::Create(builder.getContext(), "breakcont", func);
 
-  builder.CreateBr(compiler.endWhileBlock);
+  builder.CreateBr(compiler.endLoopBlock);
   builder.SetInsertPoint(contBlock);
 }
 

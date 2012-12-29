@@ -11,13 +11,13 @@ public:
   llvm::Module& module;
   llvm::IRBuilder<> builder;
   map<string, llvm::AllocaInst*> values;
-  llvm::BasicBlock* endWhileBlock;
+  llvm::BasicBlock* endLoopBlock;
   llvm::Value* result;
 
   Compiler(llvm::Module& module_) :
     module(module_),
     builder(module_.getContext()),
-    endWhileBlock(nullptr),
+    endLoopBlock(nullptr),
     result(nullptr)
   {}
 
