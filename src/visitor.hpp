@@ -24,6 +24,9 @@ struct Visitor
 #define VISIT(c) \
   void Visit##c(typename CopyConst<NodeTy, c>::type& node)
 
+#define EMPTY_VISIT(c) \
+  void Visit##c(typename CopyConst<NodeTy, c>::type&) {}
+
 #define CASE(c) \
   case Base::Kind_##c: \
     return SUBCLASS.Visit##c(static_cast<typename CopyConst<NodeTy, c>::type&>(*node));
@@ -31,20 +34,15 @@ struct Visitor
   /*
    * Expressions
    */
-  VISIT(EVariable)
-  {}
+  EMPTY_VISIT(EVariable)
   
-  VISIT(EBoolean)
-  {}
+  EMPTY_VISIT(EBoolean)
   
-  VISIT(EInteger)
-  {}
+  EMPTY_VISIT(EInteger)
   
-  VISIT(EFloat)
-  {}
+  EMPTY_VISIT(EFloat)
   
-  VISIT(EString)
-  {}
+  EMPTY_VISIT(EString)
 
   VISIT(EFunction)
   {
@@ -64,44 +62,33 @@ struct Visitor
       SUBCLASS.Visit(e.get());
   }
 
-  VISIT(EExtern)
-  {}
+  EMPTY_VISIT(EExtern)
 
   /*
    * Values
    */
-  VISIT(VBuiltin)
-  {}
+  EMPTY_VISIT(VBuiltin)
 
-  VISIT(VTemporary)
-  {}
+  EMPTY_VISIT(VTemporary)
 
-  VISIT(VConstant)
-  {}
+  EMPTY_VISIT(VConstant)
 
-  VISIT(VLocal)
-  {}
+  EMPTY_VISIT(VLocal)
 
-  VISIT(VExtern)
-  {}
+  EMPTY_VISIT(VExtern)
 
   /*
    * Types
    */
-  VISIT(TBoolean)
-  {}
+  EMPTY_VISIT(TBoolean)
 
-  VISIT(TInteger)
-  {}
+  EMPTY_VISIT(TInteger)
 
-  VISIT(TFloat)
-  {}
+  EMPTY_VISIT(TFloat)
 
-  VISIT(TString)
-  {}
+  EMPTY_VISIT(TString)
 
-  VISIT(TVariable)
-  {}
+  EMPTY_VISIT(TVariable)
 
   VISIT(TList)
   {

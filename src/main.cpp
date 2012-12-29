@@ -1,7 +1,7 @@
 #include "common.hpp"
-#include "buffered-lexer.hpp"
-#include "env.hpp"
+#include "typechecker.hpp"
 #include "compiler.hpp"
+#include "buffered-lexer.hpp"
 
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Bitcode/ReaderWriter.h>
@@ -14,6 +14,7 @@
 using namespace xra;
 
 namespace xra {
+  // builtins.cpp
   void AddBuiltins(Env&);
 }
 
@@ -113,9 +114,10 @@ int main(int argc, char** argv)
    * Analysis
    */
   Env env;
-  TypeSubst subst;
-  AddBuiltins(env);
-  expr->Infer(env, subst);
+
+  TypeChecker checker;
+  AddBuiltins(checker.env);
+  checker.Visit(expr.get());
 
   errors = Error::Get();
   if(!errors.empty()) {
@@ -134,7 +136,8 @@ int main(int argc, char** argv)
    */
   auto module = make_unique<llvm::Module>(source, llvm::getGlobalContext());
 
-  Compiler(*module).Visit(expr.get());
+  Compiler compiler(*module);
+  compiler.Visit(expr.get());
 
   auto mainFunc = module->begin();
   mainFunc->setName("main");

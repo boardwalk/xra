@@ -160,7 +160,7 @@ static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
   return new ECall(new EVariable("#return"), list.release());
 }
 
-static ExprPtr ParseBreak(BufferedLexer& lexer) // prefix: break
+static ExprPtr ParseBreak(BufferedLexer&) // prefix: break
 {
   return new ECall(new EVariable("#break"), new EList);
 }

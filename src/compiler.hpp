@@ -5,8 +5,9 @@
 
 namespace xra {
 
-struct Compiler : Visitor<Compiler, const Expr>
+class Compiler : public Visitor<Compiler, const Expr>
 {
+public:
   llvm::Module& module;
   llvm::IRBuilder<> builder;
   map<string, llvm::AllocaInst*> values;

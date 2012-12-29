@@ -1,6 +1,6 @@
 #include "common.hpp"
+#include "typechecker.hpp"
 #include "compiler.hpp"
-#include "env.hpp"
 
 namespace xra {
 
@@ -11,23 +11,23 @@ namespace xra {
 class BSequence : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
-ValuePtr BSequence::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+ValuePtr BSequence::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
   for(auto& e : args)
   {
     TypeSubst lastSubst;
-    subst.swap(lastSubst);
+    checker.subst.swap(lastSubst);
 
-    e->Infer(env, subst);
+    checker.Visit(e.get());
 
     if(!e->value)
       return {};
 
-    Compose(lastSubst, subst);
+    Compose(lastSubst, checker.subst);
   }
 
   return args.back()->value;
@@ -48,45 +48,47 @@ void BSequence::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 class BAssign : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
-ValuePtr BAssign::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+ValuePtr BAssign::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
   assert(args.size() == 2);
 
   auto& left = args[0];
   auto& right = args[1];
 
-  right->Infer(env, subst);
-
+  checker.Visit(right.get());
   if(!right->value)
     return {};
+
+  TypeSubst rightSubst;
+  checker.subst.swap(rightSubst);
 
   // if the left side is a plain variable not in the environment, create a fresh local
   if(isa<EVariable>(left.get()))
   {
     auto& name = static_cast<EVariable&>(*left).name;
-    if(!env[name]) {
+    if(!checker.env[name]) {
       left->value = new VLocal;
       left->value->type = MakeTypeVar();
-      env.AddValue(name, left->value);
+      checker.env.AddValue(name, left->value);
     }
   }
 
   if(!left->value)
   {
-    TypeSubst leftSubst;
-    left->Infer(env, leftSubst);
+    checker.Visit(left.get());
     if(!left->value)
       return {};
-    Compose(leftSubst, subst);
   }
+
+  Compose(rightSubst, checker.subst);
 
   auto unifySubst = Unify(*left->value->type, *right->value->type);
   left->value->type = xra::Apply(unifySubst, *left->value->type);
-  Compose(unifySubst, subst);
+  Compose(unifySubst, checker.subst);
 
   return left->value;
 }
@@ -114,39 +116,43 @@ void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 class BIf : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
-ValuePtr BIf::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+ValuePtr BIf::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
   // conditions
   for(size_t i = 0; i < args.size(); i += 2)
   {
-    TypeSubst condSubst;
-    args[i]->Infer(env, condSubst);
+    TypeSubst lastSubst;
+    checker.subst.swap(lastSubst);
+
+    checker.Visit(args[i].get());
     if(!args[i]->value)
       return {};
 
-    Compose(condSubst, subst);
-    Compose(Unify(*args[i]->value->type, *BooleanType), subst);
+    Compose(lastSubst, checker.subst);
+    Compose(Unify(*args[i]->value->type, *BooleanType), checker.subst);
   }
 
   // clauses
   for(size_t i = 1; i < args.size(); i += 2)
   {
-    TypeSubst clauseSubst;
-    args[i]->Infer(env, subst);
+    TypeSubst lastSubst;
+    checker.subst.swap(lastSubst);
+
+    checker.Visit(args[i].get());
     if(!args[i]->value)
       return {};
 
-    Compose(clauseSubst, subst);
+    Compose(lastSubst, checker.subst);
     if(i != 1)
-      Compose(Unify(*args[i]->value->type, *args[i - 2]->value->type), subst);
+      Compose(Unify(*args[i]->value->type, *args[i - 2]->value->type), checker.subst);
   }
 
   for(auto& e : args)
-    e->value->type = xra::Apply(subst, *e->value->type);
+    e->value->type = xra::Apply(checker.subst, *e->value->type);
 
   ValuePtr value = new VTemporary;
   value->type = (args.size() > 2) ? args[1]->value->type : VoidType;
@@ -202,27 +208,27 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 
 class BWhile : public VBuiltin
 {
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
-ValuePtr BWhile::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+ValuePtr BWhile::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
   assert(args.size() == 2);
 
-  TypeSubst condSubst;
-  args[0]->Infer(env, condSubst);
+  checker.Visit(args[0].get());
   if(!args[0]->value)
     return {};
 
-  TypeSubst bodySubst;
-  args[1]->Infer(env, bodySubst);
+  TypeSubst condSubst;
+  checker.subst.swap(condSubst);
+
+  checker.Visit(args[1].get());
   if(!args[1]->value)
     return {};
 
-  Compose(condSubst, subst);
-  Compose(Unify(*args[0]->value->type, *BooleanType), subst);
-  Compose(bodySubst, subst);
+  Compose(condSubst, checker.subst);
+  Compose(Unify(*args[0]->value->type, *BooleanType), checker.subst);
 
   ValuePtr value = new VConstant;
   value->type = VoidType;
@@ -267,11 +273,11 @@ void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 class BBreak : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
-ValuePtr BBreak::Infer(Env&, TypeSubst&, const vector<ExprPtr>&)
+ValuePtr BBreak::Infer(TypeChecker&, const vector<ExprPtr>&)
 {
   auto value = new VConstant;
   value->type = VoidType;
@@ -324,37 +330,37 @@ template<>
 TypePtr ResultType<false_type>(TypePtr type) { return type; }
 
 template<>
-TypePtr ResultType<true_type>(TypePtr type) { return BooleanType; }
+TypePtr ResultType<true_type>(TypePtr) { return BooleanType; }
 
 template<class Operation>
 class BArithmetic : public VBuiltin
 {
 public:
-  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
 template<class Operation>
-ValuePtr BArithmetic<Operation>::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
+ValuePtr BArithmetic<Operation>::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
   assert(args.size() == 2);
 
   auto& left = args[0];
   auto& right = args[1];
 
-  TypeSubst leftSubst;
-  left->Infer(env, leftSubst);
+  checker.Visit(left.get());
   if(!left->value)
     return {};
 
-  TypeSubst rightSubst;
-  right->Infer(env, rightSubst);
+  TypeSubst leftSubst;
+  checker.subst.swap(leftSubst);
+
+  checker.Visit(right.get());
   if(!right->value)
     return {};
 
-  Compose(leftSubst, subst);
-  Compose(rightSubst, subst);
-  Compose(Unify(*left->value->type, *right->value->type), subst);
+  Compose(leftSubst, checker.subst);
+  Compose(Unify(*left->value->type, *right->value->type), checker.subst);
 
   auto type = left->value->type.get();
   if(!isa<TInteger>(type) && !isa<TFloat>(type)) {

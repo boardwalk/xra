@@ -1,7 +1,7 @@
 CXX = g++-4.7
 
 CXXFLAGS = -I/Users/at0m13/homebrew/include \
-  -Wall -Werror -pedantic-errors \
+  -Wall -Werror -Wextra -pedantic-errors \
   -std=c++11 -g -O0 \
   `llvm-config --cxxflags`
 LDFLAGS = -g -O0 `llvm-config --ldflags`
@@ -13,7 +13,6 @@ SOURCES = common.cpp \
 	expr.cpp \
 	expr-parser.cpp \
 	expr-tostring.cpp \
-	expr-infer.cpp \
 	value.cpp \
 	value-tostring.cpp \
 	type.cpp \
@@ -24,6 +23,7 @@ SOURCES = common.cpp \
 	type-getvariables.cpp \
 	type-tollvm.cpp \
 	builtins.cpp \
+	typechecker.cpp \
 	compiler.cpp
 
 OBJS = $(patsubst %.cpp,obj/%.o,$(SOURCES))

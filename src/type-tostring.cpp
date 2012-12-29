@@ -12,22 +12,22 @@ struct TypeToStringVisitor : Visitor<TypeToStringVisitor, const Type>
     os(os_), firstVisit(true)
   {}
 
-  void VisitTBoolean(const TBoolean& type)
+  void VisitTBoolean(const TBoolean&)
   {
     os << "bool";
   }
 
-  void VisitTInteger(const TInteger& type)
+  void VisitTInteger(const TInteger&)
   {
     os << "int";
   }
 
-  void VisitTFloat(const TFloat& type)
+  void VisitTFloat(const TFloat&)
   {
     os << "float";
   }
 
-  void VisitTString(const TString& type)
+  void VisitTString(const TString&)
   {
     os << "str";
   }

@@ -49,10 +49,6 @@ typedef boost::intrusive_ptr<Value> ValuePtr;
 class Type;
 typedef boost::intrusive_ptr<Type> TypePtr;
 
-class BufferedLexer;
-class Env;
-class Compiler;
-
 typedef map<string, TypePtr> TypeSubst;
 
 class Error

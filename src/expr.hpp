@@ -12,9 +12,6 @@ namespace xra {
 class Expr : public Base
 {
 public:
-  // expr-infer.cpp
-  void Infer(Env&, TypeSubst&);
-
   SourceLoc loc;
   TypePtr type; // from annotation
   ValuePtr value; // filled by Infer
