@@ -162,32 +162,38 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
   auto& ctx = compiler.module.getContext();
   auto func = builder.GetInsertBlock()->getParent();
 
-  auto alloc = builder.CreateAlloca(ToLLVM(*args[1]->value->type, ctx), nullptr, "iftmp");
+  llvm::AllocaInst* alloc = nullptr;
+  if(args.size() > 2)
+    alloc = builder.CreateAlloca(ToLLVM(*args[1]->value->type, ctx), nullptr, "iftmp");
   auto endifBlock = llvm::BasicBlock::Create(ctx, "endif");
 
   for(int i = 0; i < nclauses; i++)
   {
     auto thenBlock = llvm::BasicBlock::Create(ctx, "then", func);
-    auto elseBlock = (i < nclauses - 1) ? llvm::BasicBlock::Create(ctx, "else", func) : endifBlock;
+    auto contBlock = (i < nclauses - 1) ? llvm::BasicBlock::Create(ctx, "else", func) : endifBlock;
 
+    // if
     compiler.Visit(args[i * 2].get());
     compiler.result = compiler.Read(compiler.result);
-    builder.CreateCondBr(compiler.result, thenBlock, elseBlock);
+    builder.CreateCondBr(compiler.result, thenBlock, contBlock);
     compiler.result = nullptr;
 
+    // then
     builder.SetInsertPoint(thenBlock);
-
     compiler.Visit(args[i * 2 + 1].get());
-    builder.CreateStore(compiler.Read(compiler.result), alloc);
+    if(alloc)
+      builder.CreateStore(compiler.Read(compiler.result), alloc);
     compiler.result = nullptr;
-    builder.CreateBr(endifBlock);
+    builder.CreateBr(contBlock);
 
-    builder.SetInsertPoint(elseBlock);
+    // else or endif
+    builder.SetInsertPoint(contBlock);
   }
 
   func->getBasicBlockList().push_back(endifBlock);
 
-  compiler.result = builder.CreateLoad(alloc);
+  if(alloc)
+    compiler.result = builder.CreateLoad(alloc);
 }
 
 /*
