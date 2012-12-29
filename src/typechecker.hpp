@@ -9,8 +9,13 @@ namespace xra {
 class TypeChecker : public Visitor<TypeChecker, Expr>
 {
 public:
+  TypeChecker() :
+    insideLoop(false)
+  {}
+
   Env env;
   TypeSubst subst;
+  bool insideLoop;
 
   void VisitEVariable(EVariable&);
   void VisitEBoolean(EBoolean&);

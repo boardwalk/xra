@@ -81,7 +81,10 @@ void TypeChecker::VisitEFunction(EFunction& expr)
   subst.clear();
   
   // (s1, t1) <- ti env'' e
+  bool lastInsideLoop = insideLoop;
+  insideLoop = false;
   Visit(expr.body.get());
+  insideLoop = lastInsideLoop;
   if(!expr.body->value)
     return;
 

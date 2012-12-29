@@ -226,7 +226,10 @@ ValuePtr BWhile::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
   TypeSubst condSubst;
   checker.subst.swap(condSubst);
 
+  bool lastInsideLoop = checker.insideLoop;
+  checker.insideLoop = true;
   checker.Visit(body.get());
+  checker.insideLoop = lastInsideLoop;
   if(!body->value)
     return {};
 
@@ -280,8 +283,13 @@ public:
   void Compile(Compiler&, const vector<ExprPtr>&);
 };
 
-ValuePtr BBreak::Infer(TypeChecker&, const vector<ExprPtr>&)
+ValuePtr BBreak::Infer(TypeChecker& checker, const vector<ExprPtr>&)
 {
+  if(!checker.insideLoop) {
+    Error() << "break used outside loop";
+    return {};
+  }
+
   auto value = new VConstant;
   value->type = VoidType;
   return value;
