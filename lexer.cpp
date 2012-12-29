@@ -198,7 +198,8 @@ Token Lexer::operator()()
       GetChar();
     }
 
-    if(lastChar == '\r' || lastChar == '\n' || lastChar == '#' || lastChar == EOF)
+    if(lastChar == '\r' || lastChar == '\n' || lastChar == EOF ||
+       lastChar == '#' || parenLevel > 0)
       return (*this)();
 
     if(indentSize > indents.top()) {
@@ -262,11 +263,13 @@ Token Lexer::operator()()
 
   if(lastChar == '(') {
     GetChar();
+    parenLevel++;
     return MakeToken(Token::OpenParen);
   }
 
   if(lastChar == ')') {
     GetChar();
+    parenLevel--;
     return MakeToken(Token::CloseParen);
   }
 

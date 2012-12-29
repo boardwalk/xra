@@ -58,6 +58,7 @@ class Lexer
   char lastChar;
   stack<int> indents;
   int dedentCount;
+  int parenLevel;
 
   Lexer(const Lexer&);
   Lexer& operator=(const Lexer&);
@@ -75,7 +76,8 @@ public:
   Lexer(istream& inputStream_, const string& source) :
     inputStream(inputStream_),
     lastChar(' '),
-    dedentCount(-1)
+    dedentCount(-1),
+    parenLevel(0)
   {
     loc.source = make_shared<string>(source);
     loc.line = 1;
