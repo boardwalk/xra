@@ -12,13 +12,14 @@
              '("\\<true\\>"
                "\\<false\\>"
                "0b[01]+"
-               "0[0-7]+"
-               "[0-9]+\\(\\.[0-9]+\\)?"
-               "0x[0-9a-fA-F]+") "\\|")
+               "0x[0-9a-fA-F]+"
+               "0[0-7]*"
+               "[1-9][0-9]*\\(\\.[0-9]+\\)?") "\\|") 
   "xra constants")
+(setq xra-constants (concat "\\<\\(" xra-constants "\\)\\>"))
 
 (defvar xra-variables
-  "\\<[a-zA-Z][a-zA-Z0-9]*\\>"
+  "\\<[a-zA-Z_][a-zA-Z0-9_]*\\>"
   "xra variables")
 
 (setq xra-font-lock-keywords `(
