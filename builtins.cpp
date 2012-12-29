@@ -149,7 +149,7 @@ ValuePtr BIf::Infer(Env& env, TypeSubst& subst, const vector<ExprPtr>& args)
     e->value->type = xra::Apply(subst, *e->value->type);
 
   ValuePtr value = new VTemporary;
-  value->type = args[1]->value->type;
+  value->type = (args.size() > 2) ? args[1]->value->type : VoidType;
   return value;
 }
 
@@ -178,7 +178,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     builder.SetInsertPoint(thenBlock);
 
     compiler.Visit(args[i * 2 + 1].get());
-    builder.CreateStore(compiler.result, alloc);
+    builder.CreateStore(compiler.Read(compiler.result), alloc);
     compiler.result = nullptr;
     builder.CreateBr(endifBlock);
 

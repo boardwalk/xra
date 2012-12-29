@@ -20,7 +20,7 @@ struct Compiler : Visitor<Compiler, const Expr>
 
   llvm::Value* Read(llvm::Value* val)
   {
-    if(isa<llvm::AllocaInst>(val))
+    if(val && isa<llvm::AllocaInst>(val))
       return builder.CreateLoad(val);
     return val;
   }
