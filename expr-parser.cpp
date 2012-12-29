@@ -51,7 +51,8 @@ static const map<string, int> unaryOperators {
   {"&", 18}
 };
 
-static ExprPtr ParseExpr(BufferedLexer&);
+static ExprPtr ParseExpr(BufferedLexer&); // true, 0
+static ExprPtr ParseExpr_Exp(BufferedLexer&, bool, int);
 
 static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
 {
@@ -152,7 +153,11 @@ static ExprPtr ParseWhile(BufferedLexer& lexer) // prefix: while
 
 static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
-  return new ECall(new EVariable("#return"), ParseExpr(lexer));
+  auto list = make_unique<EList>();
+  ExprPtr expr = ParseExpr_Exp(lexer, false, 0);
+  if(expr)
+    list->exprs.push_back(expr);
+  return new ECall(new EVariable("#return"), list.release());
 }
 
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
