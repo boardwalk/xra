@@ -97,7 +97,7 @@ void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
   if(!compiler.result)
     return;
 
-  auto rightResult = compiler.result;
+  auto rightResult = compiler.Read(compiler.result);
   compiler.result = nullptr;
 
   compiler.Visit(args[0].get());
