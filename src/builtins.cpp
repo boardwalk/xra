@@ -216,19 +216,22 @@ ValuePtr BWhile::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
   assert(args.size() == 2);
 
-  checker.Visit(args[0].get());
-  if(!args[0]->value)
+  auto& cond = args[0];
+  auto& body = args[1];
+
+  checker.Visit(cond.get());
+  if(!cond->value)
     return {};
 
   TypeSubst condSubst;
   checker.subst.swap(condSubst);
 
-  checker.Visit(args[1].get());
-  if(!args[1]->value)
+  checker.Visit(body.get());
+  if(!body->value)
     return {};
 
   Compose(condSubst, checker.subst);
-  Compose(Unify(*args[0]->value->type, *BooleanType), checker.subst);
+  Compose(Unify(*cond->value->type, *BooleanType), checker.subst);
 
   ValuePtr value = new VConstant;
   value->type = VoidType;
