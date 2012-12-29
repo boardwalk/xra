@@ -162,7 +162,7 @@ static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 
 static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
 
-static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
+static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
 {
   ExprPtr expr = ParseExpr_P(lexer, required);
   if(!expr)
@@ -203,7 +203,7 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, int p, bool required)
 
     int q = rightAssoc ? prec : (1 + prec);
 
-    auto exprRight = ParseExpr_Exp(lexer, q, false);
+    auto exprRight = ParseExpr_Exp(lexer, false, q);
     if(!exprRight) {
       if(op == "#call")
         break;
@@ -246,14 +246,14 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     if(unaryOp == unaryOperators.end())
       ERROR("unknown unary operator")
 
-    expr = ParseExpr_Exp(lexer, unaryOp->second, true);
+    expr = ParseExpr_Exp(lexer, true, unaryOp->second);
     expr = new ECall(new EVariable(unaryOp->first), expr);
   }
   else if(TOKEN(OpenParen))
   {
     lexer.Consume();
 
-    expr = ParseExpr_Exp(lexer, 0, false);
+    expr = ParseExpr_Exp(lexer, false, 0);
     if(!expr)
       expr = new EList;
 
@@ -337,7 +337,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 
 static ExprPtr ParseExpr(BufferedLexer& lexer)
 {
-  return ParseExpr_Exp(lexer, 0, true);
+  return ParseExpr_Exp(lexer, true, 0);
 }
 
 ExprPtr ParseTopLevel(BufferedLexer& lexer)
