@@ -9,8 +9,8 @@
 
 (defvar xra-constants
   (mapconcat 'identity
-             '("\\<true\\>"
-               "\\<false\\>"
+             '("true"
+               "false"
                "0b[01]+"
                "0x[0-9a-fA-F]+"
                "0[0-7]*"
