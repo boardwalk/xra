@@ -237,25 +237,55 @@ void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 
   auto condBlock = llvm::BasicBlock::Create(ctx, "while", func);
   auto doBlock = llvm::BasicBlock::Create(ctx, "do", func);
-  auto endwhileBlock = llvm::BasicBlock::Create(ctx, "endwhile");
+  auto lastEndWhileBlock = compiler.endWhileBlock;
+  compiler.endWhileBlock = llvm::BasicBlock::Create(ctx, "endwhile");
 
   builder.CreateBr(condBlock);
 
+  // while
   builder.SetInsertPoint(condBlock);
-
   compiler.Visit(args[0].get());
-  builder.CreateCondBr(compiler.result, doBlock, endwhileBlock);
+  builder.CreateCondBr(compiler.result, doBlock, compiler.endWhileBlock);
   compiler.result = nullptr;
 
+  // do
   builder.SetInsertPoint(doBlock);
-
   compiler.Visit(args[1].get());
   compiler.result = nullptr;
   builder.CreateBr(condBlock);
 
-  func->getBasicBlockList().push_back(endwhileBlock);
+  // endwhile
+  func->getBasicBlockList().push_back(compiler.endWhileBlock);
+  builder.SetInsertPoint(compiler.endWhileBlock);
+  compiler.endWhileBlock = lastEndWhileBlock;
+}
 
-  builder.SetInsertPoint(endwhileBlock);
+/*
+ * BBreak
+ */
+
+class BBreak : public VBuiltin
+{
+public:
+  ValuePtr Infer(Env&, TypeSubst&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
+ValuePtr BBreak::Infer(Env&, TypeSubst&, const vector<ExprPtr>&)
+{
+  auto value = new VConstant;
+  value->type = VoidType;
+  return value;
+}
+
+void BBreak::Compile(Compiler& compiler, const vector<ExprPtr>&)
+{
+  auto& builder = compiler.builder;
+  auto func = builder.GetInsertBlock()->getParent();
+  auto contBlock = llvm::BasicBlock::Create(builder.getContext(), "breakcont", func);
+
+  builder.CreateBr(compiler.endWhileBlock);
+  builder.SetInsertPoint(contBlock);
 }
 
 /*
@@ -360,6 +390,7 @@ void AddBuiltins(Env& env)
   env.AddValue("=", new BAssign);
   env.AddValue("#if", new BIf);
   env.AddValue("#while", new BWhile);
+  env.AddValue("#break", new BBreak);
   env.AddValue("+", new BArithmetic<Add>);
   env.AddValue("-", new BArithmetic<Sub>);
   env.AddValue("*", new BArithmetic<Mul>);

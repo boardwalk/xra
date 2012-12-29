@@ -160,6 +160,11 @@ static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
   return new ECall(new EVariable("#return"), list.release());
 }
 
+static ExprPtr ParseBreak(BufferedLexer& lexer) // prefix: break
+{
+  return new ECall(new EVariable("#break"), new EList);
+}
+
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 {
   return new EFunction(ParseExpr(lexer), ParseClause(lexer));
@@ -318,6 +323,10 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   else if(TOKEN(Return)) {
     lexer.Consume();
     expr = ParseReturn(lexer);
+  }
+  else if(TOKEN(Break)) {
+    lexer.Consume();
+    expr = ParseBreak(lexer);
   }
   else if(TOKEN(Fn)) {
     lexer.Consume();
