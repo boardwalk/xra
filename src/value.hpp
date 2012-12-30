@@ -5,8 +5,6 @@
 
 namespace xra {
 
-class TypeChecker;
-
 /*
  * Base value
  */

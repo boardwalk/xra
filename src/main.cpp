@@ -3,20 +3,12 @@
 #include "compiler.hpp"
 #include "buffered-lexer.hpp"
 
-#include <llvm/Support/raw_os_ostream.h>
-#include <llvm/Bitcode/ReaderWriter.h>
-
 #include <fstream>
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
 
 using namespace xra;
-
-namespace xra {
-  // builtins.cpp
-  void AddBuiltins(Env&);
-}
 
 int main(int argc, char** argv)
 {

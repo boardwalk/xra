@@ -60,14 +60,14 @@ public:
 class EInteger : public Expr
 {
 public:
-  EInteger(long literal_) :
+  EInteger(unsigned long literal_) :
     Expr(Kind_EInteger),
     literal(literal_)
   {}
 
   CLASSOF(EInteger)
 
-  const long literal;
+  const unsigned long literal;
 };
 
 class EFloat : public Expr

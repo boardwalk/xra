@@ -163,7 +163,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 {
   assert(args.size() >= 2 && args.size() % 2 == 0);
 
-  const int nclauses = args.size() / 2;
+  const size_t nclauses = args.size() / 2;
   auto& builder = compiler.builder;
   auto& ctx = compiler.module.getContext();
   auto func = builder.GetInsertBlock()->getParent();
@@ -173,7 +173,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     alloc = builder.CreateAlloca(ToLLVM(*args[1]->value->type, ctx), nullptr, "iftmp");
   auto endifBlock = llvm::BasicBlock::Create(ctx, "endif");
 
-  for(int i = 0; i < nclauses; i++)
+  for(size_t i = 0; i < nclauses; i++)
   {
     auto thenBlock = llvm::BasicBlock::Create(ctx, "then", func);
     auto contBlock = (i < nclauses - 1) ? llvm::BasicBlock::Create(ctx, "else", func) : endifBlock;

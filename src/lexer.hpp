@@ -44,7 +44,7 @@ struct Token
 
   string strValue;
   union {
-    long intValue;
+    unsigned long intValue;
     double floatValue;
   };
 };

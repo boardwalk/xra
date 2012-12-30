@@ -1,11 +1,11 @@
-CXX = g++-4.7
-
-CXXFLAGS = -I/Users/at0m13/homebrew/include \
-  -Wall -Werror -Wextra -pedantic-errors \
-  -std=c++11 -g -O0 \
-  `llvm-config --cxxflags`
-LDFLAGS = -g -O0 `llvm-config --ldflags`
-LIBS = `llvm-config --libs core bitwriter`
+CXX = clang++
+CXXFLAGS = -I/Users/at0m13/homebrew/include -I/Users/at0m13/homebrew/include/c++/v1 \
+	-Weverything -Wno-c++98-compat -Wno-weak-vtables -Wno-padded \
+	-Wno-global-constructors -Wno-exit-time-destructors \
+	-g -O0 -std=c++11 -stdlib=libc++ \
+	`llvm-config --cxxflags`
+LDFLAGS = -g -O0 -L/users/at0m13/homebrew/lib -stdlib=libc++ `llvm-config --ldflags`
+LIBS = -lLLVM-3.3svn
 
 SOURCES = common.cpp \
 	main.cpp \
@@ -39,20 +39,20 @@ xra: $(OBJS)
 	@$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 	@dsymutil $@
 
-$(OBJS): obj/common.hpp.gch
+$(OBJS): obj/common.hpp.pch
 
 obj/%.o: %.cpp | obj
 	@echo "COMPILE $<"
-	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+	@$(CXX) $(CXXFLAGS) -include-pch obj/common.hpp.pch -c -o $@ $<
 
-obj/%.gch: % | obj
+obj/%.pch: % | obj
 	@echo "COMPILE HEADER $<"
 	@$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 dep/%.d: %.cpp | dep
 	@echo "DEPENDS $<"
 	@$(CXX) -MM $(CXXFLAGS) $< > $@
-	@sed -i '' 's%\($*\)\.o[ :]*%\1.o $@ : %g' $@
+	@sed -i '' 's%\($*\)\.o[ :]*%obj/\1.o $@ : %g' $@
 
 obj:
 	@mkdir -p $@

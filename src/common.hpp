@@ -1,24 +1,7 @@
 #ifndef XRA_COMMON_HPP
 #define XRA_COMMON_HPP
 
-#include <llvm/Config/config.h>
-#include <llvm/DerivedTypes.h>
-#include <llvm/LLVMContext.h>
-#include <llvm/Module.h>
-#if LLVM_VERSION_MAJOR == 3 && LLVM_VERSION_MINOR < 2
-#include <llvm/Support/IRBuilder.h>
-#else
-#include <llvm/IRBuilder.h>
-#endif
-#include <boost/intrusive_ptr.hpp>
-
-#include <deque>
-#include <map>
-#include <memory>
-#include <set>
-#include <sstream>
-#include <stack>
-#include <vector>
+#include "common_system.hpp"
 
 namespace xra {
 
@@ -51,6 +34,11 @@ typedef boost::intrusive_ptr<Type> TypePtr;
 
 typedef map<string, TypePtr> TypeSubst;
 
+class BufferedLexer;
+class TypeChecker;
+class Compiler;
+class Env;
+
 class Error
 {
 public:
@@ -81,9 +69,12 @@ private:
   static stringstream ss;
 };
 
+// common.cpp
 ostream& operator<<(ostream&, const SourceLoc&);
-
 void EscapeString(const string&, ostream&);
+
+// builtins.cpp
+void AddBuiltins(Env&);
 
 } // namespace xra
 

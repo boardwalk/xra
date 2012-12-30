@@ -137,7 +137,7 @@ char Lexer::GetChar()
   else {
     loc.column++;
   }
-  lastChar = inputStream.get();    
+  lastChar = (char)inputStream.get();    
   return lastChar;
 }
 
@@ -149,8 +149,8 @@ void Lexer::UngetStr(const string& str)
   inputStream.putback(lastChar);
   lastChar = str[0];
 
-  for(ssize_t i = str.size() - 1; i > 0; i--)
-    inputStream.putback(str[i]);
+  for(size_t i = str.size(); i > 1; i--)
+    inputStream.putback(str[i - 1]);
 
   loc.column -= str.size();
 }
@@ -386,7 +386,7 @@ bool Lexer::Number(Token& token)
 
   if(lastChar != '.') {
     token = MakeToken(Token::Integer);
-    token.intValue = strtol(s.c_str(), nullptr, base);
+    token.intValue = (unsigned long)strtol(s.c_str(), nullptr, base);
     return true;
   }
 
