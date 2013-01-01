@@ -81,12 +81,20 @@ void TypeChecker::VisitEFunction(EFunction& expr)
   subst.clear();
   
   // (s1, t1) <- ti env'' e
+  TypePtr lastReturnType = returnType;
+  returnType = nullptr;
   bool lastInsideLoop = insideLoop;
   insideLoop = false;
+
   Visit(expr.body.get());
-  insideLoop = lastInsideLoop;
   if(!expr.body->value)
     return;
+
+  if(returnType)
+    Compose(Unify(*returnType, *expr.body->value->type), subst);
+
+  returnType = lastReturnType;
+  insideLoop = lastInsideLoop;
 
   // return (s1, TFun(apply s1 tv) t1)
   // MODIFIED (apply s1 tv) removed, unneeded

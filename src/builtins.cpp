@@ -23,7 +23,6 @@ ValuePtr BSequence::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
     checker.subst.swap(lastSubst);
 
     checker.Visit(e.get());
-
     if(!e->value)
       return {};
 
@@ -273,6 +272,55 @@ void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 }
 
 /*
+ * BReturn
+ */
+
+class BReturn : public VBuiltin
+{
+public:
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
+ValuePtr BReturn::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
+{
+  assert(args.size() == 0 || args.size() == 1);
+
+  TypePtr rty = VoidType;
+  if(!args.empty()) {
+    checker.Visit(args[0].get());
+    if(!args[0]->value)
+      return {};
+    rty = args[0]->value->type;
+  }
+
+  if(checker.returnType)
+    Compose(Unify(*rty, *checker.returnType), checker.subst);
+  else
+    checker.returnType = rty;
+
+  auto value = new VConstant;
+  value->type = VoidType;
+  return value;
+}
+
+void BReturn::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  assert(args.size() == 0 || args.size() == 1);
+
+  auto& builder = compiler.builder;
+  auto func = builder.GetInsertBlock()->getParent();
+  auto contBlock = llvm::BasicBlock::Create(builder.getContext(), "returncont", func);
+
+  if(!args.empty())
+    compiler.Visit(args[0].get());
+  builder.CreateRet(compiler.Read(compiler.result));
+  compiler.result = nullptr;
+
+  builder.SetInsertPoint(contBlock);
+}
+
+/*
  * BBreak
  */
 
@@ -407,6 +455,7 @@ void AddBuiltins(Env& env)
   env.AddValue("=", new BAssign);
   env.AddValue("#if", new BIf);
   env.AddValue("#while", new BWhile);
+  env.AddValue("#return", new BReturn);
   env.AddValue("#break", new BBreak);
   env.AddValue("+", new BArithmetic<Add>);
   env.AddValue("-", new BArithmetic<Sub>);

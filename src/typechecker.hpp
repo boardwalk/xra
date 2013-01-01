@@ -15,6 +15,7 @@ public:
 
   Env env;
   TypeSubst subst;
+  TypePtr returnType;
   bool insideLoop;
 
   void VisitEVariable(EVariable&);
