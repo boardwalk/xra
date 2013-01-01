@@ -98,7 +98,7 @@ void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
   if(!compiler.result)
     return;
 
-  auto rightResult = compiler.Read(compiler.result);
+  auto rightResult = compiler.Load(compiler.result);
   compiler.result = nullptr;
 
   compiler.Visit(args[0].get());
@@ -179,7 +179,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 
     // if
     compiler.Visit(args[i * 2].get());
-    compiler.result = compiler.Read(compiler.result);
+    compiler.result = compiler.Load(compiler.result);
     builder.CreateCondBr(compiler.result, thenBlock, contBlock);
     compiler.result = nullptr;
 
@@ -187,7 +187,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     builder.SetInsertPoint(thenBlock);
     compiler.Visit(args[i * 2 + 1].get());
     if(alloc)
-      builder.CreateStore(compiler.Read(compiler.result), alloc);
+      builder.CreateStore(compiler.Load(compiler.result), alloc);
     compiler.result = nullptr;
     builder.CreateBr(contBlock);
 
@@ -314,7 +314,7 @@ void BReturn::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 
   if(!args.empty())
     compiler.Visit(args[0].get());
-  builder.CreateRet(compiler.Read(compiler.result));
+  builder.CreateRet(compiler.Load(compiler.result));
   compiler.result = nullptr;
 
   builder.SetInsertPoint(contBlock);
@@ -438,10 +438,10 @@ void BArithmetic<Operation>::Compile(Compiler& compiler, const vector<ExprPtr>& 
   assert(args.size() == 2);
 
   compiler.Visit(args[0].get());
-  auto left = compiler.Read(compiler.result);
+  auto left = compiler.Load(compiler.result);
 
   compiler.Visit(args[1].get());
-  auto right = compiler.Read(compiler.result);
+  auto right = compiler.Load(compiler.result);
 
   if(isa<TInteger>(args[0]->value->type.get()))
     compiler.result = Operation::IntOp(compiler.builder, left, right);

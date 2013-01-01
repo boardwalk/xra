@@ -21,7 +21,7 @@ public:
     result(nullptr)
   {}
 
-  llvm::Value* Read(llvm::Value* val)
+  llvm::Value* Load(llvm::Value* val)
   {
     if(val && isa<llvm::AllocaInst>(val))
       return builder.CreateLoad(val);

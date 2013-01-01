@@ -57,7 +57,7 @@ void Compiler::VisitEFunction(const EFunction& expr)
   // fill in function
   builder.SetInsertPoint(block);
   Visit(expr.body.get());
-  builder.CreateRet(Read(result));
+  builder.CreateRet(Load(result));
 
   verifyFunction(*func);
 
