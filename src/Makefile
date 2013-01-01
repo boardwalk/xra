@@ -5,7 +5,7 @@ CXXFLAGS = -I/Users/at0m13/homebrew/include -I/Users/at0m13/homebrew/include/c++
 	-g -O0 -std=c++11 -stdlib=libc++ \
 	`llvm-config --cxxflags`
 LDFLAGS = -g -O0 -L/users/at0m13/homebrew/lib -stdlib=libc++ `llvm-config --ldflags`
-LIBS = -lLLVM-3.3svn
+LIBS = `llvm-config --libs core bitwriter`
 
 SOURCES = common.cpp \
 	main.cpp \
