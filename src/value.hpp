@@ -83,6 +83,8 @@ public:
   CLASSOF(VExtern)
 };
 
+extern const ValuePtr VoidValue;
+
 } // namespace xra
 
 #endif

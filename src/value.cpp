@@ -4,6 +4,14 @@
 
 namespace xra {
 
+static ValuePtr MakeVoid()
+{
+  ValuePtr value = new VConstant;
+  value->type = new TList;
+  return value;
+}
+const ValuePtr VoidValue = MakeVoid();
+
 void Value::Apply(const TypeSubst& subst)
 {
   if(type) {

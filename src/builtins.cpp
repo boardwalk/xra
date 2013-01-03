@@ -157,8 +157,11 @@ ValuePtr BIf::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
   for(auto& e : args)
     e->value->type = xra::Apply(checker.subst, *e->value->type);
 
+  if(args.size() == 2)
+    return VoidValue;
+
   ValuePtr value = new VTemporary;
-  value->type = (args.size() > 2) ? args[1]->value->type : VoidType;
+  value->type = args[1]->value->type;
   return value;
 }
 
@@ -239,9 +242,7 @@ ValuePtr BWhile::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
   Compose(condSubst, checker.subst);
   Compose(Unify(*cond->value->type, *BooleanType), checker.subst);
 
-  ValuePtr value = new VConstant;
-  value->type = VoidType;
-  return value; // TODO should a while yield a value?
+  return VoidValue; // TODO should a while yield a value?
 }
 
 void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
@@ -305,9 +306,7 @@ ValuePtr BReturn::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
   else
     checker.returnType = rty;
 
-  auto value = new VConstant;
-  value->type = VoidType;
-  return value;
+  return VoidValue;
 }
 
 void BReturn::Compile(Compiler& compiler, const vector<ExprPtr>& args)
@@ -344,9 +343,7 @@ ValuePtr BBreak::Infer(TypeChecker& checker, const vector<ExprPtr>&)
     return {};
   }
 
-  auto value = new VConstant;
-  value->type = VoidType;
-  return value;
+  return VoidValue;
 }
 
 void BBreak::Compile(Compiler& compiler, const vector<ExprPtr>&)
