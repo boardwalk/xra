@@ -94,6 +94,8 @@ ValuePtr BAssign::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 
 void BAssign::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 {
+  assert(args.size() == 2);
+
   compiler.Visit(args[1].get());
   if(!compiler.result)
     return;
@@ -121,6 +123,8 @@ public:
 
 ValuePtr BIf::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 {
+  assert(args.size() >= 2 && args.size() % 2 == 0);
+
   // conditions
   for(size_t i = 0; i < args.size(); i += 2)
   {
@@ -242,6 +246,8 @@ ValuePtr BWhile::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
 
 void BWhile::Compile(Compiler& compiler, const vector<ExprPtr>& args)
 {
+  assert(args.size() == 2);
+
   auto& builder = compiler.builder;
   auto& ctx = compiler.module.getContext();
   auto func = builder.GetInsertBlock()->getParent();
