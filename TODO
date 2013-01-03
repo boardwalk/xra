@@ -1,5 +1,2 @@
 * BUG: Unary and binary operators with the same name don't work (no overloading yet)
 * Make constant void value and use it.
-* Give state to type inferencer/check
-  * Store return type of current function to unify against for #return
-  * Store "are we inside a while block?" flag for #break
