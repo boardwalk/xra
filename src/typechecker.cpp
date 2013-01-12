@@ -187,7 +187,7 @@ void TypeChecker::VisitEExtern(EExtern& expr)
   value->type = expr.externType;
   env.AddValue(expr.name, value);
 
-  expr.value = new VConstant;
+  expr.value = VoidValue;
 }
 
 void TypeChecker::Visit(Base* base)
