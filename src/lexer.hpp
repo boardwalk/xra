@@ -69,6 +69,7 @@ class Lexer
   Token MakeError(string err);
 
   bool NestableComment();
+  bool RawString(Token& token);
   bool Number(Token& token);
   bool String(Token& token);
 

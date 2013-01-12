@@ -237,6 +237,14 @@ Token Lexer::operator()()
     return (*this)();
   }
 
+  if(lastChar == 'r') {
+    GetChar();
+    Token token;
+    if(lastChar == '"' && RawString(token))
+      return token;
+    UngetStr("r");
+  }
+
   if(IdentifierInitial(lastChar))
   {
     string str(1, lastChar);
@@ -410,6 +418,34 @@ bool Lexer::Number(Token& token)
   token = MakeToken(Token::Float);
   token.floatValue = strtod(s.c_str(), nullptr);
   return true;
+}
+
+bool Lexer::RawString(Token& token)
+{
+  string str;
+  while(true)
+  {
+    GetChar();
+    if(lastChar == '\\') {
+      GetChar();
+      if(lastChar != '"')
+        str += '\\';
+      str += lastChar;
+    }
+    else if(lastChar == '"') {
+      GetChar();
+      token = MakeToken(Token::String);
+      token.strValue = move(str);
+      return true;
+    }
+    else if(lastChar == EOF) {
+      token = MakeError("unterminated string literal");
+      return true;
+    }
+    else {
+      str += lastChar;
+    }
+  }
 }
 
 bool Lexer::String(Token& token)
