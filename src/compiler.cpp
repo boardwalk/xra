@@ -94,7 +94,17 @@ void Compiler::VisitEList(const EList& expr)
   if(expr.exprs.empty())
     return;
 
-  // TODO
+  auto type = ToLLVM(*expr.value->type, module.getContext());
+  auto alloc = builder.CreateAlloca(type, nullptr, "tmplist");
+
+  unsigned int i = 0;
+  for(auto& e : expr.exprs) {
+    Visit(e.get());
+    builder.CreateStore(Load(result), builder.CreateStructGEP(alloc, i++, "tmplistslot"));
+    result = nullptr;
+  }
+
+  result = alloc;
 }
 
 void Compiler::VisitEExtern(const EExtern& expr)
