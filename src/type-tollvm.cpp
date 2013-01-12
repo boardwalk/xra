@@ -50,18 +50,16 @@ struct TypeToLLVMVisitor : Visitor<TypeToLLVMVisitor, const Type>
 
   void VisitTFunction(const TFunction& type)
   {
-    Visit(type.parameter.get());
-    auto funcParameter = result;
+    vector<llvm::Type*> llvmParams;
+    for(auto& param : static_cast<TList&>(*type.parameter).types) {
+      Visit(param.get());
+      llvmParams.push_back(result);
+    }
 
-    // void is not a valid function argument!
-    llvm::ArrayRef<llvm::Type*> funcParameterArr;
-    if(!funcParameter->isVoidTy())
-      funcParameterArr = llvm::ArrayRef<llvm::Type*>(funcParameter);
-    
     Visit(type.result.get());
-    auto funcResult = result;
+    auto llvmResult = result;
 
-    result = llvm::FunctionType::get(funcResult, funcParameterArr, false);
+    result = llvm::FunctionType::get(llvmResult, llvmParams, false);
     result = result->getPointerTo();
   }
 };

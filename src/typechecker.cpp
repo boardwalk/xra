@@ -3,25 +3,6 @@
 
 namespace xra {
 
-struct ParamCollector : Visitor<ParamCollector, const Expr>
-{
-  TypeSubst subst;
-
-  void VisitEVariable(const EVariable& expr)
-  {
-    if(!subst.insert({expr.name, expr.type}).second)
-      Error() << "duplicate parameter: " << expr.name;
-  }
-
-  void Visit(Base* base)
-  {    
-    if(base && !isa<EVariable>(base) && !isa<EList>(base))
-      Error() << "only variables and lists allowed in function parameter";
-    else
-      base::Visit(base);
-  }
-};
-
 void TypeChecker::VisitEVariable(EVariable& expr)
 {
   expr.value = env[expr.name];
@@ -58,17 +39,26 @@ void TypeChecker::VisitEFunction(EFunction& expr)
   Scope scope(env);
 
   // tv <- newTyVar "a"
-  ParamCollector paramCollector;
-  paramCollector.Visit(expr.param.get());
+  TypeSubst paramSubst;
 
-  for(auto& param : paramCollector.subst) {
+  for(auto& param : static_cast<EList&>(*expr.param).exprs) {
+    auto var = dyn_cast<EVariable>(param.get());
+    if(var) {
+      paramSubst.insert({var->name, var->type});
+      expr.paramNames.push_back(var->name);
+    }
+    else
+      Error() << "member of function parameter list must be variable";
+  }
+
+  for(auto& param : paramSubst) {
     if(!param.second)
       param.second = MakeTypeVar();
   }
 
   // TypeEnv env' = remove env n
   // env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
-  for(auto& param : paramCollector.subst) {
+  for(auto& param : paramSubst) {
     ValuePtr value = new VLocal;
     value->type = param.second;
     env.AddValue(param.first, value);

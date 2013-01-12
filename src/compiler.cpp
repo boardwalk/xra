@@ -46,13 +46,20 @@ void Compiler::VisitEString(const EString& expr)
 void Compiler::VisitEFunction(const EFunction& expr)
 {
   auto previousBlock = builder.GetInsertBlock();
-  map<string, llvm::AllocaInst*> previousValues;
+  map<string, llvm::Value*> previousValues;
   previousValues.swap(values);
 
   // create function
   auto funcType = static_cast<llvm::FunctionType*>(ToLLVM(*expr.value->type, module.getContext())->getPointerElementType());
   auto func = llvm::Function::Create(funcType, llvm::Function::InternalLinkage, "EFunction", &module);
   auto block = llvm::BasicBlock::Create(module.getContext(), "entry", func);
+
+  // put arguments into values map
+  auto paramName = expr.paramNames.begin();
+  for(auto& arg : func->getArgumentList()) {
+    values[*paramName] = &arg;
+    ++paramName;
+  }
 
   // fill in function
   builder.SetInsertPoint(block);
@@ -80,12 +87,16 @@ void Compiler::VisitECall(const ECall& expr)
   else
   {
     Visit(expr.function.get());
-    auto function = result;
+    auto function = Load(result);
 
-    Visit(expr.argument.get());
-    auto argument = result;
+    vector<llvm::Value*> arguments;
+    for(auto& arg : static_cast<EList&>(*expr.argument).exprs) {
+      Visit(arg.get());
+      arguments.push_back(Load(result));
+      result = nullptr;
+    }
 
-    result = builder.CreateCall(function, llvm::ArrayRef<llvm::Value*>(argument));
+    result = builder.CreateCall(function, arguments);
   }
 }
 

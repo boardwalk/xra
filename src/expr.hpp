@@ -109,6 +109,7 @@ public:
 
   ExprPtr param;
   ExprPtr body;
+  vector<string> paramNames;
 };
 
 class ECall : public Expr

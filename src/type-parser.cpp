@@ -77,6 +77,13 @@ static TypePtr ParseType(BufferedLexer& lexer, int level)
     }
     else if(lexer().strValue == "->")
     {
+      // the parameter to a function is always a list
+      if(!isa<TList>(*type)) {
+        TList* list = new TList();
+        list->types.push_back(type);
+        type = list;
+      }
+
       lexer.Consume();
       TypePtr typeRight = ParseType(lexer, level);
       type = new TFunction(type, typeRight);
