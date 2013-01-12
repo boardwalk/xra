@@ -196,7 +196,7 @@ void BIf::Compile(Compiler& compiler, const vector<ExprPtr>& args)
     if(alloc)
       builder.CreateStore(compiler.Load(compiler.result), alloc);
     compiler.result = nullptr;
-    builder.CreateBr(contBlock);
+    builder.CreateBr(endifBlock);
 
     // else or endif
     builder.SetInsertPoint(contBlock);
