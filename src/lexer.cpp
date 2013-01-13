@@ -25,7 +25,8 @@ static bool Operator(char c)
     case '*': case '+': case ',': case '-':
     case '.': case '/': case ';': case '<':
     case '=': case '>': case '?': case '@':
-    case '^': case '|': case '~':
+    case '[': case ']': case '^': case '{':
+    case '|': case '}': case '~': 
       return true;
   }
   return false;
@@ -172,14 +173,10 @@ Token Lexer::MakeError(string err)
 
 Token Lexer::operator()()
 {
-  if(dedentCount > 0) {
-    dedentCount--;
-    return MakeToken(Token::Dedent);
-  }
-
-  if(dedentCount == 0) {
-    dedentCount--;
-    return MakeToken(Token::Nodent);
+  if(!nextTokens.empty()) {
+    Token token = move(nextTokens.front());
+    nextTokens.pop();
+    return token;
   }
 
   while(IsSpace(lastChar))
@@ -210,17 +207,17 @@ Token Lexer::operator()()
     if(indentSize == indents.top())
       return MakeToken(Token::Nodent);
 
-    dedentCount = 0;
     do {
       indents.pop();
-      dedentCount++;
+      nextTokens.push(MakeToken(Token::Dedent));
     } while(indentSize < indents.top());
+
+    nextTokens.push(MakeToken(Token::Nodent));
 
     if(indentSize != indents.top())
       return MakeError("invalid indentation");
 
-    dedentCount--;
-    return MakeToken(Token::Dedent);
+    return (*this)();
   }
 
   if(lastChar == '#') {
@@ -237,13 +234,14 @@ Token Lexer::operator()()
     return (*this)();
   }
 
-  if(lastChar == 'r') {
-    GetChar();
-    Token token;
-    if(lastChar == '"' && RawString(token))
-      return token;
-    UngetStr("r");
-  }
+  if(lastChar == '\'')
+    return String(false);
+
+  if(lastChar == '"')
+    return String(true);
+
+  if(isdigit(lastChar))
+    return Number();
 
   if(IdentifierInitial(lastChar))
   {
@@ -307,19 +305,6 @@ Token Lexer::operator()()
     return token;
   }
 
-  if(isdigit(lastChar))
-  {
-    Token token;
-    if(Number(token))
-      return token;
-  }
-
-  if(lastChar == '"') {
-    Token token;
-    if(String(token))
-      return token;
-  }
-
   if(lastChar == EOF) {
     if(indents.size() > 1) {
       indents.pop();
@@ -358,7 +343,7 @@ bool Lexer::NestableComment()
   return false;
 }
 
-bool Lexer::Number(Token& token)
+Token Lexer::Number()
 {
   int base = 10;
   if(lastChar == '0') {
@@ -389,18 +374,15 @@ bool Lexer::Number(Token& token)
         continue;
       if(base > 10 && tolower(c) >= 'a' && tolower(c) < ('a' + (base - 10)))
         continue;
-      token = MakeError("invalid character in integer constant");
-      return true;
+      return MakeError("invalid character in integer constant");
     }
-    token = MakeToken(Token::Integer);
+    Token token = MakeToken(Token::Integer);
     token.intValue = (unsigned long)strtol(s.c_str(), nullptr, base);
-    return true;
+    return token;
   }
 
-  if(base != 10) {
-    token = MakeError("non-decimal floating point not allowed");
-    return true;
-  }
+  if(base != 10)
+    return MakeError("non-decimal floating point not allowed");
 
   s += lastChar;
   while(isalnum(GetChar()))
@@ -411,84 +393,133 @@ bool Lexer::Number(Token& token)
       continue;
     if(c == '.')
       continue;
-    token = MakeError("invalid character in float constant");
-    return true;
+    return MakeError("invalid character in float constant");
   }
 
-  token = MakeToken(Token::Float);
+  Token token = MakeToken(Token::Float);
   token.floatValue = strtod(s.c_str(), nullptr);
-  return true;
+  return token;
 }
 
-bool Lexer::RawString(Token& token)
+Token Lexer::String(bool interpolate)
 {
+  char delim = lastChar;
+
   string str;
+  string error;
+  vector<pair<size_t,  string> > interpolations;
+
   while(true)
   {
     GetChar();
-    if(lastChar == '\\') {
+    if(lastChar == delim)
+    {
       GetChar();
-      if(lastChar != '"')
-        str += '\\';
-      str += lastChar;
+      break;
     }
-    else if(lastChar == '"') {
+    else if(lastChar == '#' && interpolate)
+    {
       GetChar();
-      token = MakeToken(Token::String);
-      token.strValue = move(str);
-      return true;
+      if(lastChar == '{')
+      {
+        string interp;
+        int delimLevel = 1;
+        while(delimLevel > 0) {
+          interp.push_back(GetChar());
+          if(lastChar == EOF) break;
+          if(lastChar == '{') delimLevel++;
+          if(lastChar == '}') delimLevel--;
+        }
+        if(lastChar == EOF) {
+          error = "unterminated code interpolation";
+          break;
+        }
+        interp.resize(interp.size() - 1);
+        interpolations.push_back({str.size(), move(interp)});
+      }
+      else
+      {
+        str += '#';
+      }
     }
-    else if(lastChar == EOF) {
-      token = MakeError("unterminated string literal");
-      return true;
-    }
-    else {
-      str += lastChar;
-    }
-  }
-}
-
-bool Lexer::String(Token& token)
-{
-  string str;
-  while(true)
-  {
-    GetChar();
-    if(lastChar == '\\') {
+    else if(lastChar == '\\' && interpolate)
+    {
       GetChar();
-      char c;
-      switch(lastChar) {
-        case '\'': c = '\''; break;
-        case '\"': c = '\"'; break;
-        case '\\': c = '\\'; break;
-        case '0':  c = '\0'; break;
-        case 'a':  c = '\a'; break;
-        case 'b':  c = '\b'; break;
-        case 'f':  c = '\f'; break;
-        case 'n':  c = '\n'; break;
-        case 'r':  c = '\r'; break;
-        case 't':  c = '\t'; break;
-        case 'v':  c = '\v'; break;
-        default:
-          token = MakeError("invalid escape sequence");
-          return true;
+      char c = lastChar;
+      switch(c)
+      {
+      case '\\': c = '\\'; break;
+      case '0':  c = '\0'; break;
+      case 'a':  c = '\a'; break;
+      case 'b':  c = '\b'; break;
+      case 'f':  c = '\f'; break;
+      case 'n':  c = '\n'; break;
+      case 'r':  c = '\r'; break;
+      case 't':  c = '\t'; break;
+      case 'v':  c = '\v'; break;
+        // TODO handle \x hex scape
       }
       str += c;
     }
-    else if(lastChar == '"') {
-      GetChar();
-      token = MakeToken(Token::String);
-      token.strValue = move(str);
-      return true;
+    else if(lastChar == EOF)
+    {
+      error = "unterminated string literal";
+      break;
     }
-    else if(lastChar == '\r' || lastChar == '\n' || lastChar == EOF) {
-      token = MakeError("unterminated string literal");
-      return true;
-    }
-    else {
+    else
+    {
       str += lastChar;
     }
   }
+
+  if(!error.empty())
+    return MakeError(error);
+
+  if(interpolations.empty())
+    return MakeToken(Token::String).Str(move(str));
+
+  // escape existing braces
+  size_t i = 0;
+  while(true) {
+    i = str.find_first_of("{}", i);
+    if(i == string::npos)
+      break;
+    for(auto& interp : interpolations) {
+      if(interp.first > i)
+        interp.first++;
+    }
+    str.insert(i, 1, str[i]);
+    i += 2;
+  }
+
+  // insert placeholders
+  for(i = interpolations.size(); i > 0; i--) {
+    stringstream ss;
+    ss << "{" << (i - 1) << "}";
+    str.insert(interpolations[i - 1].first, ss.str());
+  }
+
+  // desugar interpolation
+  // "#{a} #{b} #{c}" => (format("{0} {1} {2}", (a), (b), (c)))
+  nextTokens.push(MakeToken(Token::Identifier).Str("format"));
+  nextTokens.push(MakeToken(Token::OpenParen));
+  nextTokens.push(MakeToken(Token::String).Str(move(str)));
+  for(auto& interp : interpolations) {
+    nextTokens.push(MakeToken(Token::Operator).Str(","));
+    nextTokens.push(MakeToken(Token::OpenParen));
+    stringstream ss(interp.second);
+    Lexer lexer(ss, "interpolation");
+    while(true) {
+      Token token = lexer();
+      if(token.type == Token::EndOfFile)
+        break;
+      nextTokens.push(move(token));
+    }
+    nextTokens.push(MakeToken(Token::CloseParen));
+  }
+  nextTokens.push(MakeToken(Token::CloseParen));
+  nextTokens.push(MakeToken(Token::CloseParen));
+  return MakeToken(Token::OpenParen);
 }
 
 } // namespace xra

@@ -10,6 +10,4 @@ a
 1a 0b1020 0xfg 0778 3.14a
 
 # invalid string constants
-"string with invalid escape sequence \z"
-"normal string without closing quote
-r"raw string without closing quote
+"string without closing quote

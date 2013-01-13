@@ -1,5 +1,26 @@
 <nodent> at test/lexer-string.xra:2:1
-"this ' \" \\ \x00 \x07 \x08 \x0c \x0a \x0d \x09 \x0b is a string" at test/lexer-string.xra:2:52
+"this is a no \\escape\\ string" at test/lexer-string.xra:2:31
 <nodent> at test/lexer-string.xra:3:1
-"This is a \" raw (\\S+)\x0a    string with\x0a    multiple lines" at test/lexer-string.xra:5:20
+"this \" \\ \x00 \x07 \x08 \x0c \x0a \x0d \x09 \x0b is an escape string" at test/lexer-string.xra:3:57
+<nodent> at test/lexer-string.xra:4:1
+"useful with regexps perhaps: (\\d+)" at test/lexer-string.xra:4:37
+<nodent> at test/lexer-string.xra:5:1
+( at test/lexer-string.xra:5:55
+<identifier format> at test/lexer-string.xra:5:55
+( at test/lexer-string.xra:5:55
+"and this is a code interpolation: {0}, {1}" at test/lexer-string.xra:5:55
+<operator ,> at test/lexer-string.xra:5:55
+( at test/lexer-string.xra:5:55
+<identifier x> at interpolation:1:2
+<operator +> at interpolation:1:4
+<int 1> at interpolation:1:6
+) at test/lexer-string.xra:5:55
+<operator ,> at test/lexer-string.xra:5:55
+( at test/lexer-string.xra:5:55
+<identifier y> at interpolation:1:2
+<operator /> at interpolation:1:4
+<int 2> at interpolation:1:6
+) at test/lexer-string.xra:5:55
+) at test/lexer-string.xra:5:55
+) at test/lexer-string.xra:5:55
 <eof> at test/lexer-string.xra:6:1

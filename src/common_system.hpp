@@ -16,9 +16,9 @@
 #include <llvm/Bitcode/ReaderWriter.h>
 #include <boost/intrusive_ptr.hpp>
 
-#include <deque>
 #include <map>
 #include <memory>
+#include <queue>
 #include <set>
 #include <sstream>
 #include <stack>

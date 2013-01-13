@@ -13,11 +13,5 @@
 <invalid character in integer constant> at test/lexer-fail.xra:10:20
 <invalid character in float constant> at test/lexer-fail.xra:10:26
 <nodent> at test/lexer-fail.xra:13:1
-<invalid escape sequence> at test/lexer-fail.xra:13:39
-<identifier z> at test/lexer-fail.xra:13:40
-<unterminated string literal> at test/lexer-fail.xra:13:41
-<nodent> at test/lexer-fail.xra:14:1
-<unterminated string literal> at test/lexer-fail.xra:14:37
-<nodent> at test/lexer-fail.xra:15:1
-<unterminated string literal> at test/lexer-fail.xra:15:35
-<eof> at test/lexer-fail.xra:15:35
+<unterminated string literal> at test/lexer-fail.xra:13:30
+<eof> at test/lexer-fail.xra:13:30

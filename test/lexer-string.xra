@@ -1,5 +1,5 @@
 #!/usr/bin/env xra -l
-"this \' \" \\ \0 \a \b \f \n \r \t \v is a string"
-r"This is a \" raw (\S+)
-    string with
-    multiple lines"
+'this is a no \escape\ string'
+"this \" \\ \0 \a \b \f \n \r \t \v is an escape string"
+'useful with regexps perhaps: (\d+)'
+"and this is a code interpolation: #{x + 1}, #{y / 2}"

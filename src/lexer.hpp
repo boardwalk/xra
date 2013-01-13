@@ -39,6 +39,11 @@ struct Token
     EndOfFile
   };
 
+  Token& Str(string str) {
+    strValue = move(str);
+    return *this;
+  }
+
   Type type;
   SourceLoc loc;
 
@@ -57,7 +62,7 @@ class Lexer
   SourceLoc loc;
   char lastChar;
   stack<int> indents;
-  int dedentCount;
+  queue<Token> nextTokens;
   int parenLevel;
 
   Lexer(const Lexer&);
@@ -69,15 +74,13 @@ class Lexer
   Token MakeError(string err);
 
   bool NestableComment();
-  bool RawString(Token& token);
-  bool Number(Token& token);
-  bool String(Token& token);
+  Token String(bool interpolate);
+  Token Number();
 
 public:
   Lexer(istream& inputStream_, const string& source) :
     inputStream(inputStream_),
     lastChar(' '),
-    dedentCount(-1),
     parenLevel(0)
   {
     loc.source = make_shared<string>(source);
