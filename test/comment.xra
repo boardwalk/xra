@@ -1,0 +1,7 @@
+#!/usr/bin/env xra -l
+LineEnding # with a comment
+  AndAnother # indented a little
+  # Only a comment here
+ThenMore
+  #| within line |# Stuff
+  AndThen #| #| you |# nest #| a little |# bit |# AndWin
