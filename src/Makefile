@@ -26,13 +26,13 @@ SOURCES = common.cpp \
 	typechecker.cpp \
 	compiler.cpp
 
-OBJS = $(patsubst %.cpp,obj/%.o,$(SOURCES))
-DEPS = $(patsubst %.cpp,dep/%.d,$(SOURCES))
+OBJS = $(patsubst %,obj/%.o,$(SOURCES))
+DEPS = $(patsubst %,obj/%.d,$(SOURCES))
 
 all: xra
 
 clean:
-	rm -rf obj dep xra xra.dSYM
+	rm -rf obj xra xra.dSYM
 
 xra: $(OBJS)
 	@echo "LINK $@"
@@ -41,23 +41,25 @@ xra: $(OBJS)
 
 $(OBJS): obj/common.hpp.pch
 
-obj/%.o: %.cpp | obj
-	@echo "COMPILE $<"
-	@$(CXX) $(CXXFLAGS) -include-pch obj/common.hpp.pch -c -o $@ $<
+obj/%.o: | obj
+	@echo "COMPILE $*"
+	@$(CXX) $(CXXFLAGS) -include-pch obj/common.hpp.pch -c -o $@ $*
 
 obj/%.pch: % | obj
-	@echo "COMPILE HEADER $<"
-	@$(CXX) $(CXXFLAGS) -c -o $@ $<
+	@echo "COMPILE HEADER $*"
+	@$(CXX) $(CXXFLAGS) -c -o $@ $*
 
-dep/%.d: %.cpp | dep
-	@echo "DEPENDS $<"
-	@$(CXX) -MM $(CXXFLAGS) $< > $@
-	@sed -i '' 's%\($*\)\.o[ :]*%obj/\1.o $@ : %g' $@
+obj/%.d: obj/%.md5 | obj
+	@$(CXX) -MM $(CXXFLAGS) $* | perl fixdepends.pl $* > $@
+
+obj/%.md5: HASH = $(shell md5sum $*)
+obj/%.md5: dummy | obj
+	$(if $(filter-out $(shell cat $@ 2>&1), $(HASH)), $(shell echo $(HASH) > $@))
 
 obj:
 	@mkdir -p $@
 
-dep:
-	@mkdir -p $@
+.SECONDARY:
+.PHONY: all clean dummy
 
 -include $(DEPS)
