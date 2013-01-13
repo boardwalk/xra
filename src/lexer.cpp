@@ -107,10 +107,10 @@ ostream& operator<<(ostream& os, const Token& token)
       os << '`';
       break;
     case Token::Integer:
-      os << token.intValue;
+      os << "<int " << token.intValue << ">";
       break;
     case Token::Float:
-      os << token.floatValue;
+      os << "<float " << token.floatValue << ">";
       break;
     case Token::String:
       os << "\"";
@@ -383,16 +383,15 @@ bool Lexer::Number(Token& token)
   while(isalnum(GetChar()))
     s += lastChar;
 
-  for(char c : s) {
-    if(c >= '0' && c < ('0' + min(base, 10)))
-      continue;
-    if(base > 10 && tolower(c) >= 'a' && tolower(c) < ('a' + (base - 10)))
-      continue;
-    token = MakeError("invalid character in integer constant");
-    return true;
-  }
-
   if(lastChar != '.') {
+    for(char c : s) {
+      if(c >= '0' && c < ('0' + min(base, 10)))
+        continue;
+      if(base > 10 && tolower(c) >= 'a' && tolower(c) < ('a' + (base - 10)))
+        continue;
+      token = MakeError("invalid character in integer constant");
+      return true;
+    }
     token = MakeToken(Token::Integer);
     token.intValue = (unsigned long)strtol(s.c_str(), nullptr, base);
     return true;
@@ -404,16 +403,17 @@ bool Lexer::Number(Token& token)
   }
 
   s += lastChar;
-  GetChar();
-
-  if(!isdigit(lastChar)) {
-    UngetStr(s);
-    return false;
-  }
-  s += lastChar;
-
-  while(isdigit(GetChar()))
+  while(isalnum(GetChar()))
     s += lastChar;
+
+  for(char c : s) {
+    if(c >= '0' && c <= '9')
+      continue;
+    if(c == '.')
+      continue;
+    token = MakeError("invalid character in float constant");
+    return true;
+  }
 
   token = MakeToken(Token::Float);
   token.floatValue = strtod(s.c_str(), nullptr);
