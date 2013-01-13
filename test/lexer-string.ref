@@ -1,0 +1,5 @@
+<nodent> at test/lexer-string.xra:2:1
+"this ' \" \\ \x00 \x07 \x08 \x0c \x0a \x0d \x09 \x0b is a string" at test/lexer-string.xra:2:52
+<nodent> at test/lexer-string.xra:3:1
+"This is a \" raw (\\S+)\x0a    string with\x0a    multiple lines" at test/lexer-string.xra:5:20
+<eof> at test/lexer-string.xra:6:1

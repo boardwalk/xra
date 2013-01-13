@@ -1,0 +1,5 @@
+#!/usr/bin/env xra -l
+"this \' \" \\ \0 \a \b \f \n \r \t \v is a string"
+r"This is a \" raw (\S+)
+    string with
+    multiple lines"
