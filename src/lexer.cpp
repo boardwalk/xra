@@ -204,13 +204,10 @@ Token Lexer::operator()()
       return MakeToken(Token::Indent);
     }
 
-    if(indentSize == indents.top())
-      return MakeToken(Token::Nodent);
-
-    do {
+    while(indentSize < indents.top()) {
       indents.pop();
       nextTokens.push(MakeToken(Token::Dedent));
-    } while(indentSize < indents.top());
+    }
 
     nextTokens.push(MakeToken(Token::Nodent));
 
