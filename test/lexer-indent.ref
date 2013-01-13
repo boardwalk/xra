@@ -1,0 +1,16 @@
+<nodent> at test/lexer-indent.xra:2:1
+<identifier a> at test/lexer-indent.xra:2:2
+<indent> at test/lexer-indent.xra:3:3
+<identifier b> at test/lexer-indent.xra:3:4
+<indent> at test/lexer-indent.xra:4:5
+<identifier c> at test/lexer-indent.xra:4:6
+<dedent> at test/lexer-indent.xra:5:3
+<nodent> at test/lexer-indent.xra:5:3
+<identifier d> at test/lexer-indent.xra:5:4
+<indent> at test/lexer-indent.xra:6:5
+<identifier e> at test/lexer-indent.xra:6:6
+<nodent> at test/lexer-indent.xra:7:5
+<identifier f> at test/lexer-indent.xra:7:6
+<dedent> at test/lexer-indent.xra:8:1
+<dedent> at test/lexer-indent.xra:8:1
+<eof> at test/lexer-indent.xra:8:1
