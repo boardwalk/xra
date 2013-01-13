@@ -69,19 +69,23 @@ int main(int argc, char** argv)
    */
   if(mode == LexMode)
   {
+    bool ok = true;
     while(true) {
       outputStream << bufferedLexer() << endl;
 
-      if(bufferedLexer().type == Token::Error) {
-        cerr << "lexing failed" << endl;
-        return EXIT_FAILURE;
-      }
-
-      if(bufferedLexer().type == Token::EndOfFile)
+      if(bufferedLexer().type == Token::Error)
+        ok = false;
+      else if(bufferedLexer().type == Token::EndOfFile)
         break;
 
       bufferedLexer.Consume();
     }
+
+    if(!ok) {
+      cerr << "lexing failed" << endl;
+      return EXIT_FAILURE;
+    }
+
     return EXIT_SUCCESS;
   }
 
