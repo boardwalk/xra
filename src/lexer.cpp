@@ -25,7 +25,7 @@ static bool Operator(char c)
     case '*': case '+': case ',': case '-':
     case '.': case '/': case ';': case '<':
     case '=': case '>': case '?': case '@':
-    case '\\': case '^': case '|': case '~':
+    case '^': case '|': case '~':
       return true;
   }
   return false;
