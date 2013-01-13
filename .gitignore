@@ -1,11 +1,2 @@
-*.o
-*.gch
-*.d
-*.dSYM
-xra
-\#*
-*.*~
-.#*
-*.bc
-*.ll
-.gdb_history
+src/obj
+test/*.out
