@@ -1,0 +1,16 @@
+<nodent> at test/indent.xra:2:1
+<identifier a> at test/indent.xra:2:2
+<indent> at test/indent.xra:3:3
+<identifier b> at test/indent.xra:3:4
+<indent> at test/indent.xra:4:5
+<identifier c> at test/indent.xra:4:6
+<dedent> at test/indent.xra:5:3
+<nodent> at test/indent.xra:5:3
+<identifier d> at test/indent.xra:5:4
+<indent> at test/indent.xra:6:5
+<identifier e> at test/indent.xra:6:6
+<dedent> at test/indent.xra:7:1
+<dedent> at test/indent.xra:7:1
+<nodent> at test/indent.xra:7:1
+<identifier f> at test/indent.xra:7:2
+<eof> at test/indent.xra:8:1

@@ -1,0 +1,6 @@
+#!/bin/sh
+git stash -q -u --keep-index
+make test
+RESULT=$?
+git stash pop -q
+exit $RESULT
