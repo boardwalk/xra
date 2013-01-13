@@ -1,0 +1,23 @@
+<nodent> at test/lexer-fail.xra:5:1
+<identifier a> at test/lexer-fail.xra:5:2
+<indent> at test/lexer-fail.xra:6:3
+<identifier b> at test/lexer-fail.xra:6:4
+<invalid indentation> at test/lexer-fail.xra:7:2
+<dedent> at test/lexer-fail.xra:7:2
+<nodent> at test/lexer-fail.xra:7:2
+<identifier c> at test/lexer-fail.xra:7:3
+<nodent> at test/lexer-fail.xra:10:1
+<invalid character in integer constant> at test/lexer-fail.xra:10:3
+<invalid character in integer constant> at test/lexer-fail.xra:10:10
+<invalid character in integer constant> at test/lexer-fail.xra:10:15
+<invalid character in integer constant> at test/lexer-fail.xra:10:20
+<invalid character in float constant> at test/lexer-fail.xra:10:26
+<nodent> at test/lexer-fail.xra:13:1
+<invalid escape sequence> at test/lexer-fail.xra:13:39
+<identifier z> at test/lexer-fail.xra:13:40
+<unterminated string literal> at test/lexer-fail.xra:13:41
+<nodent> at test/lexer-fail.xra:14:1
+<unterminated string literal> at test/lexer-fail.xra:14:37
+<nodent> at test/lexer-fail.xra:15:1
+<unterminated string literal> at test/lexer-fail.xra:15:35
+<eof> at test/lexer-fail.xra:15:35

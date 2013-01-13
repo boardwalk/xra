@@ -32,9 +32,10 @@ extern at test/lexer-tokens.xra:2:73
 <operator =>?@> at test/lexer-tokens.xra:5:20
 <operator ^|~> at test/lexer-tokens.xra:5:24
 <nodent> at test/lexer-tokens.xra:6:1
-99 at test/lexer-tokens.xra:6:3
-10 at test/lexer-tokens.xra:6:10
-255 at test/lexer-tokens.xra:6:15
-511 at test/lexer-tokens.xra:6:20
-3.1415 at test/lexer-tokens.xra:6:27
+<int 99> at test/lexer-tokens.xra:6:3
+<int 10> at test/lexer-tokens.xra:6:10
+<int 255> at test/lexer-tokens.xra:6:15
+<int 511> at test/lexer-tokens.xra:6:20
+<float 9> at test/lexer-tokens.xra:6:23
+<float 3.1415> at test/lexer-tokens.xra:6:30
 <eof> at test/lexer-tokens.xra:7:1
