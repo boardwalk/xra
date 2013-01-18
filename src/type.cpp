@@ -5,8 +5,8 @@ namespace xra {
 
 const TypePtr VoidType(new TList);
 const TypePtr BooleanType(new TBoolean);
-const TypePtr IntegerType(new TInteger);
-const TypePtr FloatType(new TFloat);
+const TypePtr IntegerType(new TInteger(true, sizeof(int) * CHAR_BIT));
+const TypePtr FloatType(new TFloat(sizeof(float) * CHAR_BIT));
 const TypePtr StringType(new TString);
 
 TypePtr MakeTypeVar()

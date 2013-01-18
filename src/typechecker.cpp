@@ -19,6 +19,8 @@ void TypeChecker::VisitEBoolean(EBoolean& expr)
 void TypeChecker::VisitEInteger(EInteger& expr)
 {
   expr.value = new VConstant;
+  // TODO this should be from the signedness/minimum width needed for the constant
+  // or from a trailing specifier
   expr.value->type = IntegerType;
 }
 
