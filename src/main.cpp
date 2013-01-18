@@ -15,7 +15,7 @@ int main(int argc, char** argv)
   llvm::InitializeNativeTarget();
 
   enum Mode { LexMode, ParseMode, AnalyzeMode, CompileMode, ExecMode };
-  Mode mode = CompileMode;
+  Mode mode = ExecMode;
 
   ifstream ifs;
   ofstream ofs;
