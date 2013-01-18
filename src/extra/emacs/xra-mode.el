@@ -1,6 +1,6 @@
 
 (defvar xra-keywords
-  (regexp-opt '("fn" "if" "else" "elsif" "while" "break" "return" "extern") 'words)
+  (regexp-opt '("fn" "if" "else" "elsif" "while" "break" "return" "extern" "unsigned" "signed") 'words)
   "xra keywords")
 
 (defvar xra-types
