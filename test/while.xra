@@ -1,0 +1,5 @@
+extern puts str -> int
+i = 0
+while i < 20
+  puts(if i < 2: "Hello..." elsif i < 18: "Hello, world!" else: "...world!")
+  i = i + 1
