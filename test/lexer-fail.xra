@@ -1,4 +1,4 @@
-#!/usr/bin/env xra -l
+## args = -l
 ## expect = fail
 
 # invalid indentation

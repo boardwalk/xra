@@ -1,4 +1,4 @@
-#!/usr/bin/env xra -l
+## args = -l
 'this is a no \escape\ string'
 "this \" \\ \0 \a \b \f \n \r \t \v is an escape string"
 'useful with regexps perhaps: (\d+)'

@@ -1,4 +1,4 @@
-#!/usr/bin/env xra -l
+## args = -l
 fn if elsif else while break return bool int float str true false extern
 abc _def ghi123 UpperCamelCase lowerCamelCase
 ( ) : \ `

@@ -13,5 +13,10 @@ while(<$fh>) {
 }
 close($fh);
 
-my $code = system($filePath);
+my @args;
+push @args, "src/xra";
+push @args, $opt{args} if $opt{args};
+push @args, $filePath;
+
+my $code = system(@args);
 die "Failed to run script: $filePath" if(($code == 0) != ($opt{expect} eq 'success'));
