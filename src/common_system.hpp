@@ -14,6 +14,9 @@
 #endif
 #include <llvm/Support/raw_os_ostream.h>
 #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/ExecutionEngine/JIT.h>
 #include <boost/intrusive_ptr.hpp>
 
 #include <map>

@@ -12,7 +12,9 @@ using namespace xra;
 
 int main(int argc, char** argv)
 {
-  enum Mode { LexMode, ParseMode, AnalyzeMode, CompileMode };
+  llvm::InitializeNativeTarget();
+
+  enum Mode { LexMode, ParseMode, AnalyzeMode, CompileMode, ExecMode };
   Mode mode = CompileMode;
 
   ifstream ifs;
@@ -22,7 +24,7 @@ int main(int argc, char** argv)
 
   // parse options
   int c;
-  while((c = getopt(argc, argv, "lpacmo:b")) != -1) {
+  while((c = getopt(argc, argv, "lpacemo:b")) != -1) {
     switch(c) {
     case 'l':
       mode = LexMode;
@@ -35,6 +37,9 @@ int main(int argc, char** argv)
       break;
     case 'c':
       mode = CompileMode;
+      break;
+    case 'e':
+      mode = ExecMode;
       break;
     case 'o':
       ofs.open(optarg);
@@ -136,21 +141,43 @@ int main(int argc, char** argv)
   compiler.Visit(expr.get());
 
   auto mainFunc = module->begin();
-  mainFunc->setName("main");
-  mainFunc->setLinkage(llvm::Function::ExternalLinkage);
 
-  llvm::raw_os_ostream llvmos(outputStream);
-  if(bitcode) {
-    if(!ofs.is_open()) {
-      cerr << "refusing to write bitcode to stdout" << endl;
-      return EXIT_FAILURE;
+  if(mode == CompileMode) {
+    mainFunc->setName("main");
+    mainFunc->setLinkage(llvm::Function::ExternalLinkage);
+
+    llvm::raw_os_ostream llvmos(outputStream);
+    if(bitcode) {
+      if(!ofs.is_open()) {
+        cerr << "refusing to write bitcode to stdout" << endl;
+        return EXIT_FAILURE;
+      }
+      llvm::WriteBitcodeToFile(module.get(), llvmos);
     }
-    llvm::WriteBitcodeToFile(module.get(), llvmos);
-  }
-  else {
-    module->print(llvmos, nullptr);
+    else {
+      module->print(llvmos, nullptr);
+    }
+    cerr << "compilation ok" << endl;
+    return EXIT_SUCCESS;
   }
 
-  cerr << "compilation ok" << endl;
+  /*
+   * Execution
+   */
+  llvm::EngineBuilder builder(module.release());
+
+  string err;
+  builder.setErrorStr(&err);
+
+  unique_ptr<llvm::ExecutionEngine> engine(builder.create());
+  if(!engine) {
+    cerr << "failed to create execution engine: " << err << endl;
+    return EXIT_FAILURE;
+  }
+
+  typedef void (*MainFunc)();
+  auto mainFuncPtr = (MainFunc)engine->getPointerToFunction(mainFunc);
+  mainFuncPtr();
+
   return EXIT_SUCCESS;
 }
