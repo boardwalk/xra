@@ -38,7 +38,9 @@ static const map<string, pair<int, bool> > binaryOperators {
   {"&&", {7, false}},
   {"||", {6, false}},
   {",", {4, false}},
-  {"=", {2, true}},
+  {"=", {3, true}},
+  {"#if", {2, false}},
+  {"#while", {2, false}},
   {";", {1, false}}
 };
 
@@ -261,6 +263,12 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
     if(TOKEN(Backtick) && lexer(1).type == Token::Identifier) {
       op = "#infix";
     }
+    else if(TOKEN(If)) {
+      op = "#if";
+    }
+    else if(TOKEN(While)) {
+      op = "#while";
+    }
     else if(TOKEN(Operator)) {
       op = lexer().strValue;
     }
@@ -304,6 +312,9 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
       list->exprs.push_back(move(exprRight));
     }
     else {
+      if(op == "#if" || op == "#while")
+        expr.swap(exprRight);
+
       auto list = make_unique<EList>();
       list->exprs.push_back(move(expr));
       list->exprs.push_back(move(exprRight));
