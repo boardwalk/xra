@@ -41,36 +41,20 @@ void TypeChecker::VisitEFunction(EFunction& expr)
   Scope scope(env);
 
   // tv <- newTyVar "a"
-  TypeSubst paramSubst;
+  auto& fields = static_cast<TList&>(*expr.param).fields;
 
-  for(auto& param : static_cast<EList&>(*expr.param).exprs) {
-    auto var = dyn_cast<EVariable>(param.get());
-    if(var) {
-      paramSubst.insert({var->name, var->type});
-      expr.paramNames.push_back(var->name);
-    }
-    else
-      Error() << "member of function parameter list must be variable";
-  }
-
-  for(auto& param : paramSubst) {
-    if(!param.second)
-      param.second = MakeTypeVar();
+  for(auto& f : fields) {
+    if(!f.type)
+      f.type = MakeTypeVar();
   }
 
   // TypeEnv env' = remove env n
   // env'' = TypeEnv (env' `Map.union` (Map.singleton n (Scheme [] tv)))
-  for(auto& param : paramSubst) {
+  for(auto& f : fields) {
     ValuePtr value = new VLocal;
-    value->type = param.second;
-    env.AddValue(param.first, value);
+    value->type = f.type;
+    env.AddValue(f.name, value);
   }
-
-  // ADDED
-  Visit(expr.param.get());
-  if(!expr.param->value)
-    return;
-  subst.clear();
   
   // (s1, t1) <- ti env'' e
   TypePtr lastReturnType = returnType;
@@ -91,7 +75,7 @@ void TypeChecker::VisitEFunction(EFunction& expr)
   // return (s1, TFun(apply s1 tv) t1)
   // MODIFIED (apply s1 tv) removed, unneeded
   expr.value = new VTemporary;
-  expr.value->type = new TFunction(expr.param->value->type, expr.body->value->type);
+  expr.value->type = new TFunction(expr.param, expr.body->value->type);
 }
 
 void TypeChecker::VisitECall(ECall& expr)

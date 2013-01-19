@@ -55,10 +55,10 @@ void Compiler::VisitEFunction(const EFunction& expr)
   auto block = llvm::BasicBlock::Create(module.getContext(), "entry", func);
 
   // put arguments into values map
-  auto paramName = expr.paramNames.begin();
+  auto field = static_cast<TList&>(*expr.param).fields.begin();
   for(auto& arg : func->getArgumentList()) {
-    values[*paramName] = &arg;
-    ++paramName;
+    values[field->name] = &arg;
+    ++field;
   }
 
   // fill in function

@@ -100,7 +100,6 @@ struct Visitor
 
   VISIT(TFunction)
   {
-    SUBCLASS.Visit(node.parameter.get());
     SUBCLASS.Visit(node.result.get());
   }
 

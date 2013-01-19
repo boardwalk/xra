@@ -99,7 +99,7 @@ public:
 class EFunction : public Expr
 {
 public:
-  EFunction(ExprPtr param_, ExprPtr body_) :
+  EFunction(TypePtr param_, ExprPtr body_) :
     Expr(Kind_EFunction),
     param(move(param_)),
     body(move(body_))
@@ -107,9 +107,8 @@ public:
 
   CLASSOF(EFunction)
 
-  ExprPtr param;
+  TypePtr param;
   ExprPtr body;
-  vector<string> paramNames;
 };
 
 class ECall : public Expr

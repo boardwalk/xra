@@ -14,7 +14,7 @@
 
 namespace xra {
 
-static TypePtr ParseList(BufferedLexer& lexer) // prefix: "("
+TypePtr ParseTypeList(BufferedLexer& lexer) // prefix: "("
 {
   auto list = make_unique<TList>();
 
@@ -94,7 +94,7 @@ TypePtr ParseType(BufferedLexer& lexer) // prefix: "\"
       type = VoidType;
     }
     else {
-      type = ParseList(lexer);
+      type = ParseTypeList(lexer);
       if(!TOKEN(CloseParen))
         EXPECTED(CloseParen);
     }

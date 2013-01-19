@@ -52,6 +52,7 @@ struct ExprToStringVisitor : Visitor<ExprToStringVisitor, const Expr>
   END(EString)
 
   BEGIN(EFunction)
+    os <<  " " << *expr.param;
   END(EFunction)
 
   BEGIN(ECall)

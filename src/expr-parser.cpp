@@ -54,17 +54,6 @@ static const map<string, int> unaryOperators {
 static ExprPtr ParseExpr(BufferedLexer&); // true, 0
 static ExprPtr ParseExpr_Exp(BufferedLexer&, bool, int);
 
-static ExprPtr ParseList(BufferedLexer& lexer)
-{
-  ExprPtr expr = ParseExpr(lexer);
-  if(isa<EList>(*expr))
-    return expr;
-
-  auto list = make_unique<EList>();
-  list->exprs.push_back(move(expr));
-  return list.release();
-}
-
 static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
 {
   auto list = make_unique<EList>();
@@ -107,7 +96,7 @@ static ExprPtr ParseClause(BufferedLexer& lexer)
 
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 {
-  return new EFunction(ParseList(lexer), ParseClause(lexer));
+  return new EFunction(ParseTypeList(lexer), ParseClause(lexer));
 }
 
 static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
@@ -407,7 +396,7 @@ ExprPtr ParseTopLevel(BufferedLexer& lexer)
   list->exprs.push_back(new EList);
 
   return new EFunction(
-    new EList,
+    new TList,
     new ECall(
       new EVariable(";"),
       list.release()));
