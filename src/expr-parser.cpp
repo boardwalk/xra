@@ -91,38 +91,6 @@ static ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
   return expr;
 }
 
-static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
-{
-  if(!TOKEN(Identifier))
-    EXPECTED(Identifier)
-  string name = lexer().strValue;
-  lexer.Consume();
-
-  TypePtr type = ParseType(lexer);
-  if(!type)
-    EXPECTED(Type)
-
-  return new EExtern(name, type);
-}
-
-static ExprPtr ParseTypeAlias(BufferedLexer& lexer)
-{
-  if(!TOKEN(Identifier))
-    EXPECTED(Identifier);
-  auto name = lexer().strValue;
-  lexer.Consume();
-
-  if(!TOKEN(Operator) || lexer().strValue != "=")
-    EXPECTED(Equals)
-  lexer.Consume();
-
-  auto type = ParseType(lexer);
-  if(!type)
-    EXPECTED(Type)
-
-  return new ETypeAlias(name, type);
-}
-
 static ExprPtr ParseClause(BufferedLexer& lexer)
 {
   if(TOKEN(Indent)) {
@@ -135,6 +103,11 @@ static ExprPtr ParseClause(BufferedLexer& lexer)
   lexer.Consume();
 
   return ParseExpr(lexer);
+}
+
+static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
+{
+  return new EFunction(ParseList(lexer), ParseClause(lexer));
 }
 
 static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
@@ -180,6 +153,11 @@ static ExprPtr ParseWhile(BufferedLexer& lexer) // prefix: while
   return new ECall(new EVariable("#while"), list.release());
 }
 
+static ExprPtr ParseBreak(BufferedLexer&) // prefix: break
+{
+  return new ECall(new EVariable("#break"), new EList);
+}
+
 static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
 {
   auto list = make_unique<EList>();
@@ -189,14 +167,36 @@ static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
   return new ECall(new EVariable("#return"), list.release());
 }
 
-static ExprPtr ParseBreak(BufferedLexer&) // prefix: break
+static ExprPtr ParseTypeAlias(BufferedLexer& lexer)
 {
-  return new ECall(new EVariable("#break"), new EList);
+  if(!TOKEN(Identifier))
+    EXPECTED(Identifier);
+  auto name = lexer().strValue;
+  lexer.Consume();
+
+  if(!TOKEN(Operator) || lexer().strValue != "=")
+    EXPECTED(Equals)
+  lexer.Consume();
+
+  auto type = ParseType(lexer);
+  if(!type)
+    EXPECTED(Type)
+
+  return new ETypeAlias(name, type);
 }
 
-static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
+static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
 {
-  return new EFunction(ParseList(lexer), ParseClause(lexer));
+  if(!TOKEN(Identifier))
+    EXPECTED(Identifier)
+  string name = lexer().strValue;
+  lexer.Consume();
+
+  TypePtr type = ParseType(lexer);
+  if(!type)
+    EXPECTED(Type)
+
+  return new EExtern(name, type);
 }
 
 static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
@@ -282,16 +282,53 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
 {
   ExprPtr expr;
 
-  if(TOKEN(Operator))
-  {
-    auto unaryOp = unaryOperators.find(lexer().strValue);
+  if(TOKEN(Integer)) {
+    expr = new EInteger(lexer().intValue);
     lexer.Consume();
-
-    if(unaryOp == unaryOperators.end())
-      ERROR("unknown unary operator")
-
-    expr = ParseExpr_Exp(lexer, true, unaryOp->second);
-    expr = new ECall(new EVariable(unaryOp->first), expr);
+  }
+  else if(TOKEN(Float)) {
+    expr = new EFloat(lexer().floatValue);
+    lexer.Consume();
+  }
+  else if(TOKEN(String)) {
+    expr = new EString(lexer().strValue);
+    lexer.Consume();
+  }
+  else if(TOKEN(True)) {
+    expr = new EBoolean(true);
+    lexer.Consume();
+  }
+  else if(TOKEN(False)) {
+    expr = new EBoolean(false);
+    lexer.Consume();
+  }
+  else if(TOKEN(Fn)) {
+    lexer.Consume();
+    expr = ParseFn(lexer);
+  }
+  else if(TOKEN(If)) {
+    lexer.Consume();
+    expr = ParseIf(lexer);
+  }
+  else if(TOKEN(While)) {
+    lexer.Consume();
+    expr = ParseWhile(lexer);
+  }
+  else if(TOKEN(Break)) {
+    lexer.Consume();
+    expr = ParseBreak(lexer);
+  }
+  else if(TOKEN(Return)) {
+    lexer.Consume();
+    expr = ParseReturn(lexer);
+  }
+  else if(TOKEN(TypeAlias)) {
+    lexer.Consume();
+    expr = ParseTypeAlias(lexer);
+  }
+  else if(TOKEN(Extern)) {
+    lexer.Consume();
+    expr = ParseExtern(lexer);
   }
   else if(TOKEN(OpenParen))
   {
@@ -322,53 +359,16 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     expr = new EVariable(lexer().strValue);
     lexer.Consume();
   }
-  else if(TOKEN(True)) {
-    expr = new EBoolean(true);
+  else if(TOKEN(Operator))
+  {
+    auto unaryOp = unaryOperators.find(lexer().strValue);
     lexer.Consume();
-  }
-  else if(TOKEN(False)) {
-    expr = new EBoolean(false);
-    lexer.Consume();
-  }
-  else if(TOKEN(Integer)) {
-    expr = new EInteger(lexer().intValue);
-    lexer.Consume();
-  }
-  else if(TOKEN(Float)) {
-    expr = new EFloat(lexer().floatValue);
-    lexer.Consume();
-  }
-  else if(TOKEN(String)) {
-    expr = new EString(lexer().strValue);
-    lexer.Consume();
-  }
-  else if(TOKEN(Extern)) {
-    lexer.Consume();
-    expr = ParseExtern(lexer);
-  }
-  else if(TOKEN(If)) {
-    lexer.Consume();
-    expr = ParseIf(lexer);
-  }
-  else if(TOKEN(While)) {
-    lexer.Consume();
-    expr = ParseWhile(lexer);
-  }
-  else if(TOKEN(Return)) {
-    lexer.Consume();
-    expr = ParseReturn(lexer);
-  }
-  else if(TOKEN(TypeAlias)) {
-    lexer.Consume();
-    expr = ParseTypeAlias(lexer);
-  }
-  else if(TOKEN(Break)) {
-    lexer.Consume();
-    expr = ParseBreak(lexer);
-  }
-  else if(TOKEN(Fn)) {
-    lexer.Consume();
-    expr = ParseFn(lexer);
+
+    if(unaryOp == unaryOperators.end())
+      ERROR("unknown unary operator")
+
+    expr = ParseExpr_Exp(lexer, true, unaryOp->second);
+    expr = new ECall(new EVariable(unaryOp->first), expr);
   }
 
   if(!expr) {

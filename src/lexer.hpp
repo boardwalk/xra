@@ -12,6 +12,20 @@ struct Token
     Indent,
     Nodent,
     Dedent,
+    EndOfFile,
+    // constants
+    Integer, // intValue
+    Float, // floatValue
+    String, // strValue
+    // special identifiers
+    BooleanType,
+    IntegerType,
+    FloatType,
+    StringType,
+    Signed,
+    Unsigned,
+    True,
+    False,
     Fn,
     If,
     Elsif,
@@ -20,26 +34,17 @@ struct Token
     Break,
     Return,
     TypeAlias,
-    BooleanType,
-    IntegerType,
-    FloatType,
-    StringType,
-    Unsigned,
-    Signed,
-    True,
-    False,
     Extern,
-    Identifier, // strValue
+    // special operators
     OpenParen,
     CloseParen,
     Colon,
     Slash,
     Backtick,
-    Integer, // intValue
-    Float, // floatValue
-    String, // strValue
-    Operator, // strValue
-    EndOfFile
+    // other identifiers
+    Identifier, // strValue
+    // other operators
+    Operator // strValue
   };
 
   Token& Str(string str) {

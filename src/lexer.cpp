@@ -47,30 +47,22 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Dedent:
       os << "<dedent>";
       break;
-    case Token::Fn:
-      os << "fn";
+    case Token::EndOfFile:
+      os << "<eof>";
       break;
-    case Token::If:
-      os << "if";
+    // constants
+    case Token::Integer:
+      os << "<int " << token.intValue << ">";
       break;
-    case Token::Else:
-      os << "else";
+    case Token::Float:
+      os << "<float " << token.floatValue << ">";
       break;
-    case Token::Elsif:
-      os << "elsif";
+    case Token::String:
+      os << "\"";
+      EscapeString(token.strValue, os);
+      os << "\"";
       break;
-    case Token::While:
-      os << "while";
-      break;
-    case Token::Break:
-      os << "break";
-      break;
-    case Token::Return:
-      os << "return";
-      break;
-    case Token::TypeAlias:
-      os << "type";
-      break;
+    // special identifiers
     case Token::BooleanType:
       os << "bool";
       break;
@@ -95,12 +87,34 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::False:
       os << "false";
       break;
+    case Token::Fn:
+      os << "fn";
+      break;
+    case Token::If:
+      os << "if";
+      break;
+    case Token::Else:
+      os << "else";
+      break;
+    case Token::Elsif:
+      os << "elsif";
+      break;
+    case Token::While:
+      os << "while";
+      break;
+    case Token::Break:
+      os << "break";
+      break;
+    case Token::Return:
+      os << "return";
+      break;
+    case Token::TypeAlias:
+      os << "type";
+      break;
     case Token::Extern:
       os << "extern";
       break;
-    case Token::Identifier:
-      os << "<identifier " << token.strValue << ">";
-      break;
+    // special operators
     case Token::OpenParen:
       os << '(';
       break;
@@ -116,22 +130,13 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Backtick:
       os << '`';
       break;
-    case Token::Integer:
-      os << "<int " << token.intValue << ">";
+    // other identifiers
+    case Token::Identifier:
+      os << "<identifier " << token.strValue << ">";
       break;
-    case Token::Float:
-      os << "<float " << token.floatValue << ">";
-      break;
-    case Token::String:
-      os << "\"";
-      EscapeString(token.strValue, os);
-      os << "\"";
-      break;
+    // other keywords
     case Token::Operator:
       os << "<operator " << token.strValue << ">";
-      break;
-    case Token::EndOfFile:
-      os << "<eof>";
       break;
   }
   os << " at " << token.loc;
@@ -254,14 +259,6 @@ Token Lexer::operator()()
     string str(1, lastChar);
     while(IdentifierSubsequent(GetChar()))
       str += lastChar;
-    if(str == "fn") return MakeToken(Token::Fn);
-    if(str == "if") return MakeToken(Token::If);
-    if(str == "elsif") return MakeToken(Token::Elsif);
-    if(str == "else") return MakeToken(Token::Else);
-    if(str == "while") return MakeToken(Token::While);
-    if(str == "break") return MakeToken(Token::Break);
-    if(str == "return") return MakeToken(Token::Return);
-    if(str == "type") return MakeToken(Token::TypeAlias);
     if(str == "bool") return MakeToken(Token::BooleanType);
     if(str == "int") return MakeToken(Token::IntegerType);
     if(str == "float") return MakeToken(Token::FloatType);
@@ -270,6 +267,14 @@ Token Lexer::operator()()
     if(str == "unsigned") return MakeToken(Token::Unsigned);
     if(str == "true") return MakeToken(Token::True);
     if(str == "false") return MakeToken(Token::False);
+    if(str == "fn") return MakeToken(Token::Fn);
+    if(str == "if") return MakeToken(Token::If);
+    if(str == "elsif") return MakeToken(Token::Elsif);
+    if(str == "else") return MakeToken(Token::Else);
+    if(str == "while") return MakeToken(Token::While);
+    if(str == "break") return MakeToken(Token::Break);
+    if(str == "return") return MakeToken(Token::Return);
+    if(str == "type") return MakeToken(Token::TypeAlias);
     if(str == "extern") return MakeToken(Token::Extern);
     Token token = MakeToken(Token::Identifier);
     token.strValue = move(str);
