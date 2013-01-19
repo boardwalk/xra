@@ -26,12 +26,37 @@ static TypePtr ParseType(BufferedLexer& lexer, int level)
     lexer.Consume();
   }
   else if(TOKEN(IntegerType)) {
-    type = IntegerType;
     lexer.Consume();
+    bool signed_ = true;
+    if(TOKEN(Unsigned)) {
+      signed_ = false;
+      lexer.Consume();
+    }
+    else if(TOKEN(Signed)) {
+      signed_ = true;
+      lexer.Consume();
+    }
+    unsigned int width = sizeof(int) * CHAR_BIT;
+    if(TOKEN(Integer)) {
+      width = (unsigned int)lexer().intValue;
+      lexer.Consume();
+    }
+    if(width != 8 && width != 16 && width != 32 &&
+       width != 64 && width != 128)
+      ERROR("Invalid integer width")
+    type = new TInteger(signed_, width);
   }
   else if(TOKEN(FloatType)) {
-    type = FloatType;
     lexer.Consume();
+    unsigned int width = sizeof(float) * CHAR_BIT;
+    if(TOKEN(Integer)) {
+      width = (unsigned int)lexer().intValue;
+      lexer.Consume();
+    }
+    if(width != 16 && width != 32 && width != 64 &&
+       width != 80 && width != 128)
+      ERROR("Invalid float width")
+    type = new TFloat(width);
   }
   else if(TOKEN(StringType)) {
     type = StringType;

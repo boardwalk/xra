@@ -18,14 +18,23 @@ struct TypeToLLVMVisitor : Visitor<TypeToLLVMVisitor, const Type>
     result = llvm::Type::getInt1Ty(ctx);
   }
 
-  void VisitTInteger(const TInteger&)
+  void VisitTInteger(const TInteger& type)
   {
-    result = llvm::Type::getInt32Ty(ctx);
+    result = llvm::Type::getIntNTy(ctx, type.width);
   }
 
-  void VisitTFloat(const TFloat&)
+  void VisitTFloat(const TFloat& type)
   {
-    result = llvm::Type::getFloatTy(ctx);
+    if(type.width == 16)
+      result = llvm::Type::getHalfTy(ctx);
+    else if(type.width == 32)
+      result = llvm::Type::getFloatTy(ctx);
+    else if(type.width == 64)
+      result = llvm::Type::getDoubleTy(ctx);
+    else if(type.width == 80)
+      result = llvm::Type::getX86_FP80Ty(ctx);
+    else if(type.width == 128)
+      result = llvm::Type::getFP128Ty(ctx);
   }
 
   void VisitTString(const TString&)

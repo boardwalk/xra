@@ -23,6 +23,8 @@ struct Token
     IntegerType,
     FloatType,
     StringType,
+    Unsigned,
+    Signed,
     True,
     False,
     Extern,

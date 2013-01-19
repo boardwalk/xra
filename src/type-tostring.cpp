@@ -17,14 +17,17 @@ struct TypeToStringVisitor : Visitor<TypeToStringVisitor, const Type>
     os << "bool";
   }
 
-  void VisitTInteger(const TInteger&)
+  void VisitTInteger(const TInteger& type)
   {
-    os << "int";
+    os << "int ";
+    os << (type._signed ? "signed " : "unsigned ");
+    os << type.width;
   }
 
-  void VisitTFloat(const TFloat&)
+  void VisitTFloat(const TFloat& type)
   {
-    os << "float";
+    os << "float ";
+    os << type.width;
   }
 
   void VisitTString(const TString&)

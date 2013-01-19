@@ -80,6 +80,12 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::StringType:
       os << "str";
       break;
+    case Token::Signed:
+      os << "signed";
+      break;
+    case Token::Unsigned:
+      os << "unsigned";
+      break;
     case Token::True:
       os << "true";
       break;
@@ -256,6 +262,8 @@ Token Lexer::operator()()
     if(str == "int") return MakeToken(Token::IntegerType);
     if(str == "float") return MakeToken(Token::FloatType);
     if(str == "str") return MakeToken(Token::StringType);
+    if(str == "signed") return MakeToken(Token::Signed);
+    if(str == "unsigned") return MakeToken(Token::Unsigned);
     if(str == "true") return MakeToken(Token::True);
     if(str == "false") return MakeToken(Token::False);
     if(str == "extern") return MakeToken(Token::Extern);

@@ -63,21 +63,29 @@ public:
 class TInteger : public Type
 {
 public:
-  TInteger() :
-    Type(Kind_TInteger)
+  TInteger(bool signed_, unsigned int width_) :
+    Type(Kind_TInteger),
+    _signed(signed_),
+    width(width_)
   {}
 
   CLASSOF(TInteger)
+
+  const bool _signed;
+  const unsigned int width;
 };
 
 class TFloat : public Type
 {
 public:
-  TFloat() :
-    Type(Kind_TFloat)
+  TFloat(unsigned int width_) :
+    Type(Kind_TFloat),
+    width(width_)
   {}
 
   CLASSOF(TFloat)
+
+  const unsigned width;
 };
 
 class TString : public Type
