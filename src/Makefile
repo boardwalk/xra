@@ -1,11 +1,18 @@
 CXX = clang++
-CXXFLAGS = -I/Users/at0m13/homebrew/include -I/Users/at0m13/homebrew/include/c++/v1 \
+CXXFLAGS = \
 	-Weverything -Wno-c++98-compat -Wno-weak-vtables -Wno-padded \
 	-Wno-global-constructors -Wno-exit-time-destructors \
-	-g -O0 -std=c++11 -stdlib=libc++ \
+	-g -O0 -std=c++11 \
 	`llvm-config --cxxflags`
-LDFLAGS = -g -O0 -L/users/at0m13/homebrew/lib -stdlib=libc++ `llvm-config --ldflags`
+LDFLAGS = -g -O0 -L/users/at0m13/homebrew/lib `llvm-config --ldflags`
 LIBS = `llvm-config --libs core bitwriter jit native`
+
+UNAME = $(UNAME -s)
+ifeq ($(UNAME),Darwin)
+	CXXFLAGS += -I/Users/at0m13/homebrew/include -I/Users/at0m13/homebrew/include/c++/v1
+	CXXFLAGS += -stdlib=libc++
+	LDFLAGS += -stdlib=libc++
+endif
 
 SOURCES = common.cpp \
 	main.cpp \
@@ -37,7 +44,6 @@ clean:
 xra: $(OBJS)
 	@echo "LINK $@"
 	@$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
-	@dsymutil $@
 
 $(OBJS): obj/common.hpp.pch
 
