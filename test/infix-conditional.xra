@@ -1,0 +1,5 @@
+extern puts str -> int
+x = 12
+puts "Less than three" if x < 3
+puts "Greater than five" if x > 5
+(puts "Still less than twenty!"; x = x + 1) while x < 20
