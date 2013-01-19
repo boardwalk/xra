@@ -120,9 +120,13 @@ public:
 
   CLASSOF(TList)
 
-  vector<TypePtr> types;
-};
+  struct Field {
+    string name;
+    TypePtr type;
+  };
 
+  vector<Field> fields;
+};
 
 class TFunction : public Type
 {

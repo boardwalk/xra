@@ -33,15 +33,17 @@ struct TypeUnifyVisitor : Visitor<TypeUnifyVisitor, Type>
   {
     auto& otherList = static_cast<TList&>(other);
 
-    if(type.types.size() != otherList.types.size()) {
+    if(type.fields.size() != otherList.fields.size()) {
       Error() << "lists differ in length";
       return;
     }
 
-    auto otherIt = otherList.types.begin();
-    for(auto& t : type.types) {
-      Compose(Unify(*t, **otherIt), subst);
-      ++otherIt;
+    auto it = type.fields.begin();
+    auto otherIt = otherList.fields.begin();
+
+    while(it != type.fields.end()) {
+      Compose(Unify(*it->type, *otherIt->type), subst);
+      ++it, ++otherIt;
     }
   }
 

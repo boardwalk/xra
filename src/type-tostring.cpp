@@ -37,30 +37,33 @@ struct TypeToStringVisitor : Visitor<TypeToStringVisitor, const Type>
 
   void VisitTVariable(const TVariable& type)
   {
-    os << "`" << type.name << "`";
+    os << type.name;
   }
 
   void VisitTList(const TList& type)
   {
-    os << "(list";
-    base::VisitTList(type);
+    os << "(";
+
+    int i = 0;
+    for(auto& f : type.fields)
+    {
+      if(i++ != 0)
+        os << ", ";
+
+      if(!f.name.empty())
+        os << f.name << "\\";
+
+      Visit(f.type.get());
+    }
+
     os << ")";
   }
 
   void VisitTFunction(const TFunction& type)
   {
-    os << "(fn";
-    base::VisitTFunction(type);
-    os << ")";
-  }
-
-  void Visit(const Base* base)
-  {
-    if(firstVisit)
-      firstVisit = false;
-    else
-      os << " ";
-    base::Visit(base);
+    Visit(type.parameter.get());
+    os << " -> ";
+    Visit(type.result.get());
   }
 };
 

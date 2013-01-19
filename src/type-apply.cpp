@@ -44,9 +44,9 @@ struct TypeApplyVisitor : Visitor<TypeApplyVisitor, Type>
   void VisitTList(TList& type)
   {
     auto list = make_unique<TList>();
-    for(auto& t : type.types) {
-      Visit(t.get());
-      list->types.push_back(result);
+    for(auto& f : type.fields) {
+      Visit(f.type.get());
+      list->fields.push_back({f.name, result});
     }
     result = list.release();
   }

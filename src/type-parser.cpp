@@ -3,6 +3,7 @@
 #include "buffered-lexer.hpp"
 
 #define TOKEN(t) (lexer().type == Token::t)
+#define NEXT_TOKEN(t) (lexer(1).type == Token::t)
 #define ERROR(what) \
   { \
     Error() << what << " near " << lexer() << " at type-parser.cpp:" << __LINE__; \
@@ -13,7 +14,32 @@
 
 namespace xra {
 
-static TypePtr ParseType(BufferedLexer& lexer, int level)
+static TypePtr ParseList(BufferedLexer& lexer) // prefix: "("
+{
+  auto list = make_unique<TList>();
+
+  while(true) {
+    string field;
+    if(TOKEN(Identifier) && NEXT_TOKEN(Slash)) {
+      field = lexer().strValue;
+      lexer.Consume(2);
+    }
+
+    auto type = ParseType(lexer);
+    if(!type)
+      EXPECTED(Type)
+
+    list->fields.push_back({move(field), type});
+
+    if(!TOKEN(Operator) || lexer().strValue  != ",")
+      break;
+    lexer.Consume();
+  }
+
+  return list.release();
+}
+
+TypePtr ParseType(BufferedLexer& lexer) // prefix: "\"
 {
   TypePtr type;
 
@@ -68,7 +94,7 @@ static TypePtr ParseType(BufferedLexer& lexer, int level)
       type = VoidType;
     }
     else {
-      type = ParseType(lexer, level + 1);
+      type = ParseList(lexer);
       if(!TOKEN(CloseParen))
         EXPECTED(CloseParen);
     }
@@ -81,46 +107,22 @@ static TypePtr ParseType(BufferedLexer& lexer, int level)
     return type;
   }
 
-  if(TOKEN(Operator))
+  if(TOKEN(Operator) && lexer().strValue == "->")
   {
-    if(level != 0 && lexer().strValue == ",")
-    {
-      lexer.Consume();
-      TypePtr typeRight = ParseType(lexer, level);
+    lexer.Consume();
 
-      TList* list = dyn_cast<TList>(typeRight.get());
-      if(list) {
-        list->types.insert(list->types.begin(), type);
-        type = typeRight;
-      }
-      else {
-        list = new TList();
-        list->types.push_back(type);
-        list->types.push_back(typeRight);
-        type = list;
-      }
+    // the parameter to a function is always a list
+    if(!isa<TList>(*type)) {
+      auto list = make_unique<TList>();
+      list->fields.push_back({string(), type});
+      type = list.release();
     }
-    else if(lexer().strValue == "->")
-    {
-      // the parameter to a function is always a list
-      if(!isa<TList>(*type)) {
-        TList* list = new TList();
-        list->types.push_back(type);
-        type = list;
-      }
 
-      lexer.Consume();
-      TypePtr typeRight = ParseType(lexer, level);
-      type = new TFunction(type, typeRight);
-    }
+    TypePtr typeRight = ParseType(lexer);
+    type = new TFunction(type, typeRight);
   }
 
   return type;
-}
-
-TypePtr ParseType(BufferedLexer& lexer) // prefix: "\"
-{
-  return ParseType(lexer, 0);
 }
 
 } // namespace xra

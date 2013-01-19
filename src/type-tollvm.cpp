@@ -44,14 +44,14 @@ struct TypeToLLVMVisitor : Visitor<TypeToLLVMVisitor, const Type>
 
   void VisitTList(const TList& type)
   {
-    if(type.types.empty()) {
+    if(type.fields.empty()) {
       result = llvm::Type::getVoidTy(ctx);
       return;
     }
 
     vector<llvm::Type*> llvmTypes;
-    for(auto& t : type.types) {
-      Visit(t.get());
+    for(auto& f : type.fields) {
+      Visit(f.type.get());
       llvmTypes.push_back(result);
     }
     result = llvm::StructType::get(ctx, llvmTypes, false);
@@ -60,8 +60,8 @@ struct TypeToLLVMVisitor : Visitor<TypeToLLVMVisitor, const Type>
   void VisitTFunction(const TFunction& type)
   {
     vector<llvm::Type*> llvmParams;
-    for(auto& param : static_cast<TList&>(*type.parameter).types) {
-      Visit(param.get());
+    for(auto& f : static_cast<TList&>(*type.parameter).fields) {
+      Visit(f.type.get());
       llvmParams.push_back(result);
     }
 

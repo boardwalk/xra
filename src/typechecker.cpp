@@ -166,7 +166,7 @@ void TypeChecker::VisitEList(EList& expr)
 
     Compose(lastSubst, subst);
 
-    r->types.push_back(e->value->type);
+    r->fields.push_back({string(), e->value->type});
   }
 
   expr.value = new VTemporary;

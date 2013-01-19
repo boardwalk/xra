@@ -94,8 +94,8 @@ struct Visitor
 
   VISIT(TList)
   {
-    for(auto& t : node.types)
-      SUBCLASS.Visit(t.get());
+    for(auto& f : node.fields)
+      SUBCLASS.Visit(f.type.get());
   }
 
   VISIT(TFunction)
