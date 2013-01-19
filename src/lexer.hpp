@@ -26,6 +26,8 @@ struct Token
     Unsigned,
     True,
     False,
+    Module,
+    Using,
     Fn,
     If,
     Elsif,

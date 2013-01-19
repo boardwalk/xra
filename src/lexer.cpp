@@ -87,6 +87,12 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::False:
       os << "false";
       break;
+    case Token::Module:
+      os << "module";
+      break;
+    case Token::Using:
+      os << "using";
+      break;
     case Token::Fn:
       os << "fn";
       break;
@@ -267,6 +273,8 @@ Token Lexer::operator()()
     if(str == "unsigned") return MakeToken(Token::Unsigned);
     if(str == "true") return MakeToken(Token::True);
     if(str == "false") return MakeToken(Token::False);
+    if(str == "module") return MakeToken(Token::Module);
+    if(str == "using") return MakeToken(Token::Using);
     if(str == "fn") return MakeToken(Token::Fn);
     if(str == "if") return MakeToken(Token::If);
     if(str == "elsif") return MakeToken(Token::Elsif);

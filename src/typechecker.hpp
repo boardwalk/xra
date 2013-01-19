@@ -17,6 +17,8 @@ public:
   TypeSubst subst;
   TypePtr returnType;
   bool insideLoop;
+  string moduleName;
+  set<string> usingModules;
 
   void VisitEVariable(EVariable&);
   void VisitEBoolean(EBoolean&);

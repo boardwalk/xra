@@ -357,6 +357,76 @@ void BBreak::Compile(Compiler& compiler, const vector<ExprPtr>&)
 }
 
 /*
+ * BModule
+ */
+
+class BModule : public VBuiltin
+{
+public:
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
+static string AbsoluteModule(const string& currentModule, const string& modulePath)
+{
+  if(modulePath[0] == '.')
+    return modulePath.substr(1);
+
+  if(currentModule.empty())
+    return modulePath;
+
+  return currentModule + "." + modulePath;
+}
+
+ValuePtr BModule::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
+{
+  auto module = static_cast<EVariable&>(*args[0]).name;
+  module = AbsoluteModule(checker.moduleName, module);
+
+  checker.moduleName.swap(module);
+  checker.Visit(args[1].get());
+  checker.moduleName.swap(module);
+
+  return VoidValue;
+}
+
+void BModule::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  compiler.Visit(args[1].get());
+}
+
+/*
+ * BUsing
+ */
+
+class BUsing : public VBuiltin
+{
+public:
+  ValuePtr Infer(TypeChecker&, const vector<ExprPtr>&);
+  void Compile(Compiler&, const vector<ExprPtr>&);
+};
+
+ValuePtr BUsing::Infer(TypeChecker& checker, const vector<ExprPtr>& args)
+{
+  auto module = static_cast<EVariable&>(*args[0]).name;
+  module = AbsoluteModule(checker.moduleName, module);
+
+  if(!checker.usingModules.insert(module).second) {
+    Error() << "duplicate using: " << module;
+    return {};
+  }
+  checker.Visit(args[1].get());
+  checker.usingModules.erase(module);
+
+  return VoidValue;
+}
+
+void BUsing::Compile(Compiler& compiler, const vector<ExprPtr>& args)
+{
+  compiler.Visit(args[1].get());
+}
+
+/*
  * BArithmetic
  */
 
@@ -460,6 +530,8 @@ void AddBuiltins(Env& env)
   env.AddValue("#while", new BWhile);
   env.AddValue("#return", new BReturn);
   env.AddValue("#break", new BBreak);
+  env.AddValue("#module", new BModule);
+  env.AddValue("#using", new BUsing);
   env.AddValue("+", new BArithmetic<Add>);
   env.AddValue("-", new BArithmetic<Sub>);
   env.AddValue("*", new BArithmetic<Mul>);

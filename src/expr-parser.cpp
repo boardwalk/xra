@@ -94,6 +94,62 @@ static ExprPtr ParseClause(BufferedLexer& lexer)
   return ParseExpr(lexer);
 }
 
+static ExprPtr ParseName(BufferedLexer& lexer)
+{
+  string name;
+
+  if(TOKEN(Operator) && lexer().strValue == ".") {
+    name += '.';
+    lexer.Consume();
+  }
+
+  while(true) {
+    if(!TOKEN(Identifier))
+      EXPECTED(Identifier)
+    name += lexer().strValue;
+    lexer.Consume();
+
+    if(!TOKEN(Operator) || lexer().strValue != ".")
+      break;
+    name += '.';
+    lexer.Consume();
+  }
+
+  return new EVariable(move(name));
+}
+
+static ExprPtr ParseModule(BufferedLexer& lexer) // prefix: module
+{
+  auto list = make_unique<EList>();
+  list->exprs.push_back(ParseName(lexer));
+
+  if(!TOKEN(Indent) && !TOKEN(Nodent))
+    EXPECTED(IndentOrNodent)
+  bool indented = TOKEN(Indent);
+  lexer.Consume();
+
+  list->exprs.push_back(ParseFlatBlock(lexer));
+
+  if(indented) {
+    if(!TOKEN(Dedent))
+      EXPECTED(Dedent)
+    lexer.Consume();
+  }
+
+  return new ECall(new EVariable("#module"), list.release());
+}
+
+static ExprPtr ParseUsing(BufferedLexer& lexer) // prefix: using
+{
+  auto list = make_unique<EList>();
+  list->exprs.push_back(ParseName(lexer));
+  if(!TOKEN(Nodent))
+    EXPECTED(Nodent)
+  lexer.Consume();
+  list->exprs.push_back(ParseFlatBlock(lexer));
+  return new ECall(new EVariable("#using"), list.release());
+}
+
 static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
 {
   return new EFunction(ParseTypeList(lexer), ParseClause(lexer));
@@ -287,6 +343,14 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   else if(TOKEN(False)) {
     expr = new EBoolean(false);
     lexer.Consume();
+  }
+  else if(TOKEN(Module)) {
+    lexer.Consume();
+    expr = ParseModule(lexer);
+  }
+  else if(TOKEN(Using)) {
+    lexer.Consume();
+    expr = ParseUsing(lexer);
   }
   else if(TOKEN(Fn)) {
     lexer.Consume();
