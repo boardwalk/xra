@@ -16,7 +16,7 @@ namespace xra {
 
 static const map<string, pair<int, bool> > binaryOperators {
   {".", {19, false}},
-  {"#infix", {18, false}}, // a call to a regular function using backticks (x `f` y)
+  {"#infix", {18, false}}, // a call to a regular function using backticks (x `f y)
   {"#call", {17, true}}, // a call to a function using a space (f x)
   {"*", {16, false}},
   {"/", {16, false}},
@@ -235,9 +235,6 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
     if(op == "#infix") {
       op = lexer().strValue;
       lexer.Consume();
-      if(!TOKEN(Backtick))
-        EXPECTED(Backtick);
-      lexer.Consume();
     }
 
     int q = rightAssoc ? prec : (1 + prec);
@@ -349,10 +346,6 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     if(!TOKEN(Operator))
       EXPECTED(Operator)
     expr = new EVariable(lexer().strValue);
-    lexer.Consume();
-
-    if(!TOKEN(Backtick))
-      EXPECTED(Backtick)
     lexer.Consume();
   }
   else if(TOKEN(Identifier)) {
