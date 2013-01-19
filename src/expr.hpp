@@ -154,6 +154,21 @@ public:
   const TypePtr externType;
 };
 
+class ETypeAlias : public Expr
+{
+public:
+  ETypeAlias(string name_, TypePtr aliasedType_) :
+    Expr(Kind_ETypeAlias),
+    name(move(name_)),
+    aliasedType(move(aliasedType_))
+  {}
+
+  CLASSOF(ETypeAlias)
+
+  const string name;
+  const TypePtr aliasedType;
+};
+
 } // namespace xra
 
 #endif // XRA_EXPR_HPP

@@ -19,6 +19,7 @@ struct Token
     While,
     Break,
     Return,
+    TypeAlias,
     BooleanType,
     IntegerType,
     FloatType,

@@ -68,6 +68,9 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Return:
       os << "return";
       break;
+    case Token::TypeAlias:
+      os << "type";
+      break;
     case Token::BooleanType:
       os << "bool";
       break;
@@ -258,6 +261,7 @@ Token Lexer::operator()()
     if(str == "while") return MakeToken(Token::While);
     if(str == "break") return MakeToken(Token::Break);
     if(str == "return") return MakeToken(Token::Return);
+    if(str == "type") return MakeToken(Token::TypeAlias);
     if(str == "bool") return MakeToken(Token::BooleanType);
     if(str == "int") return MakeToken(Token::IntegerType);
     if(str == "float") return MakeToken(Token::FloatType);

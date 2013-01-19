@@ -64,6 +64,10 @@ struct ExprToStringVisitor : Visitor<ExprToStringVisitor, const Expr>
     os << " " << expr.name << " " << *expr.externType;
   END(EExtern)
 
+  BEGIN(ETypeAlias)
+    os << " " << expr.name << " " << *expr.aliasedType;
+  END(ETypeAlias)
+
 #undef BEGIN
 #undef END
 };

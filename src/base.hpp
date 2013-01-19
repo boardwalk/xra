@@ -17,6 +17,7 @@ public:
     Kind_ECall,
     Kind_EList,
     Kind_EExtern,
+    Kind_ETypeAlias,
     // Values
     Kind_VBuiltin,
     Kind_VTemporary,

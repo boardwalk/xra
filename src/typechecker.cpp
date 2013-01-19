@@ -182,6 +182,13 @@ void TypeChecker::VisitEExtern(EExtern& expr)
   expr.value = VoidValue;
 }
 
+void TypeChecker::VisitETypeAlias(ETypeAlias& expr)
+{
+  subst[expr.name] = expr.aliasedType;
+
+  expr.value = VoidValue;
+}
+
 void TypeChecker::Visit(Base* base)
 {
   base::Visit(base);

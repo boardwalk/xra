@@ -105,6 +105,24 @@ static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
   return new EExtern(name, type);
 }
 
+static ExprPtr ParseTypeAlias(BufferedLexer& lexer)
+{
+  if(!TOKEN(Identifier))
+    EXPECTED(Identifier);
+  auto name = lexer().strValue;
+  lexer.Consume();
+
+  if(!TOKEN(Operator) || lexer().strValue != "=")
+    EXPECTED(Equals)
+  lexer.Consume();
+
+  auto type = ParseType(lexer);
+  if(!type)
+    EXPECTED(Type)
+
+  return new ETypeAlias(name, type);
+}
+
 static ExprPtr ParseClause(BufferedLexer& lexer)
 {
   if(TOKEN(Indent)) {
@@ -339,6 +357,10 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   else if(TOKEN(Return)) {
     lexer.Consume();
     expr = ParseReturn(lexer);
+  }
+  else if(TOKEN(TypeAlias)) {
+    lexer.Consume();
+    expr = ParseTypeAlias(lexer);
   }
   else if(TOKEN(Break)) {
     lexer.Consume();

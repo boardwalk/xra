@@ -27,6 +27,7 @@ public:
   void VisitECall(ECall&);
   void VisitEList(EList&);
   void VisitEExtern(EExtern&);
+  void VisitETypeAlias(ETypeAlias&);
   void Visit(Base*);
 };
 

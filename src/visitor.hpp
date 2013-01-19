@@ -64,6 +64,8 @@ struct Visitor
 
   EMPTY_VISIT(EExtern)
 
+  EMPTY_VISIT(ETypeAlias)
+
   /*
    * Values
    */
@@ -116,6 +118,7 @@ struct Visitor
       CASE(ECall)
       CASE(EList)
       CASE(EExtern)
+      CASE(ETypeAlias)
       // Values
       CASE(VBuiltin)
       CASE(VTemporary)
