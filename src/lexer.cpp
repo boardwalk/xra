@@ -512,15 +512,16 @@ Token Lexer::String()
   if(delim != '/' && interpolations.empty())
     return MakeToken(Token::String).Str(move(str));
 
+  // leading regex desugar
   if(delim == '/')
   {
     nextTokens.push(MakeToken(Token::Identifier).Str("Regex"));
     nextTokens.push(MakeToken(Token::OpenParen));
   }
 
+  // leading interpolation desugar
   if(!interpolations.empty())
   {
-    // escape existing braces
     size_t i = 0;
     while(true) {
       i = str.find_first_of("{}", i);
@@ -534,20 +535,23 @@ Token Lexer::String()
       i += 2;
     }
 
-    // insert placeholders
     for(i = interpolations.size(); i > 0; i--) {
       stringstream ss;
       ss << "{" << (i - 1) << "}";
       str.insert(interpolations[i - 1].first, ss.str());
     }
 
-    // desugar interpolation
-    // "#{a} #{b} #{c}" => (format("{0} {1} {2}", (a), (b), (c)))
     nextTokens.push(MakeToken(Token::Identifier).Str("String"));
     nextTokens.push(MakeToken(Token::Operator).Str("."));
     nextTokens.push(MakeToken(Token::Identifier).Str("format"));
     nextTokens.push(MakeToken(Token::OpenParen));
-    nextTokens.push(MakeToken(Token::String).Str(move(str)));
+  }
+
+  nextTokens.push(MakeToken(Token::String).Str(move(str)));
+
+  // trailing interpolation desugar
+  if(!interpolations.empty())
+  {
     for(auto& interp : interpolations) {
       nextTokens.push(MakeToken(Token::Operator).Str(","));
       nextTokens.push(MakeToken(Token::OpenParen));
@@ -563,11 +567,8 @@ Token Lexer::String()
     }
     nextTokens.push(MakeToken(Token::CloseParen));
   }
-  else
-  {
-    nextTokens.push(MakeToken(Token::String).Str(move(str)));
-  }
 
+  // trailing regex desugar
   if(delim == '/')
   {
     int flagNum = 0;
