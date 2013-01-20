@@ -140,7 +140,7 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Identifier:
       os << "<identifier " << token.strValue << ">";
       break;
-    // other keywords
+    // other operators
     case Token::Operator:
       os << "<operator " << token.strValue << ">";
       break;
