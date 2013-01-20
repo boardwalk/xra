@@ -1,7 +1,7 @@
 <nodent> at test/lexer-string.xra:2:1
 "this is a no \\escape\\ string" at test/lexer-string.xra:2:31
 <nodent> at test/lexer-string.xra:3:1
-"this \" \\ \x00 \x07 \x08 \x0c \x0a \x0d \x09 \x0b is an escape string" at test/lexer-string.xra:3:57
+"this \" \\ \x00 \x07 \x08 \x0c \x0a \x0d \x09 \x0b \x80 is an escape string" at test/lexer-string.xra:3:62
 <nodent> at test/lexer-string.xra:4:1
 "useful with regexps perhaps: (\\d+)" at test/lexer-string.xra:4:37
 <nodent> at test/lexer-string.xra:5:1

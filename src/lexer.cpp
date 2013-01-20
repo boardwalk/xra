@@ -428,7 +428,6 @@ Token Lexer::String(bool interpolate)
   char delim = lastChar;
 
   string str;
-  string error;
   vector<pair<size_t,  string> > interpolations;
 
   while(true)
@@ -448,13 +447,9 @@ Token Lexer::String(bool interpolate)
         int delimLevel = 1;
         while(delimLevel > 0) {
           interp.push_back(GetChar());
-          if(lastChar == EOF) break;
+          if(lastChar == EOF) return MakeError("unterminated code interpolation");
           if(lastChar == '{') delimLevel++;
           if(lastChar == '}') delimLevel--;
-        }
-        if(lastChar == EOF) {
-          error = "unterminated code interpolation";
-          break;
         }
         interp.resize(interp.size() - 1);
         interpolations.push_back({str.size(), move(interp)});
@@ -479,23 +474,30 @@ Token Lexer::String(bool interpolate)
       case 'r':  c = '\r'; break;
       case 't':  c = '\t'; break;
       case 'v':  c = '\v'; break;
-        // TODO handle \x hex scape
+      case 'x':
+        {
+          char hex[3];
+          hex[0] = GetChar();
+          hex[1] = GetChar();
+          hex[2] = '\0';
+          if(isxdigit(hex[0]) && isxdigit(hex[1])) {
+            c = (char)strtol(hex, NULL, 16);
+            break;
+          }
+          return MakeError("invalid hex literal in string");
+        }
       }
       str += c;
     }
     else if(lastChar == EOF)
     {
-      error = "unterminated string literal";
-      break;
+      return MakeError("unterminated string literal");
     }
     else
     {
       str += lastChar;
     }
   }
-
-  if(!error.empty())
-    return MakeError(error);
 
   if(interpolations.empty())
     return MakeToken(Token::String).Str(move(str));
