@@ -23,7 +23,7 @@ void EscapeString(const string& str, ostream& os)
       os << "\\\\";
     else if(!isprint(str[i])) {
       ostream::fmtflags f = os.flags();
-      os << "\\x" << hex << setw(2) << setfill('0') << (int)str[i];
+      os << "\\x" << hex << setw(2) << setfill('0') << (int)(unsigned char)str[i];
       os.flags(f);
     }
     else
