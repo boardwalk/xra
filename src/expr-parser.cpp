@@ -1,7 +1,7 @@
 #include "common.hpp"
+#include "expr-parser.hpp"
 #include "expr.hpp"
 #include "type.hpp"
-#include "buffered-lexer.hpp"
 
 #define TOKEN(t) (lexer().type == Token::t)
 #define ERROR(what) \
@@ -53,15 +53,12 @@ static const map<string, int> unaryOperators {
   {"&", 18}
 };
 
-static ExprPtr ParseExpr(BufferedLexer&); // true, 0
-static ExprPtr ParseExpr_Exp(BufferedLexer&, bool, int);
-
-static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
+ExprPtr ExprParser::FlatBlock()
 {
   auto list = make_unique<EList>();
 
   while(true) {
-    list->exprs.push_back(ParseExpr(lexer));
+    list->exprs.push_back(Expr());
 
     if(!TOKEN(Nodent))
       break;
@@ -71,9 +68,9 @@ static ExprPtr ParseFlatBlock(BufferedLexer& lexer)
   return new ECall(new EVariable(";"), list.release());
 }
 
-static ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
+ExprPtr ExprParser::Block() // prefix: indent
 {
-  ExprPtr expr = ParseFlatBlock(lexer);
+  ExprPtr expr = FlatBlock();
 
   if(!TOKEN(Dedent))
     EXPECTED(Dedent)
@@ -82,21 +79,21 @@ static ExprPtr ParseBlock(BufferedLexer& lexer) // prefix: indent
   return expr;
 }
 
-static ExprPtr ParseClause(BufferedLexer& lexer)
+ExprPtr ExprParser::Clause()
 {
   if(TOKEN(Indent)) {
     lexer.Consume();
-    return ParseBlock(lexer);
+    return Block();
   }
 
   if(!TOKEN(Colon))
     EXPECTED(Colon)
   lexer.Consume();
 
-  return ParseExpr(lexer);
+  return Expr();
 }
 
-static ExprPtr ParseName(BufferedLexer& lexer)
+ExprPtr ExprParser::Name()
 {
   string name;
 
@@ -120,17 +117,17 @@ static ExprPtr ParseName(BufferedLexer& lexer)
   return new EVariable(move(name));
 }
 
-static ExprPtr ParseModule(BufferedLexer& lexer) // prefix: module
+ExprPtr ExprParser::Module() // prefix: module
 {
   auto list = make_unique<EList>();
-  list->exprs.push_back(ParseName(lexer));
+  list->exprs.push_back(Name());
 
   if(!TOKEN(Indent) && !TOKEN(Nodent))
     EXPECTED(IndentOrNodent)
   bool indented = TOKEN(Indent);
   lexer.Consume();
 
-  list->exprs.push_back(ParseFlatBlock(lexer));
+  list->exprs.push_back(FlatBlock());
 
   if(indented) {
     if(!TOKEN(Dedent))
@@ -141,31 +138,31 @@ static ExprPtr ParseModule(BufferedLexer& lexer) // prefix: module
   return new ECall(new EVariable("#module"), list.release());
 }
 
-static ExprPtr ParseUsing(BufferedLexer& lexer) // prefix: using
+ExprPtr ExprParser::Using() // prefix: using
 {
   auto list = make_unique<EList>();
-  list->exprs.push_back(ParseName(lexer));
+  list->exprs.push_back(Name());
   if(!TOKEN(Nodent))
     EXPECTED(Nodent)
   lexer.Consume();
-  list->exprs.push_back(ParseFlatBlock(lexer));
+  list->exprs.push_back(FlatBlock());
   return new ECall(new EVariable("#using"), list.release());
 }
 
-static ExprPtr ParseFn(BufferedLexer& lexer) // prefix: fn
+ExprPtr ExprParser::Fn() // prefix: fn
 {
-  return new EFunction(ParseTypeList(lexer), ParseClause(lexer));
+  return new EFunction(ParseTypeList(lexer), Clause());
 }
 
-static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
+ExprPtr ExprParser::If() // prefix: if
 {
   auto list = make_unique<EList>();
 
   bool more = true;
   while(more)
   {
-    list->exprs.push_back(ParseExpr(lexer));
-    list->exprs.push_back(ParseClause(lexer));
+    list->exprs.push_back(Expr());
+    list->exprs.push_back(Clause());
 
     if(TOKEN(Elsif))
       lexer.Consume();
@@ -185,36 +182,36 @@ static ExprPtr ParseIf(BufferedLexer& lexer) // prefix: if
 
   if(more) {
     list->exprs.push_back(new EBoolean(true));
-    list->exprs.push_back(ParseClause(lexer));
+    list->exprs.push_back(Clause());
   }
 
   return new ECall(new EVariable("#if"), list.release());
 }
 
-static ExprPtr ParseWhile(BufferedLexer& lexer) // prefix: while
+ExprPtr ExprParser::While() // prefix: while
 {
   auto list = make_unique<EList>();
-  list->exprs.push_back(ParseExpr(lexer));
-  list->exprs.push_back(ParseClause(lexer));
+  list->exprs.push_back(Expr());
+  list->exprs.push_back(Clause());
 
   return new ECall(new EVariable("#while"), list.release());
 }
 
-static ExprPtr ParseBreak(BufferedLexer&) // prefix: break
+ExprPtr ExprParser::Break() // prefix: break
 {
   return new ECall(new EVariable("#break"), new EList);
 }
 
-static ExprPtr ParseReturn(BufferedLexer& lexer) // prefix: return
+ExprPtr ExprParser::Return() // prefix: return
 {
   auto list = make_unique<EList>();
-  ExprPtr expr = ParseExpr_Exp(lexer, false, 0);
+  ExprPtr expr = Expr(false, 0);
   if(expr)
     list->exprs.push_back(expr);
   return new ECall(new EVariable("#return"), list.release());
 }
 
-static ExprPtr ParseTypeAlias(BufferedLexer& lexer)
+ExprPtr ExprParser::TypeAlias()
 {
   if(!TOKEN(Identifier))
     EXPECTED(Identifier);
@@ -232,7 +229,7 @@ static ExprPtr ParseTypeAlias(BufferedLexer& lexer)
   return new ETypeAlias(name, type);
 }
 
-static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
+ExprPtr ExprParser::Extern() // prefix: extern
 {
   if(!TOKEN(Identifier))
     EXPECTED(Identifier)
@@ -246,11 +243,9 @@ static ExprPtr ParseExtern(BufferedLexer& lexer) // prefix: extern
   return new EExtern(name, type);
 }
 
-static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required);
-
-static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
+ExprPtr ExprParser::Expr(bool required, int precedence)
 {
-  ExprPtr expr = ParseExpr_P(lexer, required);
+  ExprPtr expr = Expr_P(required);
   if(!expr)
     return ExprPtr();
 
@@ -279,7 +274,7 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
 
     int prec = binaryOp->second.first;
     bool rightAssoc = binaryOp->second.second;
-    if(prec < p)
+    if(prec < precedence)
       break;
     
     if(op != "#call")
@@ -292,7 +287,7 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
 
     int q = rightAssoc ? prec : (1 + prec);
 
-    auto exprRight = ParseExpr_Exp(lexer, false, q);
+    auto exprRight = Expr(false, q);
     if(!exprRight) {
       if(op == "#call")
         break;
@@ -331,7 +326,7 @@ static ExprPtr ParseExpr_Exp(BufferedLexer& lexer, bool required, int p)
   return expr;
 }
 
-static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
+ExprPtr ExprParser::Expr_P(bool required)
 {
   ExprPtr expr;
 
@@ -357,45 +352,45 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   }
   else if(TOKEN(Module)) {
     lexer.Consume();
-    expr = ParseModule(lexer);
+    expr = Module();
   }
   else if(TOKEN(Using)) {
     lexer.Consume();
-    expr = ParseUsing(lexer);
+    expr = Using();
   }
   else if(TOKEN(Fn)) {
     lexer.Consume();
-    expr = ParseFn(lexer);
+    expr = Fn();
   }
   else if(TOKEN(If)) {
     lexer.Consume();
-    expr = ParseIf(lexer);
+    expr = If();
   }
   else if(TOKEN(While)) {
     lexer.Consume();
-    expr = ParseWhile(lexer);
+    expr = While();
   }
   else if(TOKEN(Break)) {
     lexer.Consume();
-    expr = ParseBreak(lexer);
+    expr = Break();
   }
   else if(TOKEN(Return)) {
     lexer.Consume();
-    expr = ParseReturn(lexer);
+    expr = Return();
   }
   else if(TOKEN(TypeAlias)) {
     lexer.Consume();
-    expr = ParseTypeAlias(lexer);
+    expr = TypeAlias();
   }
   else if(TOKEN(Extern)) {
     lexer.Consume();
-    expr = ParseExtern(lexer);
+    expr = Extern();
   }
   else if(TOKEN(OpenParen))
   {
     lexer.Consume();
 
-    expr = ParseExpr_Exp(lexer, false, 0);
+    expr = Expr(false, 0);
     if(!expr)
       expr = new EList;
 
@@ -424,7 +419,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
     if(unaryOp == unaryOperators.end())
       ERROR("unknown unary operator")
 
-    expr = ParseExpr_Exp(lexer, true, unaryOp->second);
+    expr = Expr(true, unaryOp->second);
     expr = new ECall(new EVariable(unaryOp->first), expr);
   }
 
@@ -444,12 +439,7 @@ static ExprPtr ParseExpr_P(BufferedLexer& lexer, bool required)
   return expr;
 }
 
-static ExprPtr ParseExpr(BufferedLexer& lexer)
-{
-  return ParseExpr_Exp(lexer, true, 0);
-}
-
-ExprPtr ParseTopLevel(BufferedLexer& lexer)
+ExprPtr ExprParser::TopLevel()
 {
   // lexer may generate a leading nodent, eat it
   if(TOKEN(Nodent))
@@ -458,7 +448,7 @@ ExprPtr ParseTopLevel(BufferedLexer& lexer)
   auto list = make_unique<EList>();
 
   while(true) {
-    list->exprs.push_back(ParseExpr(lexer));
+    list->exprs.push_back(Expr());
 
     if(!TOKEN(Nodent))
       break;

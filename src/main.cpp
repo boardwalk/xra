@@ -1,7 +1,7 @@
 #include "common.hpp"
-#include "typechecker.hpp"
 #include "compiler.hpp"
-#include "buffered-lexer.hpp"
+#include "expr-parser.hpp"
+#include "typechecker.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
   /*
    * Parsing
    */
-  ExprPtr expr = ParseTopLevel(bufferedLexer);
+  ExprPtr expr = ExprParser(bufferedLexer).TopLevel();
 
   string errors = Error::Get();
   if(!errors.empty()) {

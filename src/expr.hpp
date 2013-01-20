@@ -21,9 +21,6 @@ protected:
   ~Expr();
 };
 
-// expr-parser.cpp
-ExprPtr ParseTopLevel(BufferedLexer&);
-
 // expr-tostring.cpp
 ostream& operator<<(ostream&, const Expr&);
 
