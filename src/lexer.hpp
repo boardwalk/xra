@@ -84,7 +84,7 @@ class Lexer
   Token MakeError(string err);
 
   bool NestableComment();
-  Token String(bool interpolate);
+  Token String();
   Token Number();
 
 public:

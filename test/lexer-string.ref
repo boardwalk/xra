@@ -1,26 +1,66 @@
 <nodent> at test/lexer-string.xra:2:1
-"this is a no \\escape\\ string" at test/lexer-string.xra:2:31
+"this \\\" \\\\ \\0 \\a \\b \\f \\n \\r \\t \\v \\x80 is an escape string" at test/lexer-string.xra:2:62
 <nodent> at test/lexer-string.xra:3:1
 "this \" \\ \x00 \x07 \x08 \x0c \x0a \x0d \x09 \x0b \x80 is an escape string" at test/lexer-string.xra:3:62
 <nodent> at test/lexer-string.xra:4:1
-"useful with regexps perhaps: (\\d+)" at test/lexer-string.xra:4:37
-<nodent> at test/lexer-string.xra:5:1
-( at test/lexer-string.xra:5:53
-<identifier format> at test/lexer-string.xra:5:53
-( at test/lexer-string.xra:5:53
-"and this is a code interpolation: {0}, {1}" at test/lexer-string.xra:5:53
-<operator ,> at test/lexer-string.xra:5:53
-( at test/lexer-string.xra:5:53
+( at test/lexer-string.xra:4:53
+<identifier String> at test/lexer-string.xra:4:53
+<operator .> at test/lexer-string.xra:4:53
+<identifier format> at test/lexer-string.xra:4:53
+( at test/lexer-string.xra:4:53
+"and this is a code interpolation: {0}, {1}" at test/lexer-string.xra:4:53
+<operator ,> at test/lexer-string.xra:4:53
+( at test/lexer-string.xra:4:53
 <identifier x> at interpolation:1:2
 <operator +> at interpolation:1:4
 <int 1> at interpolation:1:6
-) at test/lexer-string.xra:5:53
-<operator ,> at test/lexer-string.xra:5:53
-( at test/lexer-string.xra:5:53
+) at test/lexer-string.xra:4:53
+<operator ,> at test/lexer-string.xra:4:53
+( at test/lexer-string.xra:4:53
 <identifier y> at interpolation:1:2
 <operator /> at interpolation:1:4
 <int 2> at interpolation:1:6
-) at test/lexer-string.xra:5:53
-) at test/lexer-string.xra:5:53
-) at test/lexer-string.xra:5:53
-<eof> at test/lexer-string.xra:6:1
+) at test/lexer-string.xra:4:53
+) at test/lexer-string.xra:4:53
+) at test/lexer-string.xra:4:53
+<nodent> at test/lexer-string.xra:5:1
+( at test/lexer-string.xra:5:18
+<identifier Regex> at test/lexer-string.xra:5:14
+( at test/lexer-string.xra:5:14
+<identifier String> at test/lexer-string.xra:5:14
+<operator .> at test/lexer-string.xra:5:14
+<identifier format> at test/lexer-string.xra:5:14
+( at test/lexer-string.xra:5:14
+"snafu {0}!" at test/lexer-string.xra:5:14
+<operator ,> at test/lexer-string.xra:5:14
+( at test/lexer-string.xra:5:14
+<identifier i> at interpolation:1:2
+) at test/lexer-string.xra:5:14
+) at test/lexer-string.xra:5:14
+<operator ,> at test/lexer-string.xra:5:14
+<identifier Regex> at test/lexer-string.xra:5:14
+<operator .> at test/lexer-string.xra:5:14
+<identifier Flag> at test/lexer-string.xra:5:14
+<operator .> at test/lexer-string.xra:5:14
+<identifier Caseless> at test/lexer-string.xra:5:14
+<operator |> at test/lexer-string.xra:5:15
+<identifier Regex> at test/lexer-string.xra:5:15
+<operator .> at test/lexer-string.xra:5:15
+<identifier Flag> at test/lexer-string.xra:5:15
+<operator .> at test/lexer-string.xra:5:15
+<identifier Multiline> at test/lexer-string.xra:5:15
+<operator |> at test/lexer-string.xra:5:16
+<identifier Regex> at test/lexer-string.xra:5:16
+<operator .> at test/lexer-string.xra:5:16
+<identifier Flag> at test/lexer-string.xra:5:16
+<operator .> at test/lexer-string.xra:5:16
+<identifier DotAll> at test/lexer-string.xra:5:16
+<operator |> at test/lexer-string.xra:5:17
+<identifier Regex> at test/lexer-string.xra:5:17
+<operator .> at test/lexer-string.xra:5:17
+<identifier Flag> at test/lexer-string.xra:5:17
+<operator .> at test/lexer-string.xra:5:17
+<identifier Extended> at test/lexer-string.xra:5:17
+) at test/lexer-string.xra:5:18
+) at test/lexer-string.xra:5:18
+<eof> at test/lexer-string.xra:5:18

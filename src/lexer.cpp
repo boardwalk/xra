@@ -252,10 +252,17 @@ Token Lexer::operator()()
   }
 
   if(lastChar == '\'')
-    return String(false);
+    return String();
 
   if(lastChar == '"')
-    return String(true);
+    return String();
+
+  if(lastChar == 'r') {
+    GetChar();
+    if(lastChar == '/')
+      return String();
+    UngetStr("r");
+  }
 
   if(isdigit(lastChar))
     return Number();
@@ -423,9 +430,20 @@ Token Lexer::Number()
   return token;
 }
 
-Token Lexer::String(bool interpolate)
+Token Lexer::String()
 {
   char delim = lastChar;
+
+  bool escape = false;
+  bool interpolate = false;
+
+  if(delim == '\"') {
+    escape = true;
+    interpolate = true;
+  }
+  else if(delim == '/') {
+    interpolate = true;
+  }
 
   string str;
   vector<pair<size_t,  string> > interpolations;
@@ -438,20 +456,7 @@ Token Lexer::String(bool interpolate)
       GetChar();
       break;
     }
-    else if(lastChar == '{' && interpolate)
-    {
-      string interp;
-      int delimLevel = 1;
-      while(delimLevel > 0) {
-        interp.push_back(GetChar());
-        if(lastChar == EOF) return MakeError("unterminated code interpolation");
-        if(lastChar == '{') delimLevel++;
-        if(lastChar == '}') delimLevel--;
-      }
-      interp.resize(interp.size() - 1);
-      interpolations.push_back({str.size(), move(interp)});
-    }
-    else if(lastChar == '\\' && interpolate)
+    else if(lastChar == '\\' && escape)
     {
       GetChar();
       char c = lastChar;
@@ -481,6 +486,19 @@ Token Lexer::String(bool interpolate)
       }
       str += c;
     }
+    else if(lastChar == '{' && interpolate)
+    {
+      string interp;
+      int delimLevel = 1;
+      while(delimLevel > 0) {
+        interp.push_back(GetChar());
+        if(lastChar == EOF) return MakeError("unterminated interpolation");
+        if(lastChar == '{') delimLevel++;
+        if(lastChar == '}') delimLevel--;
+      }
+      interp.resize(interp.size() - 1);
+      interpolations.push_back({str.size(), move(interp)});
+    }
     else if(lastChar == EOF)
     {
       return MakeError("unterminated string literal");
@@ -491,49 +509,92 @@ Token Lexer::String(bool interpolate)
     }
   }
 
-  if(interpolations.empty())
+  if(delim != '/' && interpolations.empty())
     return MakeToken(Token::String).Str(move(str));
 
-  // escape existing braces
-  size_t i = 0;
-  while(true) {
-    i = str.find_first_of("{}", i);
-    if(i == string::npos)
-      break;
-    for(auto& interp : interpolations) {
-      if(interp.first > i)
-        interp.first++;
-    }
-    str.insert(i, 1, str[i]);
-    i += 2;
-  }
-
-  // insert placeholders
-  for(i = interpolations.size(); i > 0; i--) {
-    stringstream ss;
-    ss << "{" << (i - 1) << "}";
-    str.insert(interpolations[i - 1].first, ss.str());
-  }
-
-  // desugar interpolation
-  // "#{a} #{b} #{c}" => (format("{0} {1} {2}", (a), (b), (c)))
-  nextTokens.push(MakeToken(Token::Identifier).Str("format"));
-  nextTokens.push(MakeToken(Token::OpenParen));
-  nextTokens.push(MakeToken(Token::String).Str(move(str)));
-  for(auto& interp : interpolations) {
-    nextTokens.push(MakeToken(Token::Operator).Str(","));
+  if(delim == '/')
+  {
+    nextTokens.push(MakeToken(Token::Identifier).Str("Regex"));
     nextTokens.push(MakeToken(Token::OpenParen));
-    stringstream ss(interp.second);
-    Lexer lexer(ss, "interpolation");
+  }
+
+  if(!interpolations.empty())
+  {
+    // escape existing braces
+    size_t i = 0;
     while(true) {
-      Token token = lexer();
-      if(token.type == Token::EndOfFile)
+      i = str.find_first_of("{}", i);
+      if(i == string::npos)
         break;
-      nextTokens.push(move(token));
+      for(auto& interp : interpolations) {
+        if(interp.first > i)
+          interp.first++;
+      }
+      str.insert(i, 1, str[i]);
+      i += 2;
+    }
+
+    // insert placeholders
+    for(i = interpolations.size(); i > 0; i--) {
+      stringstream ss;
+      ss << "{" << (i - 1) << "}";
+      str.insert(interpolations[i - 1].first, ss.str());
+    }
+
+    // desugar interpolation
+    // "#{a} #{b} #{c}" => (format("{0} {1} {2}", (a), (b), (c)))
+    nextTokens.push(MakeToken(Token::Identifier).Str("String"));
+    nextTokens.push(MakeToken(Token::Operator).Str("."));
+    nextTokens.push(MakeToken(Token::Identifier).Str("format"));
+    nextTokens.push(MakeToken(Token::OpenParen));
+    nextTokens.push(MakeToken(Token::String).Str(move(str)));
+    for(auto& interp : interpolations) {
+      nextTokens.push(MakeToken(Token::Operator).Str(","));
+      nextTokens.push(MakeToken(Token::OpenParen));
+      stringstream ss(interp.second);
+      Lexer lexer(ss, "interpolation");
+      while(true) {
+        Token token = lexer();
+        if(token.type == Token::EndOfFile)
+          break;
+        nextTokens.push(move(token));
+      }
+      nextTokens.push(MakeToken(Token::CloseParen));
     }
     nextTokens.push(MakeToken(Token::CloseParen));
   }
-  nextTokens.push(MakeToken(Token::CloseParen));
+  else
+  {
+    nextTokens.push(MakeToken(Token::String).Str(move(str)));
+  }
+
+  if(delim == '/')
+  {
+    int flagNum = 0;
+    while(isalpha(lastChar))
+    {
+      const char* flag;
+      switch(lastChar) {
+      case 'i': flag = "Caseless"; break;
+      case 'm': flag = "Multiline"; break;
+      case 's': flag = "DotAll"; break;
+      case 'x': flag = "Extended"; break;
+      default:
+        return MakeError("invalid regex option");
+      }
+
+      nextTokens.push(MakeToken(Token::Operator).Str(flagNum++ ? "|" : ","));
+      nextTokens.push(MakeToken(Token::Identifier).Str("Regex"));
+      nextTokens.push(MakeToken(Token::Operator).Str("."));
+      nextTokens.push(MakeToken(Token::Identifier).Str("Flag"));
+      nextTokens.push(MakeToken(Token::Operator).Str("."));
+      nextTokens.push(MakeToken(Token::Identifier).Str(flag));
+
+      GetChar();
+    }
+    nextTokens.push(MakeToken(Token::CloseParen));
+  }
+
   nextTokens.push(MakeToken(Token::CloseParen));
   return MakeToken(Token::OpenParen);
 }
