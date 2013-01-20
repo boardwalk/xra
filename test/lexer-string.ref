@@ -5,22 +5,22 @@
 <nodent> at test/lexer-string.xra:4:1
 "useful with regexps perhaps: (\\d+)" at test/lexer-string.xra:4:37
 <nodent> at test/lexer-string.xra:5:1
-( at test/lexer-string.xra:5:55
-<identifier format> at test/lexer-string.xra:5:55
-( at test/lexer-string.xra:5:55
-"and this is a code interpolation: {0}, {1}" at test/lexer-string.xra:5:55
-<operator ,> at test/lexer-string.xra:5:55
-( at test/lexer-string.xra:5:55
+( at test/lexer-string.xra:5:53
+<identifier format> at test/lexer-string.xra:5:53
+( at test/lexer-string.xra:5:53
+"and this is a code interpolation: {0}, {1}" at test/lexer-string.xra:5:53
+<operator ,> at test/lexer-string.xra:5:53
+( at test/lexer-string.xra:5:53
 <identifier x> at interpolation:1:2
 <operator +> at interpolation:1:4
 <int 1> at interpolation:1:6
-) at test/lexer-string.xra:5:55
-<operator ,> at test/lexer-string.xra:5:55
-( at test/lexer-string.xra:5:55
+) at test/lexer-string.xra:5:53
+<operator ,> at test/lexer-string.xra:5:53
+( at test/lexer-string.xra:5:53
 <identifier y> at interpolation:1:2
 <operator /> at interpolation:1:4
 <int 2> at interpolation:1:6
-) at test/lexer-string.xra:5:55
-) at test/lexer-string.xra:5:55
-) at test/lexer-string.xra:5:55
+) at test/lexer-string.xra:5:53
+) at test/lexer-string.xra:5:53
+) at test/lexer-string.xra:5:53
 <eof> at test/lexer-string.xra:6:1

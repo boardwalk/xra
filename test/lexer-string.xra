@@ -2,4 +2,4 @@
 'this is a no \escape\ string'
 "this \" \\ \0 \a \b \f \n \r \t \v \x80 is an escape string"
 'useful with regexps perhaps: (\d+)'
-"and this is a code interpolation: #{x + 1}, #{y / 2}"
+"and this is a code interpolation: {x + 1}, {y / 2}"

@@ -438,26 +438,18 @@ Token Lexer::String(bool interpolate)
       GetChar();
       break;
     }
-    else if(lastChar == '#' && interpolate)
+    else if(lastChar == '{' && interpolate)
     {
-      GetChar();
-      if(lastChar == '{')
-      {
-        string interp;
-        int delimLevel = 1;
-        while(delimLevel > 0) {
-          interp.push_back(GetChar());
-          if(lastChar == EOF) return MakeError("unterminated code interpolation");
-          if(lastChar == '{') delimLevel++;
-          if(lastChar == '}') delimLevel--;
-        }
-        interp.resize(interp.size() - 1);
-        interpolations.push_back({str.size(), move(interp)});
+      string interp;
+      int delimLevel = 1;
+      while(delimLevel > 0) {
+        interp.push_back(GetChar());
+        if(lastChar == EOF) return MakeError("unterminated code interpolation");
+        if(lastChar == '{') delimLevel++;
+        if(lastChar == '}') delimLevel--;
       }
-      else
-      {
-        str += '#';
-      }
+      interp.resize(interp.size() - 1);
+      interpolations.push_back({str.size(), move(interp)});
     }
     else if(lastChar == '\\' && interpolate)
     {
