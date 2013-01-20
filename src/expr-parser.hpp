@@ -2,6 +2,7 @@
 #define XRA_EXPR_PARSER_HPP
 
 #include "buffered-lexer.hpp"
+#include "scoped-map.hpp"
 
 namespace xra {
 
@@ -13,6 +14,7 @@ class ExprParser
   };
 
   BufferedLexer& lexer;
+  ScopedMap<string, Macro> macros;
 
   ExprPtr FlatBlock();
   ExprPtr Block();

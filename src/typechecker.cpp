@@ -38,7 +38,7 @@ void TypeChecker::VisitEString(EString& expr)
 
 void TypeChecker::VisitEFunction(EFunction& expr)
 {
-  Scope scope(env);
+  Env::Scope scope(env);
 
   // tv <- newTyVar "a"
   auto& fields = static_cast<TList&>(*expr.param).fields;
