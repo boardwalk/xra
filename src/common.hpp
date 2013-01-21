@@ -34,7 +34,13 @@ typedef boost::intrusive_ptr<Type> TypePtr;
 
 typedef map<string, TypePtr> TypeSubst;
 
-class BufferedLexer;
+template<class TokenSource>
+class TokenBuffer;
+
+class Lexer;
+class MacroParser;
+class ExprParser;
+
 class TypeChecker;
 class Compiler;
 class Env;

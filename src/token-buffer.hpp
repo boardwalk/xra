@@ -1,18 +1,19 @@
-#ifndef XRA_BUFFERED_LEXER_HPP
-#define XRA_BUFFERED_LEXER_HPP
+#ifndef XRA_TOKEN_BUFFER_HPP
+#define XRA_TOKEN_BUFFER_HPP
 
 #include "lexer.hpp"
 
 namespace xra {
 
-class BufferedLexer
+template<class TokenSource>
+class TokenBuffer
 {
-  Lexer& lexer;
+  TokenSource& source;
   deque<Token> buffer;
 
 public:
-  BufferedLexer(Lexer& lexer_) :
-    lexer(lexer_)
+  TokenBuffer(TokenSource& source_) :
+    source(source_)
   {}
 
   void Consume(size_t n = 1)
@@ -24,7 +25,7 @@ public:
   Token& operator()(size_t i = 0)
   {
     while(i >= buffer.size())
-      buffer.push_back(lexer());
+      buffer.push_back(source());
     return buffer[i];
   }
 
@@ -36,4 +37,4 @@ public:
 
 } // namespace xra
 
-#endif // XRA_BUFFERED_LEXER_HPP
+#endif // XRA_TOKEN_BUFFER_HPP

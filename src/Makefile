@@ -17,6 +17,7 @@ endif
 SOURCES = common.cpp \
 	main.cpp \
 	lexer.cpp \
+	macro-parser.cpp \
 	expr.cpp \
 	expr-parser.cpp \
 	expr-tostring.cpp \

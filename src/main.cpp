@@ -1,6 +1,7 @@
 #include "common.hpp"
 #include "compiler.hpp"
 #include "expr-parser.hpp"
+#include "macro-parser.hpp"
 #include "typechecker.hpp"
 
 #include <fstream>
@@ -66,8 +67,7 @@ int main(int argc, char** argv)
   istream& inputStream = ifs.is_open() ? ifs : cin;
   ostream& outputStream = ofs.is_open() ? ofs : cout;
 
-  Lexer lexer(inputStream, source);  
-  BufferedLexer bufferedLexer(lexer);
+  Lexer lexer(inputStream, source);
 
   /*
    * Lexing (testing only)
@@ -76,14 +76,14 @@ int main(int argc, char** argv)
   {
     bool ok = true;
     while(true) {
-      outputStream << bufferedLexer() << endl;
+      Token token = lexer();
 
-      if(bufferedLexer().type == Token::Error)
+      outputStream << token << endl;
+
+      if(token.type == Token::Error)
         ok = false;
-      else if(bufferedLexer().type == Token::EndOfFile)
+      else if(token.type == Token::EndOfFile)
         break;
-
-      bufferedLexer.Consume();
     }
 
     if(!ok) {
@@ -97,7 +97,9 @@ int main(int argc, char** argv)
   /*
    * Parsing
    */
-  ExprPtr expr = ExprParser(bufferedLexer).TopLevel();
+  MacroParser macroParser(lexer);
+  ExprParser exprParser(macroParser);
+  ExprPtr expr = exprParser.TopLevel();
 
   string errors = Error::Get();
   if(!errors.empty()) {
