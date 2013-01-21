@@ -120,6 +120,9 @@ ostream& operator<<(ostream& os, const Token& token)
     case Token::Extern:
       os << "extern";
       break;
+    case Token::Macro:
+      os << "macro";
+      break;
     // special operators
     case Token::OpenParen:
       os << '(';
@@ -291,6 +294,7 @@ Token Lexer::operator()()
     if(str == "return") return MakeToken(Token::Return);
     if(str == "type") return MakeToken(Token::TypeAlias);
     if(str == "extern") return MakeToken(Token::Extern);
+    if(str == "macro") return MakeToken(Token::Macro);
     Token token = MakeToken(Token::Identifier);
     token.strValue = move(str);
     return token;

@@ -2,7 +2,7 @@
 (defvar xra-keywords
   (regexp-opt '("module" "using" "fn" "if"
                 "else" "elsif" "while" "break"
-                "return" "extern" "unsigned" "signed") 'words)
+                "return" "extern" "macro" "unsigned" "signed") 'words)
   "xra keywords")
 
 (defvar xra-types

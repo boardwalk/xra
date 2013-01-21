@@ -8,13 +8,14 @@ namespace xra {
 
 class ExprParser
 {
-  struct Macro {
-    vector<string> bindings;
+  struct MacroDef {
+    vector<string> params;
     vector<Token> body;
   };
 
   BufferedLexer& lexer;
-  ScopedMap<string, Macro> macros;
+  ScopedMap<string, MacroDef> macros;
+  set<string> activeMacros;
 
   ExprPtr FlatBlock();
   ExprPtr Block();
@@ -30,6 +31,8 @@ class ExprParser
   ExprPtr Return();
   ExprPtr TypeAlias();
   ExprPtr Extern();
+  ExprPtr Macro();
+  ExprPtr MacroCall(const MacroDef& macro);
   ExprPtr Expr(bool requred = true, int precedence = 0);  
   ExprPtr Expr_P(bool required);
 

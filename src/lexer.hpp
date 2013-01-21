@@ -37,6 +37,7 @@ struct Token
     Return,
     TypeAlias,
     Extern,
+    Macro,
     // special operators
     OpenParen,
     CloseParen,

@@ -27,6 +27,11 @@ public:
       buffer.push_back(lexer());
     return buffer[i];
   }
+
+  void Unget(const Token& token)
+  {
+    buffer.push_front(token);
+  }
 };
 
 } // namespace xra

@@ -53,6 +53,18 @@ static const map<string, int> unaryOperators {
   {"&", 18}
 };
 
+static string MakeIdentifier()
+{
+  static int count = 0;
+  ++count;
+
+  string name(1, '$');
+  for(int i = count; i > 0; i /= 26)
+    name += ('a' + (i % 26) - 1);
+
+  return name;
+}
+
 ExprPtr ExprParser::FlatBlock()
 {
   auto list = make_unique<EList>();
@@ -243,6 +255,158 @@ ExprPtr ExprParser::Extern() // prefix: extern
   return new EExtern(name, type);
 }
 
+ExprPtr ExprParser::Macro() // prefix: macro
+{
+  if(!TOKEN(Identifier))
+    EXPECTED(Identifier)
+  auto name = lexer().strValue;
+  lexer.Consume();
+
+  MacroDef macro;
+
+  /*
+   * parse parameters
+   */
+  if(TOKEN(OpenParen))
+  {
+    lexer.Consume();
+
+    set<string> paramSet;
+    while(true)
+    {
+      if(!TOKEN(Identifier))
+        EXPECTED(Identifier)
+      auto param = lexer().strValue;
+      lexer.Consume();
+
+      if(!paramSet.insert(param).second)
+        ERROR("duplicate macro parameter: " << param);
+      macro.params.push_back(param);
+
+      if(!TOKEN(Operator) || lexer().strValue != ",")
+        break;
+      lexer.Consume();
+    }
+
+    if(!TOKEN(CloseParen))
+      EXPECTED(CloseParen)
+    lexer.Consume();
+  }
+
+  /*
+   * parse body
+   */
+  map<string, string> localVars;
+  bool blockMacro;
+  int level = 0;
+
+  if(TOKEN(Colon))
+    blockMacro = false;
+  else if(TOKEN(Indent))
+    blockMacro = true;
+  else
+    EXPECTED(ColonOrIndent);
+  lexer.Consume();
+
+  while(true)
+  {
+    if(blockMacro)
+    {
+      if(TOKEN(Indent))
+        level++;
+      else if(TOKEN(Dedent))
+        level--;
+      if(level < 0)
+        break;
+    }
+    else
+    {
+      if(TOKEN(Nodent) || TOKEN(EndOfFile))
+        break;
+      if(TOKEN(Indent) || TOKEN(Nodent))
+        ERROR("unexpected indentation in single line macro")
+    }
+
+    Token token;
+
+    if(TOKEN(Operator) && lexer().strValue == "$" && lexer(1).type == Token::Identifier)
+    {
+      token = lexer(1);
+      lexer.Consume(2);
+
+      auto& mangledIden = localVars[token.strValue];
+      if(mangledIden.empty())
+        mangledIden = MakeIdentifier();
+
+      token.strValue = mangledIden;
+    }
+    else
+    {
+      token = lexer();
+      lexer.Consume();
+    }
+
+    macro.body.push_back(move(token));
+  }
+
+  if(blockMacro)
+    lexer.Consume();
+
+  macros.AddValue(name, move(macro));
+  return new EList;
+}
+
+ExprPtr ExprParser::MacroCall(const MacroDef& macro) // prefix: identifier
+{
+  map<string, vector<Token> > args;
+
+  if(!macro.params.empty())
+  {
+    if(!TOKEN(OpenParen))
+      EXPECTED(OpenParen)
+    lexer.Consume();
+
+    for(size_t i = 0; i < macro.params.size(); i++)
+    {
+      vector<Token> arg;
+
+      while(true)
+      {
+        if((i + 1) < macro.params.size() && TOKEN(Operator) && lexer().strValue == ",")
+          break;
+        if((i + 1) == macro.params.size() && TOKEN(CloseParen))
+          break;
+        if(TOKEN(EndOfFile))
+          ERROR("unterminated macro arguments")
+        arg.push_back(lexer());
+        lexer.Consume();
+      }
+      lexer.Consume();
+
+      args[macro.params[i]] = move(arg);
+    }
+  }
+
+  for(auto token = macro.body.rbegin(); token != macro.body.rend(); ++token)
+  {
+    if(token->type == Token::Identifier)
+    {
+      auto arg = args.find(token->strValue);
+      if(arg != args.end())
+      {
+        for(auto argToken = arg->second.rbegin(); argToken != arg->second.rend(); ++argToken)
+          lexer.Unget(*argToken);
+      }
+      else
+        lexer.Unget(*token);
+    }
+    else
+      lexer.Unget(*token);
+  }
+
+  return Expr();
+}
+
 ExprPtr ExprParser::Expr(bool required, int precedence)
 {
   ExprPtr expr = Expr_P(required);
@@ -386,6 +550,10 @@ ExprPtr ExprParser::Expr_P(bool required)
     lexer.Consume();
     expr = Extern();
   }
+  else if(TOKEN(Macro)) {
+    lexer.Consume();
+    expr = Macro();
+  }
   else if(TOKEN(OpenParen))
   {
     lexer.Consume();
@@ -407,9 +575,24 @@ ExprPtr ExprParser::Expr_P(bool required)
     expr = new EVariable(lexer().strValue);
     lexer.Consume();
   }
-  else if(TOKEN(Identifier)) {
-    expr = new EVariable(lexer().strValue);
+  else if(TOKEN(Identifier))
+  {
+    auto name = lexer().strValue;
     lexer.Consume();
+
+    auto it = macros.Values().find(name);
+    if(it != macros.Values().end())
+    {
+      if(activeMacros.find(name) != activeMacros.end())
+        ERROR("recursive macro call")
+      activeMacros.insert(name);
+      expr = MacroCall(it->second);
+      activeMacros.erase(name);
+    }
+    else
+    {
+      expr = new EVariable(name);
+    }
   }
   else if(TOKEN(Operator))
   {
@@ -417,13 +600,14 @@ ExprPtr ExprParser::Expr_P(bool required)
     lexer.Consume();
 
     if(unaryOp == unaryOperators.end())
-      ERROR("unknown unary operator")
+      ERROR("unknown unary operator: " << lexer().strValue)
 
     expr = Expr(true, unaryOp->second);
     expr = new ECall(new EVariable(unaryOp->first), expr);
   }
 
-  if(!expr) {
+  if(!expr)
+  {
     if(required) {
       Error() << "unexpected token " << lexer() << " parsing expression";
       lexer.Consume();
@@ -431,7 +615,8 @@ ExprPtr ExprParser::Expr_P(bool required)
     return expr;
   }
 
-  if(TOKEN(Slash)) {
+  if(TOKEN(Slash))
+  {
     lexer.Consume();
     expr->type = ParseType(lexer);
   }
