@@ -205,6 +205,10 @@ Token Lexer::operator()()
   while(IsSpace(lastChar))
     GetChar();
 
+  bool firstToken = indents.empty();
+  if(firstToken)
+    indents.push(0);
+
   if(lastChar == '\r' || lastChar == '\n')
   {
     bool isCR = (lastChar == '\r');
@@ -232,7 +236,8 @@ Token Lexer::operator()()
       nextTokens.push(MakeToken(Token::Dedent));
     }
 
-    nextTokens.push(MakeToken(Token::Nodent));
+    if(!firstToken)
+      nextTokens.push(MakeToken(Token::Nodent));
 
     if(indentSize != indents.top())
       return MakeError("invalid indentation");

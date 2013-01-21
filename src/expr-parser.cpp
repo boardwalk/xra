@@ -444,10 +444,6 @@ ExprPtr ExprParser::Expr_P(bool required)
 
 ExprPtr ExprParser::TopLevel()
 {
-  // tokens may generate a leading nodent, eat it
-  if(TOKEN(Nodent))
-    tokens.Consume();
-
   auto list = make_unique<EList>();
 
   while(true) {
