@@ -20,6 +20,7 @@ SOURCES = common.cpp \
 	expr.cpp \
 	expr-parser.cpp \
 	expr-tostring.cpp \
+	expr-compact-tostring.cpp \
 	value.cpp \
 	value-tostring.cpp \
 	type.cpp \

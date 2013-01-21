@@ -24,6 +24,9 @@ protected:
 // expr-tostring.cpp
 ostream& operator<<(ostream&, const Expr&);
 
+// expr-compact-tostring.cpp
+void ToStringCompact(ostream&, const Expr&);
+
 /*
  * Subexpressions
  */

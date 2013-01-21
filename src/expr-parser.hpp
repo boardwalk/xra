@@ -21,6 +21,7 @@ class ExprParser
   ExprPtr FileMacro();
   ExprPtr LineMacro();
   ExprPtr ShellMacro();
+  ExprPtr ToStrMacro();
 
   ExprPtr FlatBlock();
   ExprPtr Block();
@@ -39,7 +40,7 @@ class ExprParser
   ExprPtr Macro();
   ExprPtr MacroCall();
   ExprPtr UserMacroCall(const MacroDef& macro);
-  ExprPtr Expr(bool requred = true, int precedence = 0);  
+  ExprPtr Expr(bool required = true, int precedence = 0);
   ExprPtr Expr_P(bool required);
 
 public:

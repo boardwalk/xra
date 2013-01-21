@@ -110,6 +110,16 @@ ExprPtr ExprParser::ShellMacro()
   return new EString(move(output));
 }
 
+ExprPtr ExprParser::ToStrMacro()
+{
+  auto expr = Expr();
+  if(!expr)
+    return expr;
+  stringstream ss;
+  ToStringCompact(ss, *expr);
+  return new EString(ss.str().c_str());
+}
+
 ExprPtr ExprParser::FlatBlock()
 {
   auto list = make_unique<EList>();
@@ -379,7 +389,8 @@ ExprPtr ExprParser::Macro() // prefix: macro
        macros.Find(lexer(1).strValue) == macros.End() &&
        lexer(1).strValue != "file" &&
        lexer(1).strValue != "line" &&
-       lexer(1).strValue != "shell") // TODO maybe not hardcode this?
+       lexer(1).strValue != "shell" &&
+       lexer(1).strValue != "tostr") // TODO maybe not hardcode this?
     {
       token = lexer(1);
       lexer.Consume(2);
@@ -434,6 +445,8 @@ ExprPtr ExprParser::MacroCall() // prefix: $
     return LineMacro();
   if(name == "shell")
     return ShellMacro();
+  if(name == "tostr")
+    return ToStrMacro();
 
   ERROR("undefined macro " << name)
 }
