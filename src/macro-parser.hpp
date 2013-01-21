@@ -18,6 +18,7 @@ class MacroParser
   set<string> activeMacros;
   SourceLoc macroCallLoc;
 
+  void IncMacro();
   void FileMacro();
   void LineMacro();
   void ShellMacro();

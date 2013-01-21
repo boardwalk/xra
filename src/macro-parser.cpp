@@ -1,5 +1,6 @@
 #include "common.hpp"
 #include "macro-parser.hpp"
+#include <fstream>
 
 #define TOKEN(t) (tokens().type == Token::t)
 #define ERROR(what) \
@@ -22,6 +23,30 @@ static string MakeIdentifier()
     name += ('a' + (i % 26) - 1);
 
   return name;
+}
+
+void MacroParser::IncMacro()
+{
+  if(!TOKEN(String))
+    EXPECTED(String)
+  auto fileName = tokens().strValue;
+  tokens.Consume();
+
+  ifstream file(fileName);
+  if(!file)
+    ERROR("could not open include " << fileName)
+
+  Lexer lexer(file, fileName);
+  vector<Token> fileTokens;
+  while(true) {
+    Token token = lexer();
+    if(token.type == Token::EndOfFile)
+      break;
+    fileTokens.push_back(token);
+  }
+
+  for(auto& token : Reverse(fileTokens))
+    tokens.Unget(token);
 }
 
 void MacroParser::FileMacro()
@@ -217,6 +242,7 @@ void MacroParser::Macro() // prefix: macro
     if(TOKEN(Operator) && tokens().strValue == "$" &&
        tokens(1).type == Token::Identifier &&
        macros.Find(tokens(1).strValue) == macros.End() &&
+       tokens(1).strValue != "inc" &&
        tokens(1).strValue != "file" &&
        tokens(1).strValue != "line" &&
        tokens(1).strValue != "shell" &&
@@ -268,6 +294,8 @@ void MacroParser::MacroCall() // prefix: $
     UserMacroCall(macro->second);
     activeMacros.erase(name);
   }
+  else if(name == "inc")
+    IncMacro();
   else if(name == "file")
     FileMacro();
   else if(name == "line")
@@ -313,27 +341,23 @@ void MacroParser::UserMacroCall(const MacroDef& macro)
     }
   }
 
-  for(auto token = macro.body.rbegin(); token != macro.body.rend(); ++token)
+  for(auto token : Reverse(macro.body))
   {
-    if(token->type == Token::Identifier)
-    {
-      auto arg = args.find(token->strValue);
-      if(arg != args.end())
-      {
-        for(auto argToken = arg->second.rbegin(); argToken != arg->second.rend(); ++argToken)
-          tokens.Unget(*argToken);
-      }
-      else {
-        auto tokenCopy = *token;
-        tokenCopy.loc = macroCallLoc;
-        tokens.Unget(tokenCopy);
-      }
+    token.loc = macroCallLoc;
+
+    if(token.type != Token::Identifier) {
+      tokens.Unget(token);
+      continue;
     }
-    else {
-      auto tokenCopy = *token;
-      tokenCopy.loc = macroCallLoc;
-      tokens.Unget(tokenCopy);
+
+    auto arg = args.find(token.strValue);
+    if(arg == args.end()) {
+      tokens.Unget(token);
+      continue;
     }
+
+    for(auto& argToken : Reverse(arg->second))
+      tokens.Unget(argToken);
   }
 }
 

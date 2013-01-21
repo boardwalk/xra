@@ -75,6 +75,19 @@ private:
   static stringstream ss;
 };
 
+template<class C>
+class ReverseWrapper
+{
+  C& c;
+public:
+  ReverseWrapper(C& c_) : c(c_) {}
+  typename C::const_reverse_iterator begin() const { return c.crbegin(); }
+  typename C::const_reverse_iterator end() const { return c.crend(); }
+};
+
+template<class C>
+ReverseWrapper<C> Reverse(C& c) { return ReverseWrapper<C>(c); }
+
 // common.cpp
 ostream& operator<<(ostream&, const SourceLoc&);
 void EscapeString(const string&, ostream&);
