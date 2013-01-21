@@ -1,6 +1,7 @@
 ## args = -l
-fn if elsif else while break return bool int float str true false extern
-abc _def ghi123 UpperCamelCase lowerCamelCase
-( ) : \ `
-!$%& *+,- ./;< =>?@ ^|~
 99 0b1010 0xff 0777 9. 3.1415
+bool int float str signed unsigned true false module using fn if else elsif while break return type extern macro
+abc _def ghi123 UpperCamelCase lowerCamelCase
+$ ( ) : \ `
+!%&* +,-. /;<= >?@[ ]^{| |}~
+

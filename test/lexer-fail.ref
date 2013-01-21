@@ -1,4 +1,3 @@
-<nodent> at test/lexer-fail.xra:5:1
 <identifier a> at test/lexer-fail.xra:5:2
 <indent> at test/lexer-fail.xra:6:3
 <identifier b> at test/lexer-fail.xra:6:4

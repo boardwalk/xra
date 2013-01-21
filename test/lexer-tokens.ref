@@ -1,41 +1,47 @@
-<nodent> at test/lexer-tokens.xra:2:1
-fn at test/lexer-tokens.xra:2:3
-if at test/lexer-tokens.xra:2:6
-elsif at test/lexer-tokens.xra:2:12
-else at test/lexer-tokens.xra:2:17
-while at test/lexer-tokens.xra:2:23
-break at test/lexer-tokens.xra:2:29
-return at test/lexer-tokens.xra:2:36
-bool at test/lexer-tokens.xra:2:41
-int at test/lexer-tokens.xra:2:45
-float at test/lexer-tokens.xra:2:51
-str at test/lexer-tokens.xra:2:55
-true at test/lexer-tokens.xra:2:60
-false at test/lexer-tokens.xra:2:66
-extern at test/lexer-tokens.xra:2:73
+<int 99> at test/lexer-tokens.xra:2:3
+<int 10> at test/lexer-tokens.xra:2:10
+<int 255> at test/lexer-tokens.xra:2:15
+<int 511> at test/lexer-tokens.xra:2:20
+<float 9> at test/lexer-tokens.xra:2:23
+<float 3.1415> at test/lexer-tokens.xra:2:30
 <nodent> at test/lexer-tokens.xra:3:1
-<identifier abc> at test/lexer-tokens.xra:3:4
-<identifier _def> at test/lexer-tokens.xra:3:9
-<identifier ghi123> at test/lexer-tokens.xra:3:16
-<identifier UpperCamelCase> at test/lexer-tokens.xra:3:31
-<identifier lowerCamelCase> at test/lexer-tokens.xra:3:46
+bool at test/lexer-tokens.xra:3:5
+int at test/lexer-tokens.xra:3:9
+float at test/lexer-tokens.xra:3:15
+str at test/lexer-tokens.xra:3:19
+signed at test/lexer-tokens.xra:3:26
+unsigned at test/lexer-tokens.xra:3:35
+true at test/lexer-tokens.xra:3:40
+false at test/lexer-tokens.xra:3:46
+module at test/lexer-tokens.xra:3:53
+using at test/lexer-tokens.xra:3:59
+fn at test/lexer-tokens.xra:3:62
+if at test/lexer-tokens.xra:3:65
+else at test/lexer-tokens.xra:3:70
+elsif at test/lexer-tokens.xra:3:76
+while at test/lexer-tokens.xra:3:82
+break at test/lexer-tokens.xra:3:88
+return at test/lexer-tokens.xra:3:95
+type at test/lexer-tokens.xra:3:100
+extern at test/lexer-tokens.xra:3:107
+macro at test/lexer-tokens.xra:3:113
 <nodent> at test/lexer-tokens.xra:4:1
-( at test/lexer-tokens.xra:4:2
-) at test/lexer-tokens.xra:4:4
-: at test/lexer-tokens.xra:4:6
-\ at test/lexer-tokens.xra:4:8
-` at test/lexer-tokens.xra:4:10
+<identifier abc> at test/lexer-tokens.xra:4:4
+<identifier _def> at test/lexer-tokens.xra:4:9
+<identifier ghi123> at test/lexer-tokens.xra:4:16
+<identifier UpperCamelCase> at test/lexer-tokens.xra:4:31
+<identifier lowerCamelCase> at test/lexer-tokens.xra:4:46
 <nodent> at test/lexer-tokens.xra:5:1
-<operator !$%&> at test/lexer-tokens.xra:5:5
-<operator *+,-> at test/lexer-tokens.xra:5:10
-<operator ./;<> at test/lexer-tokens.xra:5:15
-<operator =>?@> at test/lexer-tokens.xra:5:20
-<operator ^|~> at test/lexer-tokens.xra:5:24
-<nodent> at test/lexer-tokens.xra:6:1
-<int 99> at test/lexer-tokens.xra:6:3
-<int 10> at test/lexer-tokens.xra:6:10
-<int 255> at test/lexer-tokens.xra:6:15
-<int 511> at test/lexer-tokens.xra:6:20
-<float 9> at test/lexer-tokens.xra:6:23
-<float 3.1415> at test/lexer-tokens.xra:6:30
-<eof> at test/lexer-tokens.xra:7:1
+$ at test/lexer-tokens.xra:5:2
+( at test/lexer-tokens.xra:5:4
+) at test/lexer-tokens.xra:5:6
+: at test/lexer-tokens.xra:5:8
+\ at test/lexer-tokens.xra:5:10
+` at test/lexer-tokens.xra:5:12
+<operator !%&*> at test/lexer-tokens.xra:6:5
+<operator +,-.> at test/lexer-tokens.xra:6:10
+<operator /;<=> at test/lexer-tokens.xra:6:15
+<operator >?@[> at test/lexer-tokens.xra:6:20
+<operator ]^{|> at test/lexer-tokens.xra:6:25
+<operator |}~> at test/lexer-tokens.xra:6:29
+<eof> at test/lexer-tokens.xra:8:1

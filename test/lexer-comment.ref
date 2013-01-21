@@ -1,4 +1,3 @@
-<nodent> at test/lexer-comment.xra:2:1
 <identifier LineEnding> at test/lexer-comment.xra:2:11
 <indent> at test/lexer-comment.xra:3:3
 <identifier AndAnother> at test/lexer-comment.xra:3:13

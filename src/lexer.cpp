@@ -208,10 +208,6 @@ Token Lexer::operator()()
   while(IsSpace(lastChar))
     GetChar();
 
-  bool firstToken = indents.empty();
-  if(firstToken)
-    indents.push(0);
-
   if(lastChar == '\r' || lastChar == '\n')
   {
     bool isCR = (lastChar == '\r');
@@ -226,7 +222,7 @@ Token Lexer::operator()()
     }
 
     if(lastChar == '\r' || lastChar == '\n' || lastChar == EOF ||
-       lastChar == '#' || parenLevel > 0)
+       lastChar == '#' || parenLevel > 0 || indents.empty())
       return (*this)();
 
     if(indentSize > indents.top()) {
@@ -239,8 +235,7 @@ Token Lexer::operator()()
       nextTokens.push(MakeToken(Token::Dedent));
     }
 
-    if(!firstToken)
-      nextTokens.push(MakeToken(Token::Nodent));
+    nextTokens.push(MakeToken(Token::Nodent));
 
     if(indentSize != indents.top())
       return MakeError("invalid indentation");
@@ -261,6 +256,9 @@ Token Lexer::operator()()
     }
     return (*this)();
   }
+
+  if(indents.empty())
+    indents.push(0);
 
   if(lastChar == '\'')
     return String();
