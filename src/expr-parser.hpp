@@ -17,6 +17,10 @@ class ExprParser
   ScopedMap<string, MacroDef> macros;
   set<string> activeMacros;
 
+  ExprPtr FileMacro();
+  ExprPtr LineMacro();
+  ExprPtr ShellMacro();
+
   ExprPtr FlatBlock();
   ExprPtr Block();
   ExprPtr Clause();
@@ -32,7 +36,8 @@ class ExprParser
   ExprPtr TypeAlias();
   ExprPtr Extern();
   ExprPtr Macro();
-  ExprPtr MacroCall(const MacroDef& macro);
+  ExprPtr MacroCall();
+  ExprPtr UserMacroCall(const MacroDef& macro);
   ExprPtr Expr(bool requred = true, int precedence = 0);  
   ExprPtr Expr_P(bool required);
 

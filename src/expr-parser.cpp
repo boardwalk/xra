@@ -65,6 +65,51 @@ static string MakeIdentifier()
   return name;
 }
 
+ExprPtr ExprParser::FileMacro()
+{
+  return new EString(*lexer().loc.source);
+}
+
+ExprPtr ExprParser::LineMacro()
+{
+  return new EInteger((unsigned long)lexer().loc.line);
+}
+
+ExprPtr ExprParser::ShellMacro()
+{
+  if(!TOKEN(String))
+    EXPECTED(String)
+  auto cmd = lexer().strValue;
+  lexer.Consume();
+
+  FILE* fp = popen(cmd.c_str(), "r");
+  if(fp == nullptr)
+    ERROR("shell failed")
+
+  string output;
+  while(true) {
+    char buf[64];
+    size_t bytesRead = fread(buf, 1, sizeof(buf), fp);
+    output.append(buf, bytesRead);
+    if(bytesRead < sizeof(buf))
+      break;
+  }
+
+  int end = feof(fp);
+
+  if(pclose(fp) != 0)
+    ERROR("shell failed");
+  if(end == 0)
+    ERROR("shell read failed");
+
+  size_t outputSize = output.size();
+  while(outputSize && isspace(output[outputSize - 1]))
+    outputSize--;
+  output.resize(outputSize);
+
+  return new EString(move(output));
+}
+
 ExprPtr ExprParser::FlatBlock()
 {
   auto list = make_unique<EList>();
@@ -329,7 +374,9 @@ ExprPtr ExprParser::Macro() // prefix: macro
 
     Token token;
 
-    if(TOKEN(Operator) && lexer().strValue == "$" && lexer(1).type == Token::Identifier)
+    if(TOKEN(Operator) && lexer().strValue == "$" &&
+       lexer(1).type == Token::Identifier &&
+       macros.Find(lexer(1).strValue) == macros.End())
     {
       token = lexer(1);
       lexer.Consume(2);
@@ -356,9 +403,39 @@ ExprPtr ExprParser::Macro() // prefix: macro
   return new EList;
 }
 
-ExprPtr ExprParser::MacroCall(const MacroDef& macro) // prefix: identifier
+ExprPtr ExprParser::MacroCall() // prefix: $
 {
-  map<string, vector<Token> > args;
+  if(!TOKEN(Identifier))
+    EXPECTED(Identifier)
+  auto name = lexer().strValue;
+  lexer.Consume();
+
+  auto macro = macros.Find(name);
+  if(macro != macros.End())
+  {
+    if(activeMacros.find(name) != activeMacros.end())
+      ERROR("recursive call of macro " << name);
+
+    activeMacros.insert(name);
+    auto expr = UserMacroCall(macro->second);
+    activeMacros.erase(name);
+
+    return expr;
+  }
+
+  if(name == "file")
+    return FileMacro();
+  if(name == "line")
+    return LineMacro();
+  if(name == "shell")
+    return ShellMacro();
+
+  ERROR("undefined macro " << name)
+}
+
+ExprPtr ExprParser::UserMacroCall(const MacroDef& macro)
+{
+ map<string, vector<Token> > args;
 
   if(!macro.params.empty())
   {
@@ -577,33 +654,27 @@ ExprPtr ExprParser::Expr_P(bool required)
   }
   else if(TOKEN(Identifier))
   {
-    auto name = lexer().strValue;
+    expr = new EVariable(lexer().strValue);
     lexer.Consume();
-
-    auto it = macros.Values().find(name);
-    if(it != macros.Values().end())
-    {
-      if(activeMacros.find(name) != activeMacros.end())
-        ERROR("recursive macro call")
-      activeMacros.insert(name);
-      expr = MacroCall(it->second);
-      activeMacros.erase(name);
-    }
-    else
-    {
-      expr = new EVariable(name);
-    }
   }
   else if(TOKEN(Operator))
   {
-    auto unaryOp = unaryOperators.find(lexer().strValue);
-    lexer.Consume();
+    if(lexer().strValue == "$")
+    {
+      lexer.Consume();
+      expr = MacroCall();
+    }
+    else
+    {
+      auto unaryOp = unaryOperators.find(lexer().strValue);
+      lexer.Consume();
 
-    if(unaryOp == unaryOperators.end())
-      ERROR("unknown unary operator: " << lexer().strValue)
+      if(unaryOp == unaryOperators.end())
+        ERROR("unknown unary operator: " << lexer().strValue)
 
-    expr = Expr(true, unaryOp->second);
-    expr = new ECall(new EVariable(unaryOp->first), expr);
+      expr = Expr(true, unaryOp->second);
+      expr = new ECall(new EVariable(unaryOp->first), expr);
+    }
   }
 
   if(!expr)

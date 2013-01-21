@@ -37,13 +37,11 @@ class ScopedMap
 public:
   class Scope
   {
-    typedef ScopedMap<KeyTy, ValueTy> Map;
-
-    Map& map;
+    ScopedMap& map;
     size_t nops;
 
   public:
-    Scope(Map& map_) :
+    Scope(ScopedMap& map_) :
       map(map_),
       nops(map_.operations.size())
       {}
@@ -72,6 +70,16 @@ public:
     if(it != data.end())
       return it->second;
     return {};
+  }
+
+  typename BaseMap::const_iterator Find(const KeyTy& key) const
+  {
+    return data.find(key);
+  }
+
+  typename BaseMap::const_iterator End() const
+  {
+    return data.end();
   }
 
   void AddValue(const KeyTy& key, ValueTy value)
