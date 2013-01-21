@@ -376,7 +376,10 @@ ExprPtr ExprParser::Macro() // prefix: macro
 
     if(TOKEN(Operator) && lexer().strValue == "$" &&
        lexer(1).type == Token::Identifier &&
-       macros.Find(lexer(1).strValue) == macros.End())
+       macros.Find(lexer(1).strValue) == macros.End() &&
+       lexer(1).strValue != "file" &&
+       lexer(1).strValue != "line" &&
+       lexer(1).strValue != "shell") // TODO maybe not hardcode this?
     {
       token = lexer(1);
       lexer.Consume(2);
