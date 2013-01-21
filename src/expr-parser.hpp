@@ -16,6 +16,7 @@ class ExprParser
   BufferedLexer& lexer;
   ScopedMap<string, MacroDef> macros;
   set<string> activeMacros;
+  SourceLoc macroCallLoc;
 
   ExprPtr FileMacro();
   ExprPtr LineMacro();

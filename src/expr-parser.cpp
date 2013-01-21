@@ -67,12 +67,12 @@ static string MakeIdentifier()
 
 ExprPtr ExprParser::FileMacro()
 {
-  return new EString(*lexer().loc.source);
+  return new EString(*macroCallLoc.source);
 }
 
 ExprPtr ExprParser::LineMacro()
 {
-  return new EInteger((unsigned long)lexer().loc.line);
+  return new EInteger((unsigned long)macroCallLoc.line);
 }
 
 ExprPtr ExprParser::ShellMacro()
@@ -408,6 +408,8 @@ ExprPtr ExprParser::Macro() // prefix: macro
 
 ExprPtr ExprParser::MacroCall() // prefix: $
 {
+  macroCallLoc = lexer().loc;
+
   if(!TOKEN(Identifier))
     EXPECTED(Identifier)
   auto name = lexer().strValue;
@@ -477,11 +479,17 @@ ExprPtr ExprParser::UserMacroCall(const MacroDef& macro)
         for(auto argToken = arg->second.rbegin(); argToken != arg->second.rend(); ++argToken)
           lexer.Unget(*argToken);
       }
-      else
-        lexer.Unget(*token);
+      else {
+        auto tokenCopy = *token;
+        tokenCopy.loc = macroCallLoc;
+        lexer.Unget(tokenCopy);
+      }
     }
-    else
-      lexer.Unget(*token);
+    else {
+      auto tokenCopy = *token;
+      tokenCopy.loc = macroCallLoc;
+      lexer.Unget(tokenCopy);
+    }
   }
 
   return Expr();
