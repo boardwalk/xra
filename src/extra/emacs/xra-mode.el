@@ -21,7 +21,7 @@
 (setq xra-constants (concat "\\<\\(" xra-constants "\\)\\>"))
 
 (defvar xra-variables
-  "\\<[a-zA-Z_][a-zA-Z0-9_]*\\>"
+  "[a-zA-Z_][a-zA-Z0-9_]*"
   "xra variables")
 
 (setq xra-font-lock-keywords `(
