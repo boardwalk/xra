@@ -308,7 +308,6 @@ Token Lexer::operator()()
 
   if(lastChar == '$') {
     GetChar();
-    parenLevel++;
     return MakeToken(Token::Dollar);
   }
 
