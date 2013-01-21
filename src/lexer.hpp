@@ -39,6 +39,7 @@ struct Token
     Extern,
     Macro,
     // special operators
+    Dollar,
     OpenParen,
     CloseParen,
     Colon,

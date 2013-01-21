@@ -21,12 +21,12 @@ static bool IdentifierSubsequent(char c)
 static bool Operator(char c)
 {
   switch(c) {
-    case '!': case '$': case '%': case '&':
-    case '*': case '+': case ',': case '-':
-    case '.': case '/': case ';': case '<':
-    case '=': case '>': case '?': case '@':
-    case '[': case ']': case '^': case '{':
-    case '|': case '}': case '~': 
+    case '!': case '%': case '&': case '*':
+    case '+': case ',': case '-': case '.':
+    case '/': case ';': case '<': case '=':
+    case '>': case '?': case '@': case '[':
+    case ']': case '^': case '{': case '|':
+    case '}': case '~':
       return true;
   }
   return false;
@@ -124,6 +124,9 @@ ostream& operator<<(ostream& os, const Token& token)
       os << "macro";
       break;
     // special operators
+    case Token::Dollar:
+      os << '$';
+      break;
     case Token::OpenParen:
       os << '(';
       break;
@@ -303,6 +306,12 @@ Token Lexer::operator()()
     Token token = MakeToken(Token::Identifier);
     token.strValue = move(str);
     return token;
+  }
+
+  if(lastChar == '$') {
+    GetChar();
+    parenLevel++;
+    return MakeToken(Token::Dollar);
   }
 
   if(lastChar == '(') {

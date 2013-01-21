@@ -114,7 +114,7 @@ void MacroParser::CatMacro(bool asIdentifier)
 
   stringstream ss;
   while(true) {
-    if(TOKEN(Operator) && tokens().strValue == "$") {
+    if(TOKEN(Dollar)) {
       tokens.Consume();
       MacroCall();
       continue;
@@ -138,10 +138,6 @@ void MacroParser::CatMacro(bool asIdentifier)
       break;
     if(TOKEN(EndOfFile))
       ERROR("unterminated macro arguments")
-    if(!TOKEN(Operator) || tokens().strValue != ",")
-      EXPECTED(Comma)
-
-    tokens.Consume();
   }
   tokens.Consume();
 
@@ -239,7 +235,7 @@ void MacroParser::Macro() // prefix: macro
 
     Token token;
 
-    if(TOKEN(Operator) && tokens().strValue == "$" &&
+    if(TOKEN(Dollar) &&
        tokens(1).type == Token::Identifier &&
        macros.Find(tokens(1).strValue) == macros.End() &&
        tokens(1).strValue != "inc" &&
@@ -364,7 +360,7 @@ void MacroParser::UserMacroCall(const MacroDef& macro)
 Token MacroParser::operator()()
 {
   while(true) {
-    if(TOKEN(Operator) && tokens().strValue == "$") {
+    if(TOKEN(Dollar)) {
       tokens.Consume();
       MacroCall();
     }
