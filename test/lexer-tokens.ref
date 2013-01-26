@@ -32,12 +32,12 @@ macro at test/lexer-tokens.xra:3:113
 <identifier UpperCamelCase> at test/lexer-tokens.xra:4:31
 <identifier lowerCamelCase> at test/lexer-tokens.xra:4:46
 <nodent> at test/lexer-tokens.xra:5:1
-$ at test/lexer-tokens.xra:5:2
 ( at test/lexer-tokens.xra:5:4
 ) at test/lexer-tokens.xra:5:6
 : at test/lexer-tokens.xra:5:8
 \ at test/lexer-tokens.xra:5:10
 ` at test/lexer-tokens.xra:5:12
+<nodent> at test/lexer-tokens.xra:6:1
 <operator !%&*> at test/lexer-tokens.xra:6:5
 <operator +,-.> at test/lexer-tokens.xra:6:10
 <operator /;<=> at test/lexer-tokens.xra:6:15

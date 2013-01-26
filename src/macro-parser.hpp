@@ -18,15 +18,20 @@ class MacroParser
   set<string> activeMacros;
   SourceLoc macroCallLoc;
 
+  bool Condition();
+  vector<Token> Block();
+
+  void DefMacro();
+  void WhenMacro();
   void IncMacro();
   void FileMacro();
   void LineMacro();
   void ShellMacro();
   void CatMacro(bool asIdentifier);
 
-  void Macro();
   void MacroCall();
   void UserMacroCall(const MacroDef& macro);
+  void Expand();
 
 public:
   MacroParser(Lexer& lexer) :

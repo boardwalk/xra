@@ -1,0 +1,4 @@
+## args = -l
+$def x: puts "Hello, world!"
+extern puts str -> int
+$x

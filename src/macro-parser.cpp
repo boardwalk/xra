@@ -25,143 +25,7 @@ static string MakeIdentifier()
   return name;
 }
 
-void MacroParser::IncMacro()
-{
-  if(!TOKEN(String))
-    EXPECTED(String)
-  auto fileName = tokens().strValue;
-  tokens.Consume();
-
-  ifstream file(fileName);
-  if(!file)
-    ERROR("could not open include " << fileName)
-
-  Lexer lexer(file, fileName);
-  vector<Token> fileTokens;
-  while(true) {
-    Token token = lexer();
-    if(token.type == Token::EndOfFile)
-      break;
-    fileTokens.push_back(token);
-  }
-
-  for(auto& token : Reverse(fileTokens))
-    tokens.Unget(token);
-}
-
-void MacroParser::FileMacro()
-{
-  Token token;
-  token.type = Token::String;
-  token.loc = macroCallLoc;
-  token.strValue = *macroCallLoc.source;
-  tokens.Unget(token);
-}
-
-void MacroParser::LineMacro()
-{
-  Token token;
-  token.type = Token::Integer;
-  token.loc = macroCallLoc;
-  token.intValue = (unsigned long)macroCallLoc.line;
-  tokens.Unget(token);
-}
-
-void MacroParser::ShellMacro()
-{
-  if(!TOKEN(String))
-    EXPECTED(String)
-  auto cmd = tokens().strValue;
-  tokens.Consume();
-
-  FILE* fp = popen(cmd.c_str(), "r");
-  if(fp == nullptr)
-    ERROR("shell failed")
-
-  string output;
-  while(true) {
-    char buf[64];
-    size_t bytesRead = fread(buf, 1, sizeof(buf), fp);
-    output.append(buf, bytesRead);
-    if(bytesRead < sizeof(buf))
-      break;
-  }
-
-  int end = feof(fp);
-
-  if(pclose(fp) != 0)
-    ERROR("shell failed");
-  if(end == 0)
-    ERROR("shell read failed");
-
-  size_t outputSize = output.size();
-  while(outputSize && isspace(output[outputSize - 1]))
-    outputSize--;
-  output.resize(outputSize);
-
-  Token token;
-  token.type = Token::String;
-  token.loc = macroCallLoc;
-  token.strValue = move(output);
-  tokens.Unget(token);
-}
-
-void MacroParser::CatMacro(bool asIdentifier)
-{
-  if(!TOKEN(OpenParen))
-    EXPECTED(OpenParen)
-  tokens.Consume();
-
-  stringstream ss;
-  while(true) {
-    if(TOKEN(Dollar)) {
-      tokens.Consume();
-      MacroCall();
-      continue;
-    }
-
-    if(TOKEN(Identifier) || TOKEN(String) || TOKEN(Operator)) {
-      ss << tokens().strValue;
-    }
-    else if(TOKEN(Integer)) {
-      ss << tokens().intValue;
-    }
-    else if(TOKEN(Float)) {
-      ss << tokens().floatValue;
-    }
-    else {
-      ERROR("expected token with value")
-    }
-    tokens.Consume();
-
-    if(TOKEN(CloseParen))
-      break;
-    if(TOKEN(EndOfFile))
-      ERROR("unterminated macro arguments")
-  }
-  tokens.Consume();
-
-  Token token;
-  token.type = asIdentifier ? Token::Identifier : Token::String;
-  token.loc = macroCallLoc;
-  token.strValue = ss.str();
-
-  if(asIdentifier)
-  {
-    int i = 0;
-    for(char c : token.strValue) {
-      if(i++ && isdigit(c))
-        continue;
-      if(isalpha(c) || c == '_')
-        continue;
-      ERROR("bad identifier: " << token.strValue)
-    }
-  }
-
-  tokens.Unget(token);
-}
-
-void MacroParser::Macro() // prefix: macro
+void MacroParser::DefMacro()
 {
   if(!TOKEN(Identifier))
     EXPECTED(Identifier)
@@ -238,6 +102,8 @@ void MacroParser::Macro() // prefix: macro
     if(TOKEN(Dollar) &&
        tokens(1).type == Token::Identifier &&
        macros.Find(tokens(1).strValue) == macros.End() &&
+       tokens(1).strValue != "def" &&
+       tokens(1).strValue != "if" &&
        tokens(1).strValue != "inc" &&
        tokens(1).strValue != "file" &&
        tokens(1).strValue != "line" &&
@@ -271,6 +137,269 @@ void MacroParser::Macro() // prefix: macro
   macros.AddValue(name, move(macro));
 }
 
+static int Compare(const Token& a, const Token& b)
+{
+  if((a.type == Token::Identifier || a.type == Token::Operator || a.type == Token::String) &&
+     (b.type == Token::Identifier || b.type == Token::Operator || b.type == Token::String))
+  {
+    return a.strValue.compare(b.strValue);
+  }
+
+  if(a.type == Token::Integer && b.type == Token::Integer)
+  {
+    if(a.intValue > b.intValue)
+      return 1;
+    if(a.intValue < b.intValue)
+      return -1;
+    return 0;
+  }
+
+  Error() << "uncomparable tokens";
+  return 0;
+}
+
+bool MacroParser::Condition()
+{
+  Expand();
+  Token lhs = tokens();
+  tokens.Consume();
+
+  Token op = tokens();
+  tokens.Consume();
+
+  Expand();
+  Token rhs = tokens();
+  tokens.Consume();
+
+  if(op.type != Token::Operator) {
+    Error() << "expected operator";
+    return false;
+  }
+
+  int cmp = Compare(lhs, rhs);
+  bool result = false;
+  if(op.strValue == "==")
+    result = (cmp == 0);
+  else if(op.strValue == "!=")
+    result = (cmp != 0);
+  else if(op.strValue == "<")
+    result = (cmp < 0);
+  else if(op.strValue == ">")
+    result = (cmp > 0);
+  else if(op.strValue == "<=")
+    result = (cmp <= 0);
+  else if(op.strValue == ">=")
+    result = (cmp >= 0);
+
+  else
+    Error() << "unknown operator: " << op.strValue;
+
+  return result;
+}
+
+vector<Token> MacroParser::Block()
+{
+  bool blockMacro;
+  if(TOKEN(Colon))
+    blockMacro = false;
+  else if(TOKEN(Identifier))
+    blockMacro = true;
+  else {
+    Error() << "expected colon or indent";
+    return {};
+   }
+  tokens.Consume();
+
+  vector<Token> body;
+  int level = 0;
+  while(true)
+  {
+    if(blockMacro)
+    {
+      if(TOKEN(Indent))
+        level++;
+      else if(TOKEN(Dedent))
+        level--;
+      if(level < 0)
+        break;
+    }
+    else
+    {
+      if(TOKEN(Nodent) || TOKEN(EndOfFile))
+        break;
+      if(TOKEN(Indent) || TOKEN(Nodent)) {
+        Error() << "unexpected indentation in single line macro";
+        return {};
+      }
+    }
+
+    body.push_back(tokens());
+    tokens.Consume();
+  }
+
+/*  if(blockMacro)
+    tokens.Consume();*/
+  if(TOKEN(Nodent))
+    tokens.Consume();
+
+  return body;
+}
+
+void MacroParser::WhenMacro()
+{
+  bool result = Condition();
+  vector<Token> body = Block();
+
+  if(result) {
+    for(auto& token : Reverse(body))
+      tokens.Unget(token);
+  }
+  else {
+    Token token;
+    token.loc = macroCallLoc;
+    token.type = Token::CloseParen;
+    tokens.Unget(token);
+    token.type = Token::OpenParen;
+    tokens.Unget(token);
+  }
+}
+
+void MacroParser::IncMacro()
+{
+  Expand();
+
+  if(!TOKEN(String))
+    EXPECTED(String)
+  auto fileName = tokens().strValue;
+  tokens.Consume();
+
+  ifstream file(fileName);
+  if(!file)
+    ERROR("could not open include " << fileName)
+
+  Lexer lexer(file, fileName);
+  vector<Token> fileTokens;
+  while(true) {
+    Token token = lexer();
+    if(token.type == Token::EndOfFile)
+      break;
+    fileTokens.push_back(token);
+  }
+
+  for(auto& token : Reverse(fileTokens))
+    tokens.Unget(token);
+}
+
+void MacroParser::FileMacro()
+{
+  Token token;
+  token.type = Token::String;
+  token.loc = macroCallLoc;
+  token.strValue = *macroCallLoc.source;
+  tokens.Unget(token);
+}
+
+void MacroParser::LineMacro()
+{
+  Token token;
+  token.type = Token::Integer;
+  token.loc = macroCallLoc;
+  token.intValue = (unsigned long)macroCallLoc.line;
+  tokens.Unget(token);
+}
+
+void MacroParser::ShellMacro()
+{
+  Expand();
+
+  if(!TOKEN(String))
+    EXPECTED(String)
+  auto cmd = tokens().strValue;
+  tokens.Consume();
+
+  FILE* fp = popen(cmd.c_str(), "r");
+  if(fp == nullptr)
+    ERROR("shell failed")
+
+  string output;
+  while(true) {
+    char buf[64];
+    size_t bytesRead = fread(buf, 1, sizeof(buf), fp);
+    output.append(buf, bytesRead);
+    if(bytesRead < sizeof(buf))
+      break;
+  }
+
+  int end = feof(fp);
+
+  if(pclose(fp) != 0)
+    ERROR("shell failed");
+  if(end == 0)
+    ERROR("shell read failed");
+
+  size_t outputSize = output.size();
+  while(outputSize && isspace(output[outputSize - 1]))
+    outputSize--;
+  output.resize(outputSize);
+
+  Token token;
+  token.type = Token::String;
+  token.loc = macroCallLoc;
+  token.strValue = move(output);
+  tokens.Unget(token);
+}
+
+void MacroParser::CatMacro(bool asIdentifier)
+{
+  if(!TOKEN(OpenParen))
+    EXPECTED(OpenParen)
+  tokens.Consume();
+
+  stringstream ss;
+  while(true) {
+    Expand();
+
+    if(TOKEN(Identifier) || TOKEN(String) || TOKEN(Operator)) {
+      ss << tokens().strValue;
+    }
+    else if(TOKEN(Integer)) {
+      ss << tokens().intValue;
+    }
+    else if(TOKEN(Float)) {
+      ss << tokens().floatValue;
+    }
+    else {
+      ERROR("expected token with value")
+    }
+    tokens.Consume();
+
+    if(TOKEN(CloseParen))
+      break;
+    if(TOKEN(EndOfFile))
+      ERROR("unterminated macro arguments")
+  }
+  tokens.Consume();
+
+  Token token;
+  token.type = asIdentifier ? Token::Identifier : Token::String;
+  token.loc = macroCallLoc;
+  token.strValue = ss.str();
+
+  if(asIdentifier)
+  {
+    int i = 0;
+    for(char c : token.strValue) {
+      if(i++ && isdigit(c))
+        continue;
+      if(isalpha(c) || c == '_')
+        continue;
+      ERROR("bad identifier: " << token.strValue)
+    }
+  }
+
+  tokens.Unget(token);
+}
+
 void MacroParser::MacroCall() // prefix: $
 {
   macroCallLoc = tokens().loc;
@@ -290,6 +419,10 @@ void MacroParser::MacroCall() // prefix: $
     UserMacroCall(macro->second);
     activeMacros.erase(name);
   }
+  else if(name == "def")
+    DefMacro();
+  else if(name == "when")
+    WhenMacro();
   else if(name == "inc")
     IncMacro();
   else if(name == "file")
@@ -357,19 +490,17 @@ void MacroParser::UserMacroCall(const MacroDef& macro)
   }
 }
 
+void MacroParser::Expand()
+{
+  while(TOKEN(Dollar)) {
+    tokens.Consume();
+    MacroCall();
+  }
+}
+
 Token MacroParser::operator()()
 {
-  while(true) {
-    if(TOKEN(Dollar)) {
-      tokens.Consume();
-      MacroCall();
-    }
-    else if(TOKEN(Macro)) {
-      tokens.Consume();
-      Macro();
-    }
-    else break;
-  }
+  Expand();
 
   Token token = tokens();
   tokens.Consume();
