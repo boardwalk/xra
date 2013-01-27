@@ -1,13 +1,11 @@
 #ifndef XRA_EXPR_PARSER_HPP
 #define XRA_EXPR_PARSER_HPP
 
-#include "token-buffer.hpp"
-
 namespace xra {
 
 class ExprParser
 {
-  TokenBuffer<Lexer> tokens;
+  Lexer& lexer;
 
   ExprPtr FlatBlock();
   ExprPtr Block();
@@ -27,8 +25,8 @@ class ExprParser
   ExprPtr Expr_P(bool required);
 
 public:
-  ExprParser(Lexer& lexer) :
-    tokens(lexer)
+  ExprParser(Lexer& lexer_) :
+    lexer(lexer_)
   {}
 
   ExprPtr TopLevel();

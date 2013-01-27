@@ -40,7 +40,7 @@ DEPS = $(patsubst %,obj/%.d,$(SOURCES))
 all: xra
 
 clean:
-	rm -rf obj xra xra.dSYM
+	rm -rf obj xra
 
 xra: $(OBJS)
 	@echo "LINK $@"

@@ -3,5 +3,5 @@
 bool int float str signed unsigned true false module using fn if else elsif while break return type extern macro
 abc _def ghi123 UpperCamelCase lowerCamelCase
 $ ( ) : \ `
-!%&* +,-. /;<= >?@[ ]^{| |}~
+!%&* +,-./ ;<= >?@[ ]^{| |}~
 

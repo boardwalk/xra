@@ -40,8 +40,8 @@ $ at test/lexer-tokens.xra:5:2
 ` at test/lexer-tokens.xra:5:12
 <nodent> at test/lexer-tokens.xra:6:1
 <operator !%&*> at test/lexer-tokens.xra:6:5
-<operator +,-.> at test/lexer-tokens.xra:6:10
-<operator /;<=> at test/lexer-tokens.xra:6:15
+<operator +,-./> at test/lexer-tokens.xra:6:11
+<operator ;<=> at test/lexer-tokens.xra:6:15
 <operator >?@[> at test/lexer-tokens.xra:6:20
 <operator ]^{|> at test/lexer-tokens.xra:6:25
 <operator |}~> at test/lexer-tokens.xra:6:29

@@ -51,11 +51,6 @@ struct Token
     Operator // strValue
   };
 
-  Token& Str(string str) {
-    strValue = move(str);
-    return *this;
-  }
-
   Type type;
   SourceLoc loc;
 
@@ -74,7 +69,8 @@ class Lexer
   SourceLoc loc;
   char lastChar;
   stack<int> indents;
-  queue<Token> nextTokens;
+  deque<Token> tokens;
+  size_t lastConsumed;
   int parenLevel;
 
   Lexer(const Lexer&);
@@ -82,17 +78,21 @@ class Lexer
 
   char GetChar();
   void UngetStr(const string& str);
-  Token MakeToken(Token::Type type);
-  Token MakeError(string err);
+  void MakeToken(Token::Type type);
+  void MakeError(string s);
+  void MakeIdentifier(string s);
+  void MakeOperator(string s);
 
+  void NextToken();
   bool NestableComment();
-  Token String();
-  Token Number();
+  void String();
+  void Number();
 
 public:
   Lexer(istream& inputStream_, const string& source) :
     inputStream(inputStream_),
     lastChar(' '),
+    lastConsumed(0),
     parenLevel(0)
   {
     loc.source = make_shared<string>(source);
@@ -100,7 +100,8 @@ public:
     loc.column = 0;
   }
 
-  Token operator()();
+  Token& operator()(size_t i = 0);
+  void Consume(size_t n = 1);
 };
 
 } // namespace xra

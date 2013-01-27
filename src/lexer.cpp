@@ -182,29 +182,34 @@ void Lexer::UngetStr(const string& str)
   loc.column -= str.size();
 }
 
-Token Lexer::MakeToken(Token::Type type)
+void Lexer::MakeToken(Token::Type type)
 {
-  Token token;
-  token.type = type;
-  token.loc = loc;
-  return token;
+  tokens.emplace_front();
+  tokens.front().type = type;
+  tokens.front().loc = loc;
+  lastConsumed++;
 }
 
-Token Lexer::MakeError(string err)
+void Lexer::MakeError(string s)
 {
-  Token token = MakeToken(Token::Error);
-  token.strValue = move(err);
-  return token;
+  MakeToken(Token::Error);
+  tokens.front().strValue = move(s);
 }
 
-Token Lexer::operator()()
+void Lexer::MakeIdentifier(string s)
 {
-  if(!nextTokens.empty()) {
-    Token token = move(nextTokens.front());
-    nextTokens.pop();
-    return token;
-  }
+  MakeToken(Token::Identifier);
+  tokens.front().strValue = move(s);
+}
 
+void Lexer::MakeOperator(string s)
+{
+  MakeToken(Token::Operator);
+  tokens.front().strValue = move(s);
+}
+
+void Lexer::NextToken()
+{
   while(IsSpace(lastChar))
     GetChar();
 
@@ -223,7 +228,7 @@ Token Lexer::operator()()
 
     if(lastChar == '\r' || lastChar == '\n' || lastChar == EOF ||
        lastChar == '#' || parenLevel > 0 || indents.empty())
-      return (*this)();
+      return NextToken();
 
     if(indentSize > indents.top()) {
       indents.push(indentSize);
@@ -232,15 +237,13 @@ Token Lexer::operator()()
 
     while(indentSize < indents.top()) {
       indents.pop();
-      nextTokens.push(MakeToken(Token::Dedent));
+      MakeToken(Token::Dedent);
     }
-
-    nextTokens.push(MakeToken(Token::Nodent));
 
     if(indentSize != indents.top())
       return MakeError("invalid indentation");
 
-    return (*this)();
+    return MakeToken(Token::Nodent);
   }
 
   if(lastChar == '#') {
@@ -254,7 +257,7 @@ Token Lexer::operator()()
       while(lastChar != '\r' && lastChar != '\n' && lastChar != EOF)
         GetChar();
     }
-    return (*this)();
+    return NextToken();
   }
 
   if(indents.empty())
@@ -266,11 +269,15 @@ Token Lexer::operator()()
   if(lastChar == '"')
     return String();
 
-  if(lastChar == 'r') {
-    GetChar();
-    if(lastChar == '/')
-      return String();
-    UngetStr("r");
+  if(lastChar == '/') {
+    if(lastConsumed >= tokens.size())
+      return String(); // no possible argument to division
+    auto lastToken = tokens[lastConsumed].type;
+    if(lastToken != Token::Identifier &&
+       lastToken != Token::CloseParen &&
+       lastToken != Token::Integer &&
+       lastToken != Token::Float)
+      return String(); // not a possible argument to division
   }
 
   if(isdigit(lastChar))
@@ -301,9 +308,7 @@ Token Lexer::operator()()
     if(str == "type") return MakeToken(Token::TypeAlias);
     if(str == "extern") return MakeToken(Token::Extern);
     if(str == "macro") return MakeToken(Token::Macro);
-    Token token = MakeToken(Token::Identifier);
-    token.strValue = move(str);
-    return token;
+    return MakeIdentifier(move(str));
   }
 
   if(lastChar == '$') {
@@ -343,10 +348,7 @@ Token Lexer::operator()()
     string str(1, lastChar);
     while(Operator(GetChar()))
       str += lastChar;
-
-    Token token = MakeToken(Token::Operator);
-    token.strValue = str;
-    return token;
+    return MakeOperator(move(str));
   }
 
   if(lastChar == EOF) {
@@ -387,65 +389,7 @@ bool Lexer::NestableComment()
   return false;
 }
 
-Token Lexer::Number()
-{
-  int base = 10;
-  if(lastChar == '0') {
-    GetChar();
-    if(lastChar == 'b') {
-      GetChar();
-      base = 2;
-    }
-    else if(lastChar == 'x') {
-      GetChar();
-      base = 16;
-    }
-    else if(isalnum(lastChar)) {
-      base = 8;
-    }
-    else {
-      UngetStr("0");
-    }
-  }
-
-  string s(1, lastChar);
-  while(isalnum(GetChar()))
-    s += lastChar;
-
-  if(lastChar != '.') {
-    for(char c : s) {
-      if(c >= '0' && c < ('0' + min(base, 10)))
-        continue;
-      if(base > 10 && tolower(c) >= 'a' && tolower(c) < ('a' + (base - 10)))
-        continue;
-      return MakeError("invalid character in integer constant");
-    }
-    Token token = MakeToken(Token::Integer);
-    token.intValue = (unsigned long)strtol(s.c_str(), nullptr, base);
-    return token;
-  }
-
-  if(base != 10)
-    return MakeError("non-decimal floating point not allowed");
-
-  s += lastChar;
-  while(isalnum(GetChar()))
-    s += lastChar;
-
-  for(char c : s) {
-    if(c >= '0' && c <= '9')
-      continue;
-    if(c == '.')
-      continue;
-    return MakeError("invalid character in float constant");
-  }
-
-  Token token = MakeToken(Token::Float);
-  token.floatValue = strtod(s.c_str(), nullptr);
-  return token;
-}
-
-Token Lexer::String()
+void Lexer::String()
 {
   char delim = lastChar;
 
@@ -524,14 +468,14 @@ Token Lexer::String()
     }
   }
 
-  if(delim != '/' && interpolations.empty())
-    return MakeToken(Token::String).Str(move(str));
+  if(delim == '/' || !interpolations.empty())
+    MakeToken(Token::OpenParen);
 
   // leading regex desugar
   if(delim == '/')
   {
-    nextTokens.push(MakeToken(Token::Identifier).Str("Regex"));
-    nextTokens.push(MakeToken(Token::OpenParen));
+    MakeIdentifier("Regex");
+    MakeToken(Token::OpenParen);
   }
 
   // leading interpolation desugar
@@ -556,31 +500,33 @@ Token Lexer::String()
       str.insert(interpolations[i - 1].first, ss.str());
     }
 
-    nextTokens.push(MakeToken(Token::Identifier).Str("String"));
-    nextTokens.push(MakeToken(Token::Operator).Str("."));
-    nextTokens.push(MakeToken(Token::Identifier).Str("format"));
-    nextTokens.push(MakeToken(Token::OpenParen));
+    MakeIdentifier("String");
+    MakeOperator(".");
+    MakeIdentifier("format");
+    MakeToken(Token::OpenParen);
   }
 
-  nextTokens.push(MakeToken(Token::String).Str(move(str)));
+  MakeToken(Token::String);
+  tokens.front().strValue = move(str);
 
   // trailing interpolation desugar
   if(!interpolations.empty())
   {
     for(auto& interp : interpolations) {
-      nextTokens.push(MakeToken(Token::Operator).Str(","));
-      nextTokens.push(MakeToken(Token::OpenParen));
+      MakeOperator(",");
+      MakeToken(Token::OpenParen);
       stringstream ss(interp.second);
       Lexer lexer(ss, "interpolation");
       while(true) {
-        Token token = lexer();
-        if(token.type == Token::EndOfFile)
+        if(lexer().type == Token::EndOfFile)
           break;
-        nextTokens.push(move(token));
+        tokens.push_front(move(lexer()));
+        lastConsumed++;
+        lexer.Consume();
       }
-      nextTokens.push(MakeToken(Token::CloseParen));
+      MakeToken(Token::CloseParen);
     }
-    nextTokens.push(MakeToken(Token::CloseParen));
+    MakeToken(Token::CloseParen);
   }
 
   // trailing regex desugar
@@ -599,20 +545,92 @@ Token Lexer::String()
         return MakeError("invalid regex option");
       }
 
-      nextTokens.push(MakeToken(Token::Operator).Str(flagNum++ ? "|" : ","));
-      nextTokens.push(MakeToken(Token::Identifier).Str("Regex"));
-      nextTokens.push(MakeToken(Token::Operator).Str("."));
-      nextTokens.push(MakeToken(Token::Identifier).Str("Flag"));
-      nextTokens.push(MakeToken(Token::Operator).Str("."));
-      nextTokens.push(MakeToken(Token::Identifier).Str(flag));
+      MakeOperator(flagNum++ ? "|" : ",");
+      MakeIdentifier("Regex");
+      MakeOperator(".");
+      MakeIdentifier("Flag");
+      MakeOperator(".");
+      MakeIdentifier(flag);
 
       GetChar();
     }
-    nextTokens.push(MakeToken(Token::CloseParen));
+    MakeToken(Token::CloseParen);
   }
 
-  nextTokens.push(MakeToken(Token::CloseParen));
-  return MakeToken(Token::OpenParen);
+  if(delim == '/' || !interpolations.empty())
+    MakeToken(Token::CloseParen);
+}
+
+void Lexer::Number()
+{
+  int base = 10;
+  if(lastChar == '0') {
+    GetChar();
+    if(lastChar == 'b') {
+      GetChar();
+      base = 2;
+    }
+    else if(lastChar == 'x') {
+      GetChar();
+      base = 16;
+    }
+    else if(isalnum(lastChar)) {
+      base = 8;
+    }
+    else {
+      UngetStr("0");
+    }
+  }
+
+  string s(1, lastChar);
+  while(isalnum(GetChar()))
+    s += lastChar;
+
+  if(lastChar != '.') {
+    for(char c : s) {
+      if(c >= '0' && c < ('0' + min(base, 10)))
+        continue;
+      if(base > 10 && tolower(c) >= 'a' && tolower(c) < ('a' + (base - 10)))
+        continue;
+      return MakeError("invalid character in integer constant");
+    }
+    MakeToken(Token::Integer);
+    tokens.front().intValue = strtoul(s.c_str(), nullptr, base);
+    return;
+  }
+
+  if(base != 10)
+    return MakeError("non-decimal floating point not allowed");
+
+  s += lastChar;
+  while(isalnum(GetChar()))
+    s += lastChar;
+
+  for(char c : s) {
+    if(c >= '0' && c <= '9')
+      continue;
+    if(c == '.')
+      continue;
+    return MakeError("invalid character in float constant");
+  }
+
+  MakeToken(Token::Float);
+  tokens.front().floatValue = strtod(s.c_str(), nullptr);
+}
+
+Token& Lexer::operator()(size_t i)
+{
+  while(i >= lastConsumed)
+    NextToken();
+  return tokens[lastConsumed - i - 1];
+}
+
+void Lexer::Consume(size_t n)
+{
+  assert(n <= lastConsumed);
+  while(tokens.size() > lastConsumed + 1) // keep one trailing token
+    tokens.pop_back();
+  lastConsumed -= n;
 }
 
 } // namespace xra

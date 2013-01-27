@@ -2,4 +2,4 @@
 'this \" \\ \0 \a \b \f \n \r \t \v \x80 is an escape string'
 "this \" \\ \0 \a \b \f \n \r \t \v \x80 is an escape string"
 "and this is a code interpolation: {x + 1}, {y / 2}"
-r/snafu {i}!/imsx
+/snafu {i}!/imsx

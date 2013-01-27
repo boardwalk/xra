@@ -29,8 +29,8 @@ void Compose(const TypeSubst&, TypeSubst&);
 ostream& operator<<(ostream&, const TypeSubst&);
 
 // type-parser.cpp
-TypePtr ParseTypeList(TokenBuffer<Lexer>&);
-TypePtr ParseType(TokenBuffer<Lexer>&);
+TypePtr ParseTypeList(Lexer&);
+TypePtr ParseType(Lexer&);
 
 // type-tostring.cpp
 ostream& operator<<(ostream&, const Type&);

@@ -1,9 +1,8 @@
 <identifier a> at test/lexer-fail.xra:5:2
 <indent> at test/lexer-fail.xra:6:3
 <identifier b> at test/lexer-fail.xra:6:4
-<invalid indentation> at test/lexer-fail.xra:7:2
 <dedent> at test/lexer-fail.xra:7:2
-<nodent> at test/lexer-fail.xra:7:2
+<invalid indentation> at test/lexer-fail.xra:7:2
 <identifier c> at test/lexer-fail.xra:7:3
 <nodent> at test/lexer-fail.xra:10:1
 <invalid character in integer constant> at test/lexer-fail.xra:10:3

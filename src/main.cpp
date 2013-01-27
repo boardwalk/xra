@@ -1,7 +1,8 @@
 #include "common.hpp"
-#include "compiler.hpp"
+#include "lexer.hpp"
 #include "expr-parser.hpp"
 #include "typechecker.hpp"
+#include "compiler.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -73,18 +74,16 @@ int main(int argc, char** argv)
    */
   if(mode == LexMode)
   {
-    TokenBuffer<Lexer> tokens(lexer);
-
     bool ok = true;
     while(true) {
-      outputStream << tokens() << endl;
+      outputStream << lexer() << endl;
 
-      if(tokens().type == Token::Error)
+      if(lexer().type == Token::Error)
         ok = false;
-      else if(tokens().type == Token::EndOfFile)
+      else if(lexer().type == Token::EndOfFile)
         break;
 
-      tokens.Consume();
+      lexer.Consume();
     }
 
     if(!ok) {

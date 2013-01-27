@@ -23,43 +23,43 @@
 ) at test/lexer-string.xra:4:53
 ) at test/lexer-string.xra:4:53
 <nodent> at test/lexer-string.xra:5:1
-( at test/lexer-string.xra:5:18
-<identifier Regex> at test/lexer-string.xra:5:14
-( at test/lexer-string.xra:5:14
-<identifier String> at test/lexer-string.xra:5:14
-<operator .> at test/lexer-string.xra:5:14
-<identifier format> at test/lexer-string.xra:5:14
-( at test/lexer-string.xra:5:14
-"snafu {0}!" at test/lexer-string.xra:5:14
-<operator ,> at test/lexer-string.xra:5:14
-( at test/lexer-string.xra:5:14
+( at test/lexer-string.xra:5:13
+<identifier Regex> at test/lexer-string.xra:5:13
+( at test/lexer-string.xra:5:13
+<identifier String> at test/lexer-string.xra:5:13
+<operator .> at test/lexer-string.xra:5:13
+<identifier format> at test/lexer-string.xra:5:13
+( at test/lexer-string.xra:5:13
+"snafu {0}!" at test/lexer-string.xra:5:13
+<operator ,> at test/lexer-string.xra:5:13
+( at test/lexer-string.xra:5:13
 <identifier i> at interpolation:1:2
-) at test/lexer-string.xra:5:14
-) at test/lexer-string.xra:5:14
-<operator ,> at test/lexer-string.xra:5:14
+) at test/lexer-string.xra:5:13
+) at test/lexer-string.xra:5:13
+<operator ,> at test/lexer-string.xra:5:13
+<identifier Regex> at test/lexer-string.xra:5:13
+<operator .> at test/lexer-string.xra:5:13
+<identifier Flag> at test/lexer-string.xra:5:13
+<operator .> at test/lexer-string.xra:5:13
+<identifier Caseless> at test/lexer-string.xra:5:13
+<operator |> at test/lexer-string.xra:5:14
 <identifier Regex> at test/lexer-string.xra:5:14
 <operator .> at test/lexer-string.xra:5:14
 <identifier Flag> at test/lexer-string.xra:5:14
 <operator .> at test/lexer-string.xra:5:14
-<identifier Caseless> at test/lexer-string.xra:5:14
+<identifier Multiline> at test/lexer-string.xra:5:14
 <operator |> at test/lexer-string.xra:5:15
 <identifier Regex> at test/lexer-string.xra:5:15
 <operator .> at test/lexer-string.xra:5:15
 <identifier Flag> at test/lexer-string.xra:5:15
 <operator .> at test/lexer-string.xra:5:15
-<identifier Multiline> at test/lexer-string.xra:5:15
+<identifier DotAll> at test/lexer-string.xra:5:15
 <operator |> at test/lexer-string.xra:5:16
 <identifier Regex> at test/lexer-string.xra:5:16
 <operator .> at test/lexer-string.xra:5:16
 <identifier Flag> at test/lexer-string.xra:5:16
 <operator .> at test/lexer-string.xra:5:16
-<identifier DotAll> at test/lexer-string.xra:5:16
-<operator |> at test/lexer-string.xra:5:17
-<identifier Regex> at test/lexer-string.xra:5:17
-<operator .> at test/lexer-string.xra:5:17
-<identifier Flag> at test/lexer-string.xra:5:17
-<operator .> at test/lexer-string.xra:5:17
-<identifier Extended> at test/lexer-string.xra:5:17
-) at test/lexer-string.xra:5:18
-) at test/lexer-string.xra:5:18
-<eof> at test/lexer-string.xra:5:18
+<identifier Extended> at test/lexer-string.xra:5:16
+) at test/lexer-string.xra:5:17
+) at test/lexer-string.xra:5:17
+<eof> at test/lexer-string.xra:5:17
