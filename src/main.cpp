@@ -1,7 +1,6 @@
 #include "common.hpp"
 #include "compiler.hpp"
 #include "expr-parser.hpp"
-#include "macro-parser.hpp"
 #include "typechecker.hpp"
 
 #include <fstream>
@@ -21,12 +20,11 @@ int main(int argc, char** argv)
   ifstream ifs;
   ofstream ofs;
   string source = "stdin";
-  bool preprocess = true;
   bool bitcode = false;
 
   // parse options
   int c;
-  while((c = getopt(argc, argv, "lpacemo:nb")) != -1) {
+  while((c = getopt(argc, argv, "lpacemo:b")) != -1) {
     switch(c) {
     case 'l':
       mode = LexMode;
@@ -50,9 +48,6 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
       }
       break;
-    case 'n':
-      preprocess = false;
-      break;
     case 'b':
       bitcode = true;
       break;
@@ -72,23 +67,24 @@ int main(int argc, char** argv)
   ostream& outputStream = ofs.is_open() ? ofs : cout;
 
   Lexer lexer(inputStream, source);
-  MacroParser macroParser(lexer);
 
   /*
    * Lexing (testing only)
    */
   if(mode == LexMode)
   {
+    TokenBuffer<Lexer> tokens(lexer);
+
     bool ok = true;
     while(true) {
-      Token token = preprocess ? macroParser() : lexer();
+      outputStream << tokens() << endl;
 
-      outputStream << token << endl;
-
-      if(token.type == Token::Error)
+      if(tokens().type == Token::Error)
         ok = false;
-      else if(token.type == Token::EndOfFile)
+      else if(tokens().type == Token::EndOfFile)
         break;
+
+      tokens.Consume();
     }
 
     if(!ok) {
@@ -102,7 +98,7 @@ int main(int argc, char** argv)
   /*
    * Parsing
    */
-  ExprParser exprParser(macroParser);
+  ExprParser exprParser(lexer);
   ExprPtr expr = exprParser.TopLevel();
 
   string errors = Error::Get();
@@ -182,7 +178,7 @@ int main(int argc, char** argv)
   }
 
   typedef void (*MainFunc)();
-  auto mainFuncPtr = (MainFunc)engine->getPointerToFunction(mainFunc);
+  auto mainFuncPtr = (MainFunc)(uintptr_t)engine->getPointerToFunction(mainFunc);
   mainFuncPtr();
 
   return EXIT_SUCCESS;

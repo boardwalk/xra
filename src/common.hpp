@@ -38,7 +38,6 @@ template<class TokenSource>
 class TokenBuffer;
 
 class Lexer;
-class MacroParser;
 class ExprParser;
 
 class TypeChecker;

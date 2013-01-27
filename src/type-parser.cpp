@@ -1,6 +1,5 @@
 #include "common.hpp"
 #include "token-buffer.hpp"
-#include "macro-parser.hpp"
 #include "type.hpp"
 
 #define TOKEN(t) (tokens().type == Token::t)
@@ -15,7 +14,7 @@
 
 namespace xra {
 
-TypePtr ParseTypeList(TokenBuffer<MacroParser>& tokens) // prefix: "("
+TypePtr ParseTypeList(TokenBuffer<Lexer>& tokens) // prefix: "("
 {
   auto list = make_unique<TList>();
 
@@ -40,7 +39,7 @@ TypePtr ParseTypeList(TokenBuffer<MacroParser>& tokens) // prefix: "("
   return list.release();
 }
 
-TypePtr ParseType(TokenBuffer<MacroParser>& tokens) // prefix: "\"
+TypePtr ParseType(TokenBuffer<Lexer>& tokens) // prefix: "\"
 {
   TypePtr type;
 

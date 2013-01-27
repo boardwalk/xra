@@ -1,9 +1,0 @@
-extern at test/macro-def.xra:3:7
-<identifier puts> at test/macro-def.xra:3:12
-str at test/macro-def.xra:3:16
-<operator ->> at test/macro-def.xra:3:19
-int at test/macro-def.xra:3:23
-<nodent> at test/macro-def.xra:4:1
-<identifier puts> at test/macro-def.xra:4:3
-"Hello, world!" at test/macro-def.xra:4:3
-<eof> at test/macro-def.xra:5:1
